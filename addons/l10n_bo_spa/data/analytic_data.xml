@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Plan analítico: DÓNDE se genera el ingreso o se consume el gasto.
+         Las cuentas contables dicen QUÉ es; la analítica dice DÓNDE. -->
+    <record id="analytic_plan_areas" model="account.analytic.plan">
+        <field name="name">Áreas del negocio</field>
+        <field name="description">Centros de ingreso y costo para medir la rentabilidad por área.</field>
+        <field name="color">4</field>
+    </record>
+
+    <record id="analytic_area_piscina" model="account.analytic.account">
+        <field name="name">Piscina</field>
+        <field name="code">PIS</field>
+        <field name="plan_id" ref="analytic_plan_areas"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="analytic_area_sauna_jacuzzi" model="account.analytic.account">
+        <field name="name">Sauna y jacuzzi</field>
+        <field name="code">SAJ</field>
+        <field name="plan_id" ref="analytic_plan_areas"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="analytic_area_spa" model="account.analytic.account">
+        <field name="name">Spa y masajes</field>
+        <field name="code">SPA</field>
+        <field name="plan_id" ref="analytic_plan_areas"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="analytic_area_restaurante" model="account.analytic.account">
+        <field name="name">Restaurante</field>
+        <field name="code">RES</field>
+        <field name="plan_id" ref="analytic_plan_areas"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="analytic_area_cafeteria" model="account.analytic.account">
+        <field name="name">Cafetería</field>
+        <field name="code">CAF</field>
+        <field name="plan_id" ref="analytic_plan_areas"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="analytic_area_eventos" model="account.analytic.account">
+        <field name="name">Eventos, clases y alquileres</field>
+        <field name="code">EVE</field>
+        <field name="plan_id" ref="analytic_plan_areas"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="analytic_area_administracion" model="account.analytic.account">
+        <field name="name">Administración y servicios generales</field>
+        <field name="code">ADM</field>
+        <field name="plan_id" ref="analytic_plan_areas"/>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

@@ -1,0 +1,11 @@
+# Solo para servidores SIN Easypanel (VPS con Docker, equipo local).
+# Publica Odoo en el puerto 8069 del servidor, escuchando solo en 127.0.0.1
+# para ponerlo detrás de un proxy con HTTPS (Nginx, Caddy, Traefik).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.ports.yml up -d --build
+#
+# Para probar sin proxy en una red local, cambie "127.0.0.1:8069" por "8069".
+services:
+  odoo:
+    ports:
+      - "127.0.0.1:8069:8069"

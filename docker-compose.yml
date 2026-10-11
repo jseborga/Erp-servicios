@@ -1,0 +1,54 @@
+# ERP Servicios Spa — Odoo 19 Community + PostgreSQL 16
+#
+# Compatible con el servicio "Compose" de Easypanel: no publica puertos ni fija
+# container_name. En Easypanel, cree un dominio que apunte al servicio "odoo",
+# puerto 8069. En un servidor sin Easypanel, sume docker-compose.ports.yml.
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: ${DB_USER:-odoo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD en .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  odoo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-odoo}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD en .env}
+      ODOO_DB: ${ODOO_DB:-spa}
+      ODOO_ADMIN_PASSWD: ${ODOO_ADMIN_PASSWD:?Defina ODOO_ADMIN_PASSWD en .env}
+      ODOO_INIT: ${ODOO_INIT:-true}
+      ODOO_INIT_LOGIN: ${ODOO_INIT_LOGIN:-admin}
+      ODOO_INIT_PASSWORD: ${ODOO_INIT_PASSWORD:-}
+      ODOO_LANG: ${ODOO_LANG:-es_BO}
+      ODOO_COUNTRY: ${ODOO_COUNTRY:-BO}
+      ODOO_INIT_MODULES: ${ODOO_INIT_MODULES:-l10n_bo_spa,account_financial_report,account_tax_balance,mis_builder,account_asset_management,account_fiscal_year}
+      ODOO_UPDATE_MODULES: ${ODOO_UPDATE_MODULES:-}
+      ODOO_WORKERS: ${ODOO_WORKERS:-0}
+      ODOO_PROXY_MODE: ${ODOO_PROXY_MODE:-True}
+    volumes:
+      - odoo-data:/var/lib/odoo
+    expose:
+      - "8069"
+      - "8072"
+
+volumes:
+  db-data:
+  odoo-data:

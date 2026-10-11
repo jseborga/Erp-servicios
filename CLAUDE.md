@@ -33,10 +33,16 @@ addons/
   l10n_bo_purchase/      # registro de compras SIAT: tipo doc, CUF, unicidad
   l10n_bo_petty_cash/    # fondo fijo: rendición y reposición
   l10n_bo_siat_edi/      # conector a proveedor de facturación SIAT (por API)
+third_party/oca/         # módulos OCA fijados por commit (no editar a mano: scripts/update_oca.sh)
+docker/                  # entrypoint de la imagen
 mvp/                     # maqueta HTML
 docs/                    # especificaciones
 ```
 
-## Entorno de desarrollo sugerido
-- Odoo `19.0` community + `OCA/contract`, `OCA/vertical-association`, `OCA/calendar` en rama `19.0`.
-- Docker Compose con `odoo:19` y `postgres:16` (versión exacta de PostgreSQL a confirmar con los requisitos oficiales de Odoo 19).
+`l10n_bo_spa` ya está implementado (plan de cuentas). Los demás módulos `spa_*` y `l10n_bo_*` están por construir.
+
+## Entorno de desarrollo
+- `docker compose -f docker-compose.yml -f docker-compose.ports.yml up -d --build` (ver `docs/14`).
+- Imagen base `odoo:19.0`, **nunca** `latest` (apunta a Odoo 20). PostgreSQL 16 (Odoo 19 exige ≥ 13).
+- Pruebas: `odoo -c /etc/odoo/odoo.conf -d spa -u <módulo> --test-tags /<módulo> --stop-after-init`.
+- Los módulos que dependan del plan de cuentas usan `self.env['account.chart.template'].ref('<xmlid>')` para obtener cuentas por compañía (p. ej. `ref('l10n_bo_spa_2151')`).

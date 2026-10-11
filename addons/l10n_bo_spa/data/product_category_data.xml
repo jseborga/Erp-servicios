@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Las cuentas de cada categoría se asignan por compañía al cargar el plan
+         (models/template_bo_spa.py, _l10n_bo_spa_setup_product_categories). -->
+    <record id="categ_spa" model="product.category">
+        <field name="name">Spa</field>
+    </record>
+    <record id="categ_membership_monthly" model="product.category">
+        <field name="name">Membresías mensuales</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+    <record id="categ_membership_prepaid" model="product.category">
+        <field name="name">Membresías trimestrales y anuales (diferidas)</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+    <record id="categ_entry" model="product.category">
+        <field name="name">Entradas y pases diarios</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+    <record id="categ_massage" model="product.category">
+        <field name="name">Masajes y terapias</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+    <record id="categ_package" model="product.category">
+        <field name="name">Paquetes y sesiones prepagadas (diferidas)</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+    <record id="categ_guest" model="product.category">
+        <field name="name">Tarifas de invitados</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+    <record id="categ_class" model="product.category">
+        <field name="name">Clases y actividades</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+    <record id="categ_rental" model="product.category">
+        <field name="name">Alquiler de ambientes y eventos</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+    <record id="categ_penalty" model="product.category">
+        <field name="name">Penalidades (cancelación tardía, no-show)</field>
+        <field name="parent_id" ref="categ_spa"/>
+    </record>
+
+    <record id="categ_food" model="product.category">
+        <field name="name">Restaurante y cafetería</field>
+    </record>
+    <record id="categ_food_beverage" model="product.category">
+        <field name="name">Alimentos y bebidas</field>
+        <field name="parent_id" ref="categ_food"/>
+    </record>
+
+    <record id="categ_shop" model="product.category">
+        <field name="name">Tienda</field>
+    </record>
+    <record id="categ_shop_goods" model="product.category">
+        <field name="name">Productos para la venta</field>
+        <field name="parent_id" ref="categ_shop"/>
+    </record>
+
+    <record id="categ_supplies" model="product.category">
+        <field name="name">Insumos de operación</field>
+    </record>
+    <record id="categ_supplies_pool" model="product.category">
+        <field name="name">Químicos de piscina</field>
+        <field name="parent_id" ref="categ_supplies"/>
+    </record>
+    <record id="categ_supplies_spa" model="product.category">
+        <field name="name">Insumos de spa y masajes</field>
+        <field name="parent_id" ref="categ_supplies"/>
+    </record>
+    <record id="categ_supplies_amenities" model="product.category">
+        <field name="name">Amenities y limpieza</field>
+        <field name="parent_id" ref="categ_supplies"/>
+    </record>
+
+    <record id="categ_gift_card" model="product.category">
+        <field name="name">Tarjetas regalo y vales</field>
+    </record>
+    <record id="categ_discount" model="product.category">
+        <field name="name">Descuentos y promociones</field>
+    </record>
+</odoo>

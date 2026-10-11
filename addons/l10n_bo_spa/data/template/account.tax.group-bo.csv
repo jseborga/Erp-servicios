@@ -1,0 +1,3 @@
+"id","name","country_id","tax_receivable_account_id","tax_payable_account_id","advance_tax_payment_account_id"
+"tax_group_whh_rciva","Retenciones RC-IVA","base.bo","l10n_bo_1142","l10n_bo_21399","l10n_bo_1142"
+"tax_group_whh_retained","Retenciones retenidas al proveedor","base.bo","l10n_bo_1142","l10n_bo_21399","l10n_bo_1142"
