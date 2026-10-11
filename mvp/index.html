@@ -1,0 +1,642 @@
+<title>ERP Servicios Spa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: barra superior con cambio de rol · Socio = columna tipo app móvil · Admin = navegación lateral + área de trabajo */
+:root{
+  --bg:#EEF3F4; --surface:#FFFFFF; --surface-2:#E3ECEE; --ink:#10262B; --muted:#55707A;
+  --line:#CFDCDF; --accent:#0F7C86; --accent-ink:#FFFFFF; --accent-soft:#D3ECEE; --brass:#9A6A22;
+  --ok:#2E7D4F; --ok-soft:#DDF0E4; --warn:#9A6512; --warn-soft:#F6EAD3; --bad:#B42318; --bad-soft:#F8DEDA;
+  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1A1D; --surface:#112428; --surface-2:#173035; --ink:#E3EEF0; --muted:#8FA9AE;
+  --line:#24424A; --accent:#3CC1CC; --accent-ink:#052226; --accent-soft:#12393F; --brass:#D6A55A;
+  --ok:#5BC48A; --ok-soft:#163A28; --warn:#E3B04B; --warn-soft:#3A2E14; --bad:#F0786C; --bad-soft:#3E1C19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1A1D; --surface:#112428; --surface-2:#173035; --ink:#E3EEF0; --muted:#8FA9AE;
+  --line:#24424A; --accent:#3CC1CC; --accent-ink:#052226; --accent-soft:#12393F; --brass:#D6A55A;
+  --ok:#5BC48A; --ok-soft:#163A28; --warn:#E3B04B; --warn-soft:#3A2E14; --bad:#F0786C; --bad-soft:#3E1C19; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0}
+h2{font-size:1.45rem} h3{font-size:1.1rem}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.eyebrow{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* Top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;padding:10px 16px;max-width:1280px;margin:0 auto}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand b{font-family:var(--f-display);font-weight:400;font-size:1.25rem}
+.demo-tag{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);padding:3px 8px;border-radius:99px;white-space:nowrap}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:99px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:7px 14px;border-radius:99px;font-weight:600;font-size:.9rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+.wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+
+/* Generic */
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;font-weight:600;font-size:.9rem}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:.82rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid{display:grid;gap:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.info{background:var(--accent-soft);color:var(--accent)}
+.pill.neutral{background:var(--surface-2);color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:.8rem;font-weight:600;color:var(--muted)}
+.field input,.field select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;min-width:0;width:100%}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.note{font-size:.82rem;color:var(--muted);border-left:3px solid var(--brass);padding:4px 0 4px 10px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:.9rem;z-index:20;max-width:calc(100% - 32px)}
+.msg{font-size:.88rem;padding:8px 12px;border-radius:8px}
+.msg.bad{background:var(--bad-soft);color:var(--bad)}
+.msg.ok{background:var(--ok-soft);color:var(--ok)}
+.msg.warn{background:var(--warn-soft);color:var(--warn)}
+
+/* ---------- Socio (app) ---------- */
+.app{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.member-card{background:var(--accent);color:var(--accent-ink);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+.member-card::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;border:28px solid currentColor;opacity:.08}
+.member-card .tier{font-family:var(--f-display);font-size:1.6rem}
+.member-card .meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.85rem;opacity:.92}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:transparent;padding:10px 12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+.bal{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.bal:last-child{border-bottom:0}
+.bal .name{font-weight:600}
+.bal .val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600}
+.meter{grid-column:1/-1;height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px;min-width:58px;text-align:center;font-size:.8rem;line-height:1.2}
+.chip b{display:block;font-size:1.05rem;font-family:var(--f-mono)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.slot{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px;text-align:left;display:flex;flex-direction:column;gap:4px}
+.slot .t{font-family:var(--f-mono);font-weight:600}
+.slot .cap{font-size:.75rem;color:var(--muted)}
+.slot[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.slot:disabled{opacity:.45}
+.capbar{height:4px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.capbar i{display:block;height:100%;background:var(--accent)}
+.capbar i.full{background:var(--bad)}
+.qr{width:180px;height:180px;margin:0 auto;display:block;border-radius:8px;background:#fff;padding:10px}
+.plans{display:grid;gap:12px}
+.plan{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.plan.feat{border-color:var(--brass)}
+.plan .price{font-family:var(--f-mono);font-size:1.3rem;font-weight:600}
+.plan ul{margin:0;padding-left:18px;font-size:.88rem}
+
+/* ---------- Admin ---------- */
+.admin{display:grid;grid-template-columns:210px minmax(0,1fr);gap:20px;align-items:start}
+.side{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:2px}
+.side button{border:0;background:transparent;text-align:left;padding:9px 12px;border-radius:8px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.side button[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:inset 3px 0 0 var(--accent)}
+.side .count{font-family:var(--f-mono);font-size:.75rem;background:var(--warn-soft);color:var(--warn);border-radius:99px;padding:1px 7px}
+.side .group{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:14px 12px 4px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:10px;margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpi .v{font-family:var(--f-mono);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:.8rem;color:var(--muted)}
+.occ{display:grid;grid-template-columns:minmax(110px,160px) minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.occ:last-child{border-bottom:0}
+.occbar{height:14px;background:var(--surface-2);border-radius:4px;display:flex;gap:2px;padding:2px;overflow:hidden}
+.occbar i{flex:1;border-radius:2px;background:var(--line)}
+.occbar i.on{background:var(--accent)}
+.agenda{display:grid;gap:2px;font-size:.8rem;min-width:640px}
+.agenda .h{font-weight:600;color:var(--muted);padding:6px;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.agenda .c{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px;min-height:46px;display:flex;flex-direction:column;gap:4px}
+.agenda .c.na{background:transparent;border-style:dashed;opacity:.5}
+.agenda .tm{font-family:var(--f-mono);color:var(--muted);padding:6px}
+.kanban{display:grid;grid-template-columns:repeat(6,minmax(170px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--surface-2);border-radius:var(--r);padding:8px;display:flex;flex-direction:column;gap:8px;min-width:170px}
+.col h4{margin:0;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;justify-content:space-between;padding:4px}
+.lead{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px;display:flex;flex-direction:column;gap:5px;font-size:.85rem}
+.lead .n{font-weight:600}
+.lead .acts{display:flex;gap:4px}
+.lead .acts button{border:1px solid var(--line);background:transparent;border-radius:6px;padding:2px 8px;font-size:.78rem}
+.split{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:start}
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.menu button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.menu button span{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.tables{display:flex;flex-wrap:wrap;gap:8px}
+.tables button{width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-weight:600}
+.tables button.busy{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.tables button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.entry{font-family:var(--f-mono);font-size:.82rem;font-variant-numeric:tabular-nums}
+.entry td{padding:5px 8px}
+.bars{display:flex;flex-direction:column;gap:12px}
+.barrow{display:grid;grid-template-columns:120px minmax(0,1fr) 90px;gap:10px;align-items:center;font-size:.85rem}
+.barrow .track{display:flex;flex-direction:column;gap:3px}
+.barrow .b{height:10px;border-radius:3px}
+.b.in{background:var(--accent)} .b.cost{background:var(--brass)}
+.legend{display:flex;gap:14px;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+@media (max-width:860px){
+  .admin{grid-template-columns:1fr}
+  .side{position:static;flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:4px}
+  .side .group{display:none}
+  .side button{white-space:nowrap}
+  .side button[aria-current="page"]{box-shadow:inset 0 -3px 0 var(--accent)}
+  .split{grid-template-columns:1fr}
+  .occ{grid-template-columns:1fr auto;}
+  .occ .occbar{grid-column:1/-1}
+}
+@media (max-width:480px){ .two{grid-template-columns:1fr} .barrow{grid-template-columns:90px minmax(0,1fr) 80px} }
+@media (prefers-reduced-motion:no-preference){ .meter i,.capbar i{transition:width .3s ease} }
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><b>Aqua Reserva</b><span class="demo-tag">MVP · datos ilustrativos</span></div>
+    <div class="seg" role="group" aria-label="Vista">
+      <button id="mode-member" aria-pressed="true">Socio (web)</button>
+      <button id="mode-admin" aria-pressed="false">Administración</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="view-member"></section>
+  <section id="view-admin" hidden></section>
+</main>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script>
+/* ======================= Datos ilustrativos ======================= */
+const BS = n => 'Bs ' + Number(n).toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pad = n => String(n).padStart(2,'0');
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const addDays = (d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const iso = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const weekKey = d => {const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);return iso(x)};
+
+const S = {
+  spaces:[
+    {id:'pool', name:'Piscina', cap:15, mode:'slot', open:8, close:20, slot:2, staff:false},
+    {id:'sauna', name:'Sauna', cap:5, mode:'free', open:10, close:20, slot:1, staff:false},
+    {id:'jacuzzi', name:'Jacuzzi', cap:5, mode:'slot', open:10, close:20, slot:1, staff:false},
+    {id:'massage', name:'Cabina de masajes', cap:1, mode:'slot', open:9, close:18, slot:1, staff:true, staffName:'Lucía R. (masajista)'}
+  ],
+  services:[
+    {id:'pool', name:'Piscina', space:'pool', price:90, guests:true},
+    {id:'jacuzzi', name:'Jacuzzi', space:'jacuzzi', price:70, guests:true},
+    {id:'massage', name:'Masaje relajante 60′', space:'massage', price:280, guests:false},
+    {id:'sauna', name:'Sauna', space:'sauna', price:60, guests:true}
+  ],
+  plans:[
+    {id:'basic', name:'Básica', prices:{1:450,3:1240,12:4590}, lines:['Piscina ilimitada (07–21 h)','Sauna 8 sesiones/mes','1 invitado al mes'], guestQuota:1, posDisc:0},
+    {id:'premium', name:'Premium', prices:{1:890,3:2450,12:9070}, feat:true, lines:['Piscina ilimitada (07–21 h)','4 masajes/mes, máx. 1 por semana','5 sesiones de jacuzzi/mes (10–20 h)','2 invitados al mes','10 % en cafetería'], guestQuota:2, posDisc:10},
+    {id:'vip', name:'VIP', prices:{1:1490,3:4100,12:15200}, lines:['Todo ilimitado en horario completo','8 masajes/mes','4 invitados al mes','15 % en restaurante y cafetería'], guestQuota:4, posDisc:15}
+  ],
+  member:{name:'Ana Pérez', ci:'4.512.889 LP', plan:'premium', period:'Mensual', since:'2026-03-01', due:iso(addDays(TODAY,4)), state:'active',
+    ent:{massage:{label:'Masajes',total:4,used:1,unit:'este mes',rule:'máx. 1 por semana'}, jacuzzi:{label:'Jacuzzi',total:5,used:1,unit:'este mes',rule:'10:00–20:00, traslado máx. 2'}, pool:{label:'Piscina',total:null,used:6,unit:'este mes',rule:'ilimitada, 07:00–21:00'}},
+    guestsUsed:1, guestFee:120},
+  bookings:[],
+  guests:[],
+  payments:[
+    {id:1, who:'Carlos Mendoza', concept:'Premium · trimestral', amount:2450, method:'QR', when:'hoy 09:12'},
+    {id:2, who:'Valeria Quispe', concept:'Básica · mensual', amount:450, method:'Transferencia', when:'ayer 18:40'}
+  ],
+  members:[
+    {name:'Ana Pérez', plan:'Premium', due:'en 4 días', state:'active', use:62},
+    {name:'Carlos Mendoza', plan:'Premium', due:'vencida hace 2 días', state:'grace', use:40},
+    {name:'Valeria Quispe', plan:'Básica', due:'vencida hace 1 día', state:'grace', use:75},
+    {name:'Rodrigo Aliaga', plan:'VIP', due:'en 21 días', state:'active', use:81},
+    {name:'Mariela Choque', plan:'Básica', due:'vencida hace 9 días', state:'suspended', use:12},
+    {name:'Jorge Vargas', plan:'Premium', due:'en 12 días', state:'active', use:18},
+    {name:'Paola Rojas', plan:'VIP', due:'en 2 días', state:'active', use:66}
+  ],
+  leads:[
+    {id:1,name:'Daniela Flores',src:'Instagram',stage:0,note:'Preguntó por plan anual'},
+    {id:2,name:'Miguel Ortiz',src:'Web',stage:0,note:'Formulario web'},
+    {id:3,name:'Sofía Gutiérrez',src:'Cortesía',stage:1,note:'Pase de cortesía · vence en 5 días'},
+    {id:4,name:'Luis Camacho',src:'Invitado de socio',stage:1,note:'Invitado de Rodrigo Aliaga'},
+    {id:5,name:'Andrea Salazar',src:'WhatsApp',stage:2,note:'Propuesta Premium trimestral enviada'},
+    {id:6,name:'Rodrigo Aliaga',src:'Referido',stage:3,note:'Socio VIP'},
+    {id:7,name:'Carlos Mendoza',src:'Instagram',stage:4,note:'Mora 2 días · uso bajo'},
+    {id:8,name:'Mariela Choque',src:'Web',stage:4,note:'Suspendida por mora'},
+    {id:9,name:'Fernando Ríos',src:'Facebook',stage:5,note:'No renovó en agosto'}
+  ],
+  stages:['Interesado','Visita / cortesía','Propuesta','Socio activo','En riesgo','Ex-socio'],
+  purchases:[
+    {nit:'1023456027', num:'4512', key:'A1B2C3D4E5F60718293A4B5C6D7E8F90112233445566778899AABB', type:'siat_online', supplier:'Distribuidora Andina SRL', amount:1850},
+    {nit:'3344556011', num:'889', key:'29040011007', type:'dosificacion', supplier:'Químicos Piscina Bolivia', amount:2300}
+  ],
+  fund:{name:'Fondo fijo – Cocina', custodian:'Marco T.', amount:2000, vouchers:[
+    {desc:'Verduras mercado Rodríguez', doc:'none', kind:'goods', amount:180, mode:'supplier'},
+    {desc:'Gas licuado (2 garrafas)', doc:'invoice', kind:'goods', amount:45, mode:null},
+    {desc:'Plomero (reparación grifo)', doc:'none', kind:'services', amount:200, mode:'supplier'}
+  ], cash:1575, reimbursed:false},
+  pos:{table:null, member:null, lines:[], busy:[3,6]},
+  menu:[{n:'Café americano',p:18,cat:'cafe'},{n:'Capuchino',p:24,cat:'cafe'},{n:'Jugo natural',p:22,cat:'cafe'},{n:'Ensalada César',p:58,cat:'rest'},{n:'Salteña (2 u)',p:20,cat:'cafe'},{n:'Trucha a la plancha',p:85,cat:'rest'},{n:'Agua mineral',p:12,cat:'cafe'},{n:'Pique macho',p:78,cat:'rest'}]
+};
+
+/* deterministic pseudo occupancy */
+function seedOcc(spaceId, date, hour){
+  let h = 0; const s = spaceId+iso(date)+hour;
+  for (const c of s) h = (h*31 + c.charCodeAt(0)) >>> 0;
+  const sp = S.spaces.find(x=>x.id===spaceId);
+  const r = (h % 1000)/1000;
+  if (sp.cap===1) return r < 0.45 ? 1 : 0;
+  const peak = (hour>=17 && hour<=19) ? 0.35 : 0;
+  return Math.min(sp.cap, Math.floor(sp.cap*(r*0.75+peak)));
+}
+function taken(spaceId, date, hour){
+  const base = seedOcc(spaceId,date,hour);
+  const mine = S.bookings.filter(b=>b.space===spaceId && b.date===iso(date) && b.hour===hour).reduce((a,b)=>a+b.seats,0);
+  return base + mine;
+}
+
+/* ======================= Utilidades UI ======================= */
+const $ = s => document.querySelector(s);
+const el = (h) => { const t=document.createElement('template'); t.innerHTML=h.trim(); return t.content.firstElementChild; };
+let toastT; function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ======================= Modo ======================= */
+let mode='member';
+function setMode(m){mode=m;$('#mode-member').setAttribute('aria-pressed',m==='member');$('#mode-admin').setAttribute('aria-pressed',m==='admin');$('#view-member').hidden=m!=='member';$('#view-admin').hidden=m!=='admin';m==='member'?renderMember():renderAdmin()}
+$('#mode-member').onclick=()=>setMode('member'); $('#mode-admin').onclick=()=>setMode('admin');
+
+/* ======================= SOCIO ======================= */
+let mTab='plan';
+const R = {service:'massage', day:0, hour:null, guest:false, err:null};
+
+function renderMember(){
+  const m=S.member, plan=S.plans.find(p=>p.id===m.plan);
+  const stPill = m.state==='active'?'<span class="pill ok">Activa</span>':m.state==='pending'?'<span class="pill warn">Pago en validación</span>':'<span class="pill bad">Suspendida</span>';
+  const v=$('#view-member'); v.innerHTML='';
+  const app=el(`<div class="app">
+    <div class="member-card">
+      <div class="row" style="justify-content:space-between"><span class="eyebrow" style="color:inherit;opacity:.8">Membresía</span>${stPill}</div>
+      <div><div class="tier">${plan.name}</div><div class="small" style="opacity:.9">${esc(m.name)} · ${m.period}</div></div>
+      <div class="meta"><span>Vence <b class="mono">${m.due}</b></span><span>Socio desde <span class="mono">${m.since}</span></span></div>
+    </div>
+    <div class="tabs" role="tablist">
+      ${[['plan','Mi plan'],['book','Reservar'],['guests','Invitados'],['pay','Pagar'],['plans','Planes']].map(([k,l])=>`<button role="tab" aria-selected="${mTab===k}" data-t="${k}">${l}</button>`).join('')}
+    </div>
+    <div id="mbody"></div>
+  </div>`);
+  app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{mTab=b.dataset.t;renderMember()});
+  v.appendChild(app);
+  const body=$('#mbody');
+  ({plan:mPlan,book:mBook,guests:mGuests,pay:mPay,plans:mPlans})[mTab](body);
+}
+
+function mPlan(body){
+  const m=S.member, plan=S.plans.find(p=>p.id===m.plan);
+  const rows=Object.entries(m.ent).map(([k,e])=>{
+    const left = e.total==null?null:e.total-e.used;
+    const pct = e.total==null?100:Math.round(left/e.total*100);
+    return `<div class="bal"><span class="name">${e.label}</span><span class="val">${e.total==null?'Ilimitado':`${left} de ${e.total}`}</span>
+      <div class="meter"><i style="width:${pct}%"></i></div><span class="small muted" style="grid-column:1/-1">Te ${e.total==null?'queda acceso':'quedan '+left} ${e.unit} · ${e.rule}</span></div>`}).join('');
+  const myB = S.bookings.slice().reverse().map(b=>`<tr><td>${esc(b.label)}</td><td class="mono">${b.dateLabel} ${pad(b.hour)}:00</td><td>${b.seats>1?'+'+(b.seats-1)+' inv.':''}</td><td><button class="btn sm ghost" data-cancel="${b.id}">Cancelar</button></td></tr>`).join('');
+  body.innerHTML=`<div class="stack">
+    <div class="panel"><div class="eyebrow">Tus saldos</div>${rows}
+      <div class="bal"><span class="name">Invitados (free pass)</span><span class="val">${plan.guestQuota-m.guestsUsed} de ${plan.guestQuota}</span><div class="meter"><i style="width:${(plan.guestQuota-m.guestsUsed)/plan.guestQuota*100}%"></i></div></div>
+    </div>
+    <div class="panel"><div class="eyebrow">Próximas reservas</div>
+      ${S.bookings.length?`<div class="tbl-wrap"><table><tbody>${myB}</tbody></table></div><p class="note" style="margin:10px 0 0">Cancelación gratis hasta 12 h antes. Después, pierdes la sesión (política del plan Premium).</p>`:'<p class="muted small" style="margin:8px 0 0">Aún no tienes reservas. Ve a <b>Reservar</b>.</p>'}
+    </div>
+    <div class="panel row" style="justify-content:space-between"><div><div class="eyebrow">Credencial de acceso</div><div class="small muted">Muestra este QR en recepción para el check-in.</div></div><canvas class="qr" id="cardqr" width="160" height="160" style="width:90px;height:90px;margin:0;padding:5px" aria-label="QR ilustrativo de la credencial"></canvas></div>
+  </div>`;
+  drawQR($('#cardqr'),'socio-ana');
+  body.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>{
+    const bk=S.bookings.find(x=>x.id==b.dataset.cancel);
+    S.bookings=S.bookings.filter(x=>x!==bk);
+    const e=S.member.ent[bk.service]; if(e && e.total!=null) e.used=Math.max(0,e.used-1); else if(e) e.used--;
+    toast('Reserva cancelada · saldo devuelto'); renderMember();
+  });
+}
+
+function mBook(body){
+  const svc=S.services.find(s=>s.id===R.service), sp=S.spaces.find(x=>x.id===svc.space);
+  const days=[...Array(7)].map((_,i)=>addDays(TODAY,i));
+  const d=days[R.day];
+  const hours=[]; for(let h=sp.open;h<sp.close;h+=sp.slot) hours.push(h);
+  const ent=S.member.ent[svc.id];
+  // rules
+  let rule=null;
+  if(ent && ent.total!=null && ent.total-ent.used<=0) rule={t:'bad',m:`No te quedan sesiones de ${ent.label.toLowerCase()} este mes. Puedes comprar una sesión suelta (${BS(svc.price)}).`};
+  if(svc.id==='massage'){
+    const wk=weekKey(d); const already=S.bookings.some(b=>b.service==='massage'&&weekKey(new Date(b.date+'T00:00'))===wk) || (wk===weekKey(TODAY) && S.member.ent.massage.used>=1 && !S.bookings.some(b=>b.service==='massage'));
+    if(already) rule={t:'warn',m:'Tu plan permite 1 masaje por semana y ya usaste el de esta semana. Elige un día de la próxima semana.'};
+  }
+  if(sp.mode==='free') rule={t:'info',m:`${sp.name} funciona con acceso libre: no necesitas reserva, solo haz check-in con tu QR. Aforo máximo ${sp.cap} personas; ahora hay ${taken(sp.id,TODAY,Math.max(sp.open,Math.min(new Date().getHours(),sp.close-1)))}.`};
+  const slots=hours.map(h=>{
+    const t=taken(sp.id,d,h), free=sp.cap-t, past = R.day===0 && h<=new Date().getHours();
+    const need = 1+(R.guest&&svc.guests?1:0);
+    const dis = past || free<need || (rule&&rule.t!=='info') || sp.mode==='free';
+    return `<button class="slot" data-h="${h}" aria-pressed="${R.hour===h}" ${dis?'disabled':''}><span class="t">${pad(h)}:00–${pad(h+sp.slot)}:00</span><div class="capbar"><i class="${free<=0?'full':''}" style="width:${t/sp.cap*100}%"></i></div><span class="cap">${past?'Pasó':free<=0?'Lleno':`${free} de ${sp.cap} libres`}</span></button>`}).join('');
+  body.innerHTML=`<div class="stack">
+    <div class="field"><label for="svc">Servicio</label><select id="svc">${S.services.map(s=>`<option value="${s.id}" ${s.id===R.service?'selected':''}>${s.name}</option>`).join('')}</select></div>
+    <div><div class="eyebrow" style="margin-bottom:6px">Día</div><div class="chips">${days.map((x,i)=>`<button class="chip" data-d="${i}" aria-pressed="${i===R.day}">${DOW[x.getDay()]}<b>${x.getDate()}</b></button>`).join('')}</div></div>
+    ${rule?`<div class="msg ${rule.t==='info'?'ok':rule.t}">${rule.m}</div>`:''}
+    ${svc.guests?`<label class="row small"><input type="checkbox" id="g" ${R.guest?'checked':''}> Llevo un invitado (ocupa 1 cupo más)</label>`:''}
+    <div><div class="eyebrow" style="margin-bottom:6px">Horarios · ${sp.name}${sp.staff?' · '+sp.staffName:''}</div><div class="slots">${slots}</div></div>
+    ${R.err?`<div class="msg bad">${R.err}</div>`:''}
+    <button class="btn primary" id="confirm" ${R.hour==null?'disabled':''}>Confirmar reserva</button>
+  </div>`;
+  $('#svc').onchange=e=>{R.service=e.target.value;R.hour=null;R.err=null;R.guest=false;renderMember()};
+  body.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{R.day=+b.dataset.d;R.hour=null;R.err=null;renderMember()});
+  body.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{R.hour=+b.dataset.h;R.err=null;renderMember()});
+  const g=$('#g'); if(g) g.onchange=()=>{R.guest=g.checked;R.hour=null;renderMember()};
+  $('#confirm').onclick=()=>{
+    const seats=1+(R.guest&&svc.guests?1:0);
+    if(sp.cap-taken(sp.id,d,R.hour)<seats){R.err='Ese horario se llenó mientras elegías. Elige otro.';return renderMember()}
+    S.bookings.push({id:Date.now(),service:svc.id,space:sp.id,label:svc.name,date:iso(d),dateLabel:`${DOW[d.getDay()]} ${d.getDate()}`,hour:R.hour,seats,who:S.member.name});
+    if(ent) ent.used++;
+    let extra='';
+    if(seats>1){ addGuest('Invitado de Ana','', svc.name); extra=' · invitado registrado'; }
+    R.hour=null; R.guest=false; mTab='plan'; toast('Reserva confirmada'+extra); renderMember();
+  };
+}
+
+function addGuest(name,phone,where){
+  const plan=S.plans.find(p=>p.id===S.member.plan);
+  const free = S.member.guestsUsed < plan.guestQuota;
+  if(free) S.member.guestsUsed++;
+  S.guests.push({name,phone,where,charge:free?'Free pass':BS(S.member.guestFee)});
+  S.leads.push({id:Date.now(),name,src:'Invitado de socio',stage:1,note:`Invitado de ${S.member.name} · ${where}`});
+  return free;
+}
+
+function mGuests(body){
+  const plan=S.plans.find(p=>p.id===S.member.plan); const left=plan.guestQuota-S.member.guestsUsed;
+  body.innerHTML=`<div class="stack">
+    <div class="panel"><div class="eyebrow">Este mes</div><p style="margin:6px 0 0">Tienes <b>${Math.max(0,left)} de ${plan.guestQuota}</b> pases gratis. Después, cada invitado cuesta <b class="mono">${BS(S.member.guestFee)}</b> y se carga a tu cuenta.</p></div>
+    <form class="panel stack" id="gform">
+      <div class="two"><div class="field"><label for="gn">Nombre del invitado</label><input id="gn" required placeholder="Ej. Laura Méndez"></div>
+      <div class="field"><label for="gp">Celular</label><input id="gp" inputmode="tel" placeholder="+591 7…"></div></div>
+      <div class="field"><label for="gw">Para</label><select id="gw"><option>Piscina</option><option>Jacuzzi</option><option>Sauna</option></select></div>
+      <button class="btn primary" type="submit">Registrar invitado</button>
+      <p class="small muted" style="margin:0">El invitado recibe un pase con QR por WhatsApp. Ocupa aforo como cualquier socio.</p>
+    </form>
+    <div class="panel"><div class="eyebrow">Historial</div>${S.guests.length?`<div class="tbl-wrap"><table><tbody>${S.guests.map(g=>`<tr><td>${esc(g.name)}</td><td>${esc(g.where)}</td><td class="num">${g.charge}</td></tr>`).join('')}</tbody></table></div>`:'<p class="small muted" style="margin:6px 0 0">Laura Méndez · Piscina · Free pass (01-oct)</p>'}</div>
+  </div>`;
+  $('#gform').onsubmit=e=>{e.preventDefault();const n=$('#gn').value.trim();if(!n)return;const free=addGuest(n,$('#gp').value,$('#gw').value);toast(free?'Invitado registrado con free pass':'Invitado registrado · tarifa cargada a tu cuenta');renderMember()};
+}
+
+function mPay(body){
+  const plan=S.plans.find(p=>p.id===S.member.plan);
+  const pending=S.member.state==='pending';
+  body.innerHTML=`<div class="stack">
+    <div class="panel"><div class="eyebrow">Renovación</div>
+      <div class="row" style="justify-content:space-between;margin-top:6px"><span>${plan.name} · mensual</span><b class="mono">${BS(plan.prices[1])}</b></div>
+      <div class="small muted">Vence ${S.member.due}. Tienes 5 días de gracia después del vencimiento.</div>
+    </div>
+    <div class="panel stack" style="text-align:center">
+      <div class="eyebrow">Paga con cualquier app bancaria</div>
+      <canvas class="qr" id="payqr" width="180" height="180" aria-label="QR de pago ilustrativo"></canvas>
+      <div class="small muted">QR ilustrativo. Monto fijo ${BS(plan.prices[1])} · referencia <span class="mono">MEM-0412</span></div>
+      ${pending?'<div class="msg warn">Recibimos tu comprobante. Caja lo valida en minutos y te avisamos por WhatsApp.</div>':
+      `<div class="field" style="text-align:left"><label for="rcp">Comprobante (foto o PDF)</label><input type="file" id="rcp" accept="image/*,.pdf"></div>
+      <button class="btn primary" id="sendrcp">Enviar comprobante</button>`}
+    </div>
+    <div class="panel"><div class="eyebrow">Ofertas vigentes</div><ul class="small" style="margin:6px 0 0;padding-left:18px"><li>Anual con <b>15 %</b> de descuento hasta el 31-dic.</li><li>Anual en <b>3 cuotas</b> sin recargo.</li></ul></div>
+  </div>`;
+  drawQR($('#payqr'),'pago-'+plan.prices[1]);
+  const s=$('#sendrcp'); if(s) s.onclick=()=>{S.member.state='pending';S.payments.unshift({id:Date.now(),who:S.member.name,concept:plan.name+' · mensual',amount:plan.prices[1],method:'QR',when:'ahora',mine:true});toast('Comprobante enviado');renderMember()};
+}
+
+let planPeriod=1;
+function mPlans(body){
+  body.innerHTML=`<div class="stack">
+    <div class="seg" role="group" aria-label="Período">${[[1,'Mensual'],[3,'Trimestral'],[12,'Anual']].map(([k,l])=>`<button data-p="${k}" aria-pressed="${planPeriod===k}">${l}</button>`).join('')}</div>
+    <div class="plans">${S.plans.map(p=>`<div class="plan ${p.feat?'feat':''}"><div class="row" style="justify-content:space-between"><h3>${p.name}</h3>${p.id===S.member.plan?'<span class="pill info">Tu plan</span>':p.feat?'<span class="pill neutral">Más elegido</span>':''}</div>
+      <div class="price">${BS(p.prices[planPeriod])}<span class="small muted" style="font-family:var(--f-body);font-weight:400"> / ${planPeriod===1?'mes':planPeriod===3?'trimestre':'año'}</span></div>
+      ${planPeriod>1?`<div class="small muted">Equivale a ${BS(p.prices[planPeriod]/planPeriod)} al mes</div>`:''}
+      <ul>${p.lines.map(l=>`<li>${l}</li>`).join('')}</ul></div>`).join('')}</div>
+    <p class="note">Precios y beneficios de ejemplo. El administrador crea los planes y sus reglas sin programar.</p>
+  </div>`;
+  body.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{planPeriod=+b.dataset.p;renderMember()});
+}
+
+function drawQR(cv,seed){
+  if(!cv) return; const ctx=cv.getContext('2d'); const n=25, s=cv.width/n;
+  let h=7; for(const c of seed) h=(h*131+c.charCodeAt(0))>>>0;
+  const rnd=()=>{h^=h<<13;h>>>=0;h^=h>>17;h^=h<<5;h>>>=0;return h/4294967296};
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);ctx.fillStyle='#10262B';
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){ if(rnd()>.52) ctx.fillRect(x*s,y*s,s,s); }
+  const finder=(x,y)=>{ctx.fillStyle='#10262B';ctx.fillRect(x*s,y*s,7*s,7*s);ctx.fillStyle='#fff';ctx.fillRect((x+1)*s,(y+1)*s,5*s,5*s);ctx.fillStyle='#10262B';ctx.fillRect((x+2)*s,(y+2)*s,3*s,3*s)};
+  finder(0,0);finder(n-7,0);finder(0,n-7);
+}
+
+/* ======================= ADMIN ======================= */
+let aTab='today';
+const NAV=[['g','Operación'],['today','Hoy'],['agenda','Agenda'],['payments','Pagos por validar'],['members','Socios y mora'],['g','Comercial'],['crm','CRM'],['pos','Restaurante'],['g','Administración'],['purchases','Compras'],['fund','Fondo fijo'],['profit','Rentabilidad'],['config','Configuración']];
+
+function renderAdmin(){
+  const v=$('#view-admin');
+  const pend=S.payments.length;
+  v.innerHTML=`<div class="admin"><nav class="side" aria-label="Secciones">${NAV.map(([k,l])=>k==='g'?`<div class="group">${l}</div>`:`<button data-a="${k}" ${aTab===k?'aria-current="page"':''}>${l}${k==='payments'&&pend?`<span class="count">${pend}</span>`:''}</button>`).join('')}</nav><div id="abody" style="min-width:0"></div></div>`;
+  v.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{aTab=b.dataset.a;renderAdmin()});
+  ({today:aToday,agenda:aAgenda,payments:aPayments,members:aMembers,crm:aCRM,pos:aPOS,purchases:aPurchases,fund:aFund,profit:aProfit,config:aConfig})[aTab]($('#abody'));
+}
+const head=(t,sub,right='')=>`<div class="head"><div><div class="eyebrow">${sub}</div><h2>${t}</h2></div>${right}</div>`;
+
+const live={pool:9,sauna:3,jacuzzi:4,massage:1};
+function aToday(b){
+  const now=new Date(); const hb=S.bookings.filter(x=>x.date===iso(TODAY)).length;
+  const act=S.members.filter(m=>m.state==='active').length, mora=S.members.filter(m=>m.state!=='active').length;
+  b.innerHTML=head('Operación del día',DOW[now.getDay()]+' '+now.getDate()+' · '+pad(now.getHours())+':'+pad(now.getMinutes()))+`
+  <div class="stack">
+    <div class="kpis">
+      <div class="kpi"><div class="v">${Object.values(live).reduce((a,c)=>a+c,0)}</div><div class="l">Personas dentro ahora</div></div>
+      <div class="kpi"><div class="v">${23+hb}</div><div class="l">Reservas de hoy</div></div>
+      <div class="kpi"><div class="v">${act}</div><div class="l">Socios activos (muestra)</div></div>
+      <div class="kpi"><div class="v">${mora}</div><div class="l">En gracia o suspendidos</div></div>
+      <div class="kpi"><div class="v">${S.payments.length}</div><div class="l">Pagos por validar</div></div>
+    </div>
+    <div class="panel"><div class="row" style="justify-content:space-between"><h3>Aforo en vivo</h3><span class="small muted">Check-in con QR o manual</span></div>
+      ${S.spaces.map(sp=>{const n=live[sp.id];return `<div class="occ"><div><b>${sp.name}</b><div class="small muted">${sp.mode==='free'?'Acceso libre':'Por franja'}${sp.staff?' · con personal':''}</div></div>
+      <div class="occbar" aria-label="${n} de ${sp.cap}">${[...Array(sp.cap)].map((_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>
+      <span class="mono">${n}/${sp.cap}</span>
+      <span class="row" style="gap:4px"><button class="btn sm" data-in="${sp.id}" ${n>=sp.cap?'disabled':''}>Check-in</button><button class="btn sm ghost" data-out="${sp.id}" ${n<=0?'disabled':''}>Salida</button></span></div>`}).join('')}
+      <p class="note" style="margin:10px 0 0">Si un espacio llega al aforo, recepción ve «Lleno» y el sistema rechaza más check-ins hasta que alguien salga.</p>
+    </div>
+  </div>`;
+  b.querySelectorAll('[data-in]').forEach(x=>x.onclick=()=>{const sp=S.spaces.find(s=>s.id===x.dataset.in);if(live[sp.id]<sp.cap){live[sp.id]++;toast('Check-in en '+sp.name)}renderAdmin()});
+  b.querySelectorAll('[data-out]').forEach(x=>x.onclick=()=>{live[x.dataset.out]--;renderAdmin()});
+}
+
+let agDay=0;
+function aAgenda(b){
+  const d=addDays(TODAY,agDay); const hrs=[]; for(let h=8;h<20;h++) hrs.push(h);
+  const cols=S.spaces;
+  let grid=`<div class="agenda" style="grid-template-columns:64px repeat(${cols.length},minmax(0,1fr))"><div></div>${cols.map(c=>`<div class="h">${c.name} · ${c.cap}</div>`).join('')}`;
+  hrs.forEach(h=>{grid+=`<div class="tm">${pad(h)}:00</div>`;cols.forEach(sp=>{
+    const inSlot = h>=sp.open && h<sp.close && ((h-sp.open)%sp.slot===0);
+    const within = h>=sp.open && h<sp.close;
+    if(!within){grid+='<div class="c na"></div>';return}
+    if(sp.mode==='free'){grid+=`<div class="c"><span class="small muted">Libre · aforo ${sp.cap}</span></div>`;return}
+    if(!inSlot){grid+='<div class="c na" aria-hidden="true"></div>';return}
+    const t=taken(sp.id,d,h), mine=S.bookings.filter(x=>x.space===sp.id&&x.date===iso(d)&&x.hour===h);
+    grid+=`<div class="c"><div class="row" style="justify-content:space-between"><span class="mono">${t}/${sp.cap}</span>${t>=sp.cap?'<span class="pill bad">Lleno</span>':''}</div><div class="capbar"><i class="${t>=sp.cap?'full':''}" style="width:${t/sp.cap*100}%"></i></div>${mine.map(m=>`<span class="pill info">${esc(m.who.split(' ')[0])}${m.seats>1?' +1':''}</span>`).join('')}</div>`;
+  })});
+  grid+='</div>';
+  b.innerHTML=head('Agenda por espacio','Ocupación por franja')+`<div class="stack"><div class="chips">${[...Array(7)].map((_,i)=>{const x=addDays(TODAY,i);return `<button class="chip" data-ad="${i}" aria-pressed="${i===agDay}">${DOW[x.getDay()]}<b>${x.getDate()}</b></button>`}).join('')}</div>
+  <div class="panel tbl-wrap">${grid}</div><p class="note">Las reservas hechas desde la vista Socio aparecen aquí con el nombre del socio.</p></div>`;
+  b.querySelectorAll('[data-ad]').forEach(x=>x.onclick=()=>{agDay=+x.dataset.ad;renderAdmin()});
+}
+
+function aPayments(b){
+  b.innerHTML=head('Pagos por validar','Caja · QR y transferencias')+`<div class="panel">${S.payments.length?`<div class="tbl-wrap"><table><thead><tr><th>Socio</th><th>Concepto</th><th>Medio</th><th>Recibido</th><th class="num">Monto</th><th></th></tr></thead><tbody>${S.payments.map(p=>`<tr><td>${esc(p.who)}</td><td>${p.concept}</td><td><span class="pill neutral">${p.method}</span></td><td class="small muted">${p.when}</td><td class="num">${BS(p.amount)}</td><td><div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm primary" data-ok="${p.id}">Validar</button><button class="btn sm ghost" data-no="${p.id}">Rechazar</button></div></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No hay pagos pendientes.</p>'}
+  <p class="note" style="margin:12px 0 0">Al validar: se concilia el pago, la membresía pasa a Activa y se extiende un período. Fase 2: validación automática con QR que notifica el pago.</p></div>`;
+  b.querySelectorAll('[data-ok]').forEach(x=>x.onclick=()=>{const p=S.payments.find(q=>q.id==x.dataset.ok);S.payments=S.payments.filter(q=>q!==p);if(p.mine){S.member.state='active';S.member.due=iso(addDays(TODAY,34))}const m=S.members.find(m=>m.name===p.who);if(m){m.state='active';m.due='renovada'}toast('Pago validado · '+p.who);renderAdmin()});
+  b.querySelectorAll('[data-no]').forEach(x=>x.onclick=()=>{const p=S.payments.find(q=>q.id==x.dataset.no);S.payments=S.payments.filter(q=>q!==p);if(p.mine)S.member.state='active';toast('Pago rechazado · se avisó al socio');renderAdmin()});
+}
+
+function aMembers(b){
+  const pill={active:'<span class="pill ok">Activa</span>',grace:'<span class="pill warn">En gracia</span>',suspended:'<span class="pill bad">Suspendida</span>'};
+  b.innerHTML=head('Socios y mora','Escalera de avisos configurable')+`<div class="stack">
+  <div class="panel tbl-wrap"><table><thead><tr><th>Socio</th><th>Plan</th><th>Estado</th><th>Vencimiento</th><th class="num">Uso del plan</th><th></th></tr></thead><tbody>
+  ${S.members.map((m,i)=>`<tr><td>${esc(m.name)}</td><td>${m.plan}</td><td>${pill[m.state]}</td><td class="small">${m.due}</td><td class="num">${m.use} %${m.use<25?' <span class="pill warn">bajo</span>':''}</td><td>${m.state!=='active'?`<button class="btn sm" data-wa="${i}">Preparar WhatsApp</button>`:''}</td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="panel"><h3 style="margin-bottom:8px">Escalera de avisos (ejemplo)</h3><div class="tbl-wrap"><table><tbody>
+  <tr><td class="mono">−5 días</td><td>Aviso de próximo vencimiento con QR</td></tr><tr><td class="mono">0</td><td>Aviso de vencimiento</td></tr><tr><td class="mono">+3</td><td>Recordatorio (en gracia)</td></tr><tr><td class="mono">+5</td><td>Suspensión de acceso y aviso</td></tr><tr><td class="mono">+15</td><td>Pasa a «En riesgo» en el CRM con tarea para atención</td></tr></tbody></table></div></div>
+  <div id="wa"></div></div>`;
+  b.querySelectorAll('[data-wa]').forEach(x=>x.onclick=()=>{const m=S.members[x.dataset.wa];const txt=`Hola ${m.name.split(' ')[0]}, tu membresía ${m.plan} está ${m.state==='grace'?'en período de gracia':'suspendida por falta de pago'}. Puedes renovarla con el QR adjunto o respondiendo este mensaje. ¡Te esperamos!`;
+    $('#wa').innerHTML=`<div class="panel stack"><div class="eyebrow">Mensaje listo (proveedor: enlace wa.me)</div><div class="msg ok" style="white-space:pre-wrap">${esc(txt)}</div><div class="row"><button class="btn" id="cp">Copiar texto</button><span class="small muted">En producción se abre WhatsApp con el texto; con la API oficial se envía solo.</span></div></div>`;
+    $('#cp').onclick=()=>{navigator.clipboard.writeText(txt).then(()=>toast('Texto copiado')).catch(()=>toast('Selecciona el texto para copiarlo'))};});
+}
+
+function aCRM(b){
+  const src={}; S.leads.forEach(l=>{src[l.src]=src[l.src]||{t:0,w:0};src[l.src].t++;if(l.stage===3)src[l.src].w++});
+  b.innerHTML=head('CRM','Captación y retención')+`<div class="stack">
+  <div class="kanban">${S.stages.map((st,i)=>{const ls=S.leads.filter(l=>l.stage===i);return `<div class="col"><h4><span>${st}</span><span class="mono">${ls.length}</span></h4>${ls.map(l=>`<div class="lead"><span class="n">${esc(l.name)}</span><span class="pill ${l.src.includes('Invitado')||l.src==='Cortesía'?'info':'neutral'}" style="align-self:flex-start">${esc(l.src)}</span><span class="small muted">${esc(l.note)}</span><div class="acts">${i>0?`<button data-mv="${l.id}" data-d="-1" aria-label="Mover atrás">←</button>`:''}${i<5?`<button data-mv="${l.id}" data-d="1" aria-label="Mover adelante">→</button>`:''}</div></div>`).join('')}</div>`}).join('')}</div>
+  <div class="panel"><h3 style="margin-bottom:8px">Prospectos por fuente</h3><div class="tbl-wrap"><table><thead><tr><th>Fuente</th><th class="num">Prospectos</th><th class="num">Ganados</th></tr></thead><tbody>${Object.entries(src).map(([k,v])=>`<tr><td>${k}</td><td class="num">${v.t}</td><td class="num">${v.w}</td></tr>`).join('')}</tbody></table></div>
+  <p class="note" style="margin:10px 0 0">Los invitados que registra un socio entran solos en «Visita / cortesía» con el nombre de quien los invitó. Prueba registrando un invitado en la vista Socio.</p></div></div>`;
+  b.querySelectorAll('[data-mv]').forEach(x=>x.onclick=()=>{const l=S.leads.find(q=>q.id==x.dataset.mv);l.stage=Math.max(0,Math.min(5,l.stage+ +x.dataset.d));renderAdmin()});
+}
+
+function aPOS(b){
+  const P=S.pos; const plan=P.member?S.plans.find(p=>p.id==='premium'):null;
+  const sub=P.lines.reduce((a,l)=>a+l.p*l.q,0); const disc=plan?P.lines.filter(l=>l.cat==='cafe').reduce((a,l)=>a+l.p*l.q,0)*plan.posDisc/100:0; const tot=sub-disc;
+  b.innerHTML=head('Restaurante y cafetería','Comanda abierta')+`<div class="split">
+  <div class="stack"><div class="panel stack"><div class="eyebrow">Mesas</div><div class="tables">${[1,2,3,4,5,6,7,8].map(n=>`<button data-tb="${n}" class="${P.busy.includes(n)&&P.table!==n?'busy':''}" aria-pressed="${P.table===n}">${n}</button>`).join('')}<button data-tb="M" aria-pressed="${P.table==='M'}" style="width:auto;border-radius:99px;padding:0 14px">Mostrador</button></div></div>
+  <div class="panel stack"><div class="eyebrow">Carta</div><div class="menu">${S.menu.map((m,i)=>`<button data-it="${i}" ${P.table==null?'disabled':''}><b>${m.n}</b><span>${BS(m.p)}</span></button>`).join('')}</div>${P.table==null?'<p class="small muted" style="margin:0">Elige una mesa o Mostrador para abrir la comanda.</p>':''}</div></div>
+  <div class="panel stack"><div class="row" style="justify-content:space-between"><h3>Comanda ${P.table==null?'':P.table==='M'?'· Mostrador':'· Mesa '+P.table}</h3>${P.member?'<span class="pill info">Ana Pérez · Premium</span>':`<button class="btn sm" id="asg" ${P.table==null?'disabled':''}>Asignar socio</button>`}</div>
+   ${P.lines.length?`<div class="tbl-wrap"><table><tbody>${P.lines.map(l=>`<tr><td>${l.q} × ${l.n}</td><td class="num">${BS(l.p*l.q)}</td></tr>`).join('')}
+   ${disc?`<tr><td>Descuento Premium 10 % (cafetería)</td><td class="num">−${BS(disc)}</td></tr>`:''}<tr><td><b>Total</b></td><td class="num"><b>${BS(tot)}</b></td></tr></tbody></table></div>`:'<p class="muted small" style="margin:0">Sin productos.</p>'}
+   <div class="row"><button class="btn primary" data-pay="siat" ${!P.lines.length?'disabled':''}>Cobrar con factura</button><button class="btn" data-pay="nf" ${!P.lines.length?'disabled':''}>Sin factura</button><button class="btn" data-pay="acc" ${!P.lines.length||!P.member?'disabled':''}>Cargar a cuenta del socio</button></div>
+   <p class="note" style="margin:0">La factura electrónica se emite a través de un proveedor certificado ante el SIAT. «Sin factura» queda restringido por permisos y sujeto a validación del contador.</p></div></div>`;
+  b.querySelectorAll('[data-tb]').forEach(x=>x.onclick=()=>{const t=x.dataset.tb==='M'?'M':+x.dataset.tb;if(P.table!==t){P.table=t;P.lines=[];P.member=null}renderAdmin()});
+  b.querySelectorAll('[data-it]').forEach(x=>x.onclick=()=>{const m=S.menu[x.dataset.it];const l=P.lines.find(q=>q.n===m.n);l?l.q++:P.lines.push({...m,q:1});renderAdmin()});
+  const a=$('#asg'); if(a) a.onclick=()=>{P.member='ana';toast('Socio asignado · descuento aplicado');renderAdmin()};
+  b.querySelectorAll('[data-pay]').forEach(x=>x.onclick=()=>{const k=x.dataset.pay;toast(k==='siat'?'Factura enviada al proveedor SIAT (simulado)':k==='nf'?'Venta registrada sin factura':'Cargado a la cuenta de Ana Pérez');P.lines=[];P.member=null;P.table=null;renderAdmin()});
+}
+
+const PF={type:'siat_online',nit:'',num:'',key:'',ctrl:'',supplier:'',amount:'',err:null,ok:null, kind:'services', mode:'supplier', base:1000};
+function aPurchases(b){
+  const keyLabel=PF.type==='siat_online'?'CUF':'Nº de autorización';
+  b.innerHTML=head('Compras','Registro con y sin factura')+`<div class="split">
+  <form class="panel stack" id="pf"><h3>Factura de proveedor</h3>
+    <div class="field"><label for="pt">Tipo de documento</label><select id="pt"><option value="siat_online" ${PF.type==='siat_online'?'selected':''}>SIAT en línea (CUF)</option><option value="dosificacion" ${PF.type==='dosificacion'?'selected':''}>Dosificación (autorización + código de control)</option></select></div>
+    <div class="two"><div class="field"><label for="pn">NIT del emisor</label><input id="pn" class="mono" value="${esc(PF.nit)}" inputmode="numeric" required></div><div class="field"><label for="pnu">Nº de factura</label><input id="pnu" class="mono" value="${esc(PF.num)}" required></div></div>
+    <div class="field"><label for="pk">${keyLabel}</label><input id="pk" class="mono" value="${esc(PF.key)}" required></div>
+    ${PF.type==='dosificacion'?`<div class="field"><label for="pc">Código de control</label><input id="pc" class="mono" value="${esc(PF.ctrl)}" placeholder="7B-F3-48-A8"></div>`:''}
+    <div class="two"><div class="field"><label for="ps">Proveedor</label><input id="ps" value="${esc(PF.supplier)}"></div><div class="field"><label for="pa">Monto Bs</label><input id="pa" class="mono" inputmode="decimal" value="${esc(PF.amount)}"></div></div>
+    ${PF.err?`<div class="msg bad">${PF.err}</div>`:''}${PF.ok?`<div class="msg ok">${PF.ok}</div>`:''}
+    <div class="row"><button class="btn primary" type="submit">Registrar</button><button class="btn" type="button" id="dup">Probar con una factura repetida</button></div>
+    <p class="small muted" style="margin:0">Clave única: NIT + número + ${keyLabel}. Una factura repetida se bloquea; no es solo un aviso.</p>
+  </form>
+  <div class="stack"><div class="panel stack"><h3>Compra sin factura · retención</h3>
+    <div class="two"><div class="field"><label for="rk">Tipo</label><select id="rk"><option value="services" ${PF.kind==='services'?'selected':''}>Servicio (15,5 %)</option><option value="goods" ${PF.kind==='goods'?'selected':''}>Bien (8 %)</option></select></div>
+    <div class="field"><label for="rm">Quién asume</label><select id="rm"><option value="supplier" ${PF.mode==='supplier'?'selected':''}>Proveedor (recibe neto)</option><option value="company" ${PF.mode==='company'?'selected':''}>Empresa (grossing-up)</option></select></div></div>
+    <div class="field"><label for="rb">${PF.mode==='supplier'?'Monto del servicio/bien':'Monto que recibe el proveedor'} (Bs)</label><input id="rb" class="mono" inputmode="decimal" value="${PF.base}"></div>
+    <div id="ent"></div></div>
+    <div class="panel"><div class="eyebrow">Facturas registradas</div><div class="tbl-wrap"><table><tbody>${S.purchases.map(p=>`<tr><td>${esc(p.supplier)}<div class="small muted mono">NIT ${p.nit} · Nº ${p.num}</div></td><td class="num">${BS(p.amount)}</td></tr>`).join('')}</tbody></table></div></div></div></div>`;
+  const sync=()=>{PF.nit=$('#pn').value.trim();PF.num=$('#pnu').value.trim();PF.key=$('#pk').value.trim();PF.supplier=$('#ps').value;PF.amount=$('#pa').value;const c=$('#pc');if(c)PF.ctrl=c.value};
+  $('#pt').onchange=e=>{sync();PF.type=e.target.value;PF.err=PF.ok=null;renderAdmin()};
+  $('#pf').onsubmit=e=>{e.preventDefault();sync();PF.err=PF.ok=null;
+    const dup=S.purchases.find(p=>p.nit===PF.nit&&p.num===PF.num&&p.key.toUpperCase()===PF.key.toUpperCase());
+    if(dup){PF.err=`Esta factura ya está registrada (${dup.supplier}, NIT ${dup.nit}, Nº ${dup.num}). No se puede registrar dos veces.`}
+    else if(!PF.nit||!PF.num||!PF.key){PF.err='Completa NIT, número y '+keyLabel+'.'}
+    else{const amt=parseFloat(PF.amount)||0;S.purchases.unshift({nit:PF.nit,num:PF.num,key:PF.key,type:PF.type,supplier:PF.supplier||'Proveedor',amount:amt});PF.ok=`Registrada. Crédito fiscal IVA: ${BS(amt*0.13)}.`;PF.nit=PF.num=PF.key=PF.ctrl=PF.supplier=PF.amount=''}
+    renderAdmin()};
+  $('#dup').onclick=()=>{const p=S.purchases[0];Object.assign(PF,{type:p.type,nit:p.nit,num:p.num,key:p.key,supplier:p.supplier,amount:String(p.amount),err:null,ok:null});renderAdmin()};
+  const calc=()=>{PF.kind=$('#rk').value;PF.mode=$('#rm').value;PF.base=parseFloat($('#rb').value)||0;
+    const iue=PF.kind==='services'?.125:.05, it=.03, tot=iue+it; let rows,gross;
+    if(PF.mode==='supplier'){const r1=PF.base*iue,r2=PF.base*it;rows=[['Gasto',PF.base,0],['Caja / Fondo fijo',0,PF.base-r1-r2],['2138 Retenciones IUE por pagar',0,r1],['2137 Retenciones IT por pagar',0,r2]];}
+    else{gross=PF.base/(1-tot);const r1=gross*iue,r2=gross*it;rows=[['Gasto',PF.base,0],['Retención IUE asumida (no deducible*)',r1,0],['Retención IT asumida (no deducible*)',r2,0],['Caja / Fondo fijo',0,PF.base],['2138 Retenciones IUE por pagar',0,r1],['2137 Retenciones IT por pagar',0,r2]];}
+    $('#ent').innerHTML=`<div class="tbl-wrap"><table class="entry"><thead><tr><th>Cuenta</th><th class="num">Debe</th><th class="num">Haber</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-family:var(--f-body)">${r[0]}</td><td class="num">${r[1]?r[1].toFixed(2):''}</td><td class="num">${r[2]?r[2].toFixed(2):''}</td></tr>`).join('')}</tbody></table></div>${PF.mode==='company'?`<p class="small muted" style="margin:6px 0 0">Base grossing-up ${gross.toFixed(2)}. *Deducibilidad a confirmar con el contador.</p>`:''}`};
+  ['rk','rm','rb'].forEach(id=>$('#'+id).addEventListener('input',()=>{const prev=PF.mode;calc();if(id==='rm'&&prev!==PF.mode)renderAdmin()}));
+  calc();
+}
+
+function aFund(b){
+  const F=S.fund; const spent=F.vouchers.reduce((a,v)=>a+v.amount,0);
+  const ret=v=>v.doc==='none'&&v.mode==='supplier'?v.amount*(v.kind==='services'?.155:.08):0;
+  const totRet=F.vouchers.reduce((a,v)=>a+ret(v),0);
+  const iva=F.vouchers.filter(v=>v.doc==='invoice').reduce((a,v)=>a+v.amount*.13,0);
+  const cashOut=spent-totRet; const expected=F.amount-cashOut; const diff=F.cash-expected;
+  b.innerHTML=head(F.name,'Fondo fijo · custodio '+F.custodian)+`<div class="stack">
+  <div class="kpis"><div class="kpi"><div class="v">${BS(F.amount)}</div><div class="l">Monto fijo (cuenta 11121)</div></div><div class="kpi"><div class="v">${BS(cashOut)}</div><div class="l">Pagado en efectivo</div></div><div class="kpi"><div class="v">${BS(F.cash)}</div><div class="l">Efectivo contado (arqueo)</div></div><div class="kpi"><div class="v" style="color:${Math.abs(diff)<.01?'var(--ok)':'var(--bad)'}">${diff>=0?'+':''}${diff.toFixed(2)}</div><div class="l">Diferencia de arqueo</div></div></div>
+  <div class="panel tbl-wrap"><table><thead><tr><th>Gasto</th><th>Documento</th><th class="num">Monto</th><th class="num">Retención</th></tr></thead><tbody>${F.vouchers.map(v=>`<tr><td>${v.desc}</td><td>${v.doc==='invoice'?'<span class="pill ok">Con factura</span>':'<span class="pill warn">Sin factura · '+(v.kind==='services'?'servicio 15,5 %':'bien 8 %')+'</span>'}</td><td class="num">${BS(v.amount)}</td><td class="num">${ret(v)?BS(ret(v)):'—'}</td></tr>`).join('')}</tbody></table></div>
+  <div class="panel stack"><h3>Asiento de reposición (al validar la rendición)</h3><div class="tbl-wrap"><table class="entry"><thead><tr><th>Cuenta</th><th class="num">Debe</th><th class="num">Haber</th></tr></thead><tbody>
+   <tr><td style="font-family:var(--f-body)">Gastos (neto de IVA)</td><td class="num">${(spent-iva).toFixed(2)}</td><td></td></tr>
+   <tr><td style="font-family:var(--f-body)">1141 Crédito Fiscal IVA</td><td class="num">${iva.toFixed(2)}</td><td></td></tr>
+   <tr><td style="font-family:var(--f-body)">2137/2138 Retenciones por pagar</td><td></td><td class="num">${totRet.toFixed(2)}</td></tr>
+   <tr><td style="font-family:var(--f-body)">Banco (reposición)</td><td></td><td class="num">${cashOut.toFixed(2)}</td></tr></tbody></table></div>
+   <p class="small muted" style="margin:0">La cuenta del fondo no se mueve: sigue en ${BS(F.amount)}. Después de reponer, el custodio vuelve a tener ${BS(F.amount)} en efectivo.</p>
+   <div class="row">${F.reimbursed?'<span class="pill ok">Repuesto</span>':`<button class="btn primary" id="reimb">Validar y reponer</button>`}</div></div></div>`;
+  const r=$('#reimb'); if(r) r.onclick=()=>{F.reimbursed=true;toast('Rendición validada · reposición registrada');renderAdmin()};
+}
+
+function aProfit(b){
+  const areas=[['Piscina',41200,18300,9100],['Sauna / Jacuzzi',18600,6900,4300],['Spa / Masajes',27400,11800,3200],['Restaurante',33900,21700,5100],['Cafetería',14800,6200,2100]];
+  const max=Math.max(...areas.map(a=>Math.max(a[1],a[2]+a[3])));
+  b.innerHTML=head('Rentabilidad por área','Mes en curso · datos ilustrativos')+`<div class="stack">
+  <div class="panel stack"><div class="legend"><span><i style="background:var(--accent)"></i>Ingresos</span><span><i style="background:var(--brass)"></i>Costos directos + prorrateo</span></div>
+  <div class="bars">${areas.map(a=>`<div class="barrow"><span>${a[0]}</span><div class="track"><div class="b in" style="width:${a[1]/max*100}%"></div><div class="b cost" style="width:${(a[2]+a[3])/max*100}%"></div></div><span class="mono" style="text-align:right">${BS(a[1]-a[2]-a[3])}</span></div>`).join('')}</div></div>
+  <div class="panel tbl-wrap"><table><thead><tr><th>Área</th><th class="num">Ingresos</th><th class="num">Costos directos</th><th class="num">Prorrateo admin.</th><th class="num">Resultado</th><th class="num">Margen</th></tr></thead><tbody>${areas.map(a=>{const r=a[1]-a[2]-a[3];return `<tr><td>${a[0]}</td><td class="num">${BS(a[1])}</td><td class="num">${BS(a[2])}</td><td class="num">${BS(a[3])}</td><td class="num">${BS(r)}</td><td class="num">${Math.round(r/a[1]*100)} %</td></tr>`}).join('')}</tbody></table></div>
+  <p class="note">El prorrateo reparte luz, agua, gas, sueldos de recepción y alquiler con claves configurables (m², horas de uso, medición). Los ingresos de membresías se reparten por área según el uso real registrado en el libro de consumos.</p></div>`;
+}
+
+function aConfig(b){
+  b.innerHTML=head('Configuración','Espacios y planes · sin programar')+`<div class="stack">
+  <div class="panel tbl-wrap"><table><thead><tr><th>Espacio</th><th class="num">Aforo</th><th>Modo</th><th>Horario</th><th>Personal</th></tr></thead><tbody>${S.spaces.map((s,i)=>`<tr><td>${s.name}</td><td class="num"><input aria-label="Aforo ${s.name}" data-cap="${i}" type="number" min="1" max="50" value="${s.cap}" style="width:64px;border:1px solid var(--line);border-radius:6px;padding:4px;background:var(--surface);text-align:right" class="mono"></td><td><select aria-label="Modo ${s.name}" data-mode="${i}" style="border:1px solid var(--line);border-radius:6px;padding:4px;background:var(--surface)"><option value="slot" ${s.mode==='slot'?'selected':''}>Por franja</option><option value="free" ${s.mode==='free'?'selected':''}>Libre (aforo)</option></select></td><td class="mono small">${pad(s.open)}:00–${pad(s.close)}:00</td><td>${s.staff?s.staffName:'—'}</td></tr>`).join('')}</tbody></table>
+  <p class="note" style="margin:10px 0 0">Cambia el aforo o el modo y revisa la vista Socio o la Agenda: la disponibilidad se recalcula.</p></div>
+  <div class="panel"><h3 style="margin-bottom:8px">Plan Premium · derechos</h3><div class="tbl-wrap"><table><thead><tr><th>Servicio</th><th>Cantidad</th><th>Período</th><th>Tope</th><th>Horario</th><th>Saldo no usado</th><th>Invitados</th></tr></thead><tbody>
+   <tr><td>Masaje 60′</td><td class="mono">4</td><td>mes</td><td>1 / semana</td><td>agenda</td><td>se pierde</td><td>no</td></tr>
+   <tr><td>Piscina</td><td>ilimitado</td><td>—</td><td>—</td><td class="mono">07–21</td><td>—</td><td>sí</td></tr>
+   <tr><td>Jacuzzi</td><td class="mono">5</td><td>mes</td><td>—</td><td class="mono">10–20</td><td>traslada máx. 2</td><td>sí</td></tr></tbody></table></div>
+   <div class="two" style="margin-top:12px"><div class="small"><b>Plan</b>: 2 free pass/mes · invitado extra ${BS(120)} · 10 % cafetería · 5 días de gracia</div><div class="small"><b>Cancelación</b>: gratis hasta 12 h antes · tardía: pierde la sesión · no-show: pierde la sesión · máx. 3 cancelaciones/mes</div></div></div>
+  </div>`;
+  b.querySelectorAll('[data-cap]').forEach(x=>x.onchange=()=>{const s=S.spaces[x.dataset.cap];s.cap=Math.max(1,parseInt(x.value)||1);live[s.id]=Math.min(live[s.id],s.cap);toast('Aforo de '+s.name+': '+s.cap)});
+  b.querySelectorAll('[data-mode]').forEach(x=>x.onchange=()=>{S.spaces[x.dataset.mode].mode=x.value;toast('Modo actualizado')});
+}
+
+setMode('member');
+</script>
