@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Datos iniciales EDITABLES (precios y aforos ilustrativos). noupdate: las
+         actualizaciones del módulo no pisan lo que el administrador cambie. -->
+    <data noupdate="1">
+        <record id="spa_timezone_param" model="ir.config_parameter">
+            <field name="key">spa.timezone</field>
+            <field name="value">America/La_Paz</field>
+        </record>
+
+        <!-- Turno del personal del spa: todos los días 09:00-18:00 -->
+        <record id="calendar_spa_staff" model="resource.calendar">
+            <field name="name">Turno spa 09:00-18:00 (todos los días)</field>
+            <field name="tz">America/La_Paz</field>
+            <field name="attendance_ids" eval="[(5, 0, 0)] + [
+                (0, 0, {'name': d[1], 'dayofweek': d[0], 'hour_from': 9.0, 'hour_to': 18.0, 'day_period': 'full_day'})
+                for d in [('0', 'Lunes'), ('1', 'Martes'), ('2', 'Miércoles'), ('3', 'Jueves'),
+                          ('4', 'Viernes'), ('5', 'Sábado'), ('6', 'Domingo')]]"/>
+        </record>
+
+        <record id="skill_massage" model="spa.skill">
+            <field name="name">Masajista</field>
+        </record>
+        <record id="skill_instructor" model="spa.skill">
+            <field name="name">Instructor de natación</field>
+        </record>
+
+        <record id="employee_massage_therapist" model="hr.employee">
+            <field name="name">Masajista 1 (renombrar)</field>
+            <field name="job_title">Masajista</field>
+            <field name="resource_calendar_id" ref="calendar_spa_staff"/>
+            <field name="spa_skill_ids" eval="[(4, ref('skill_massage'))]"/>
+        </record>
+
+        <!-- Espacios -->
+        <record id="space_pool" model="spa.space">
+            <field name="name">Piscina</field>
+            <field name="code">PIS</field>
+            <field name="sequence">10</field>
+            <field name="capacity">15</field>
+            <field name="access_mode">slot</field>
+            <field name="slot_duration">2.0</field>
+            <field name="open_hour">7.0</field>
+            <field name="close_hour">21.0</field>
+            <field name="analytic_account_id" ref="l10n_bo_spa.analytic_area_piscina"/>
+        </record>
+        <record id="space_sauna" model="spa.space">
+            <field name="name">Sauna</field>
+            <field name="code">SAU</field>
+            <field name="sequence">20</field>
+            <field name="capacity">5</field>
+            <field name="access_mode">free</field>
+            <field name="max_stay">1.0</field>
+            <field name="open_hour">10.0</field>
+            <field name="close_hour">20.0</field>
+            <field name="analytic_account_id" ref="l10n_bo_spa.analytic_area_sauna_jacuzzi"/>
+        </record>
+        <record id="space_jacuzzi" model="spa.space">
+            <field name="name">Jacuzzi</field>
+            <field name="code">JAC</field>
+            <field name="sequence">30</field>
+            <field name="capacity">5</field>
+            <field name="access_mode">slot</field>
+            <field name="slot_duration">1.0</field>
+            <field name="open_hour">10.0</field>
+            <field name="close_hour">20.0</field>
+            <field name="analytic_account_id" ref="l10n_bo_spa.analytic_area_sauna_jacuzzi"/>
+        </record>
+        <record id="space_massage_room" model="spa.space">
+            <field name="name">Cabina de masajes</field>
+            <field name="code">CAB</field>
+            <field name="sequence">40</field>
+            <field name="capacity">1</field>
+            <field name="access_mode">slot</field>
+            <field name="slot_duration">1.0</field>
+            <field name="open_hour">9.0</field>
+            <field name="close_hour">18.0</field>
+            <field name="analytic_account_id" ref="l10n_bo_spa.analytic_area_spa"/>
+        </record>
+
+        <!-- Productos (precio de la sesión suelta) -->
+        <record id="product_pool_entry" model="product.product">
+            <field name="name">Entrada piscina (2 horas)</field>
+            <field name="type">service</field>
+            <field name="list_price">90.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_entry"/>
+        </record>
+        <record id="product_sauna_entry" model="product.product">
+            <field name="name">Entrada sauna</field>
+            <field name="type">service</field>
+            <field name="list_price">60.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_entry"/>
+        </record>
+        <record id="product_jacuzzi_entry" model="product.product">
+            <field name="name">Sesión jacuzzi (1 hora)</field>
+            <field name="type">service</field>
+            <field name="list_price">70.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_entry"/>
+        </record>
+        <record id="product_massage_60" model="product.product">
+            <field name="name">Masaje relajante 60 min</field>
+            <field name="type">service</field>
+            <field name="list_price">280.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_massage"/>
+        </record>
+
+        <!-- Servicios -->
+        <record id="service_pool" model="spa.service">
+            <field name="name">Piscina</field>
+            <field name="sequence">10</field>
+            <field name="space_id" ref="space_pool"/>
+            <field name="product_id" ref="product_pool_entry"/>
+            <field name="duration">2.0</field>
+            <field name="guest_allowed" eval="True"/>
+            <field name="description">Piscina temperada con aforo limitado.</field>
+        </record>
+        <record id="service_sauna" model="spa.service">
+            <field name="name">Sauna</field>
+            <field name="sequence">20</field>
+            <field name="space_id" ref="space_sauna"/>
+            <field name="product_id" ref="product_sauna_entry"/>
+            <field name="duration">1.0</field>
+            <field name="guest_allowed" eval="True"/>
+        </record>
+        <record id="service_jacuzzi" model="spa.service">
+            <field name="name">Jacuzzi</field>
+            <field name="sequence">30</field>
+            <field name="space_id" ref="space_jacuzzi"/>
+            <field name="product_id" ref="product_jacuzzi_entry"/>
+            <field name="duration">1.0</field>
+            <field name="guest_allowed" eval="True"/>
+        </record>
+        <record id="service_massage" model="spa.service">
+            <field name="name">Masaje relajante 60 min</field>
+            <field name="sequence">40</field>
+            <field name="space_id" ref="space_massage_room"/>
+            <field name="product_id" ref="product_massage_60"/>
+            <field name="duration">1.0</field>
+            <field name="requires_staff" eval="True"/>
+            <field name="skill_id" ref="skill_massage"/>
+            <field name="guest_allowed" eval="False"/>
+            <field name="booking_lead_min">2.0</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_spa_message_send" model="ir.cron">
+        <field name="name">Spa: enviar mensajes en cola (API)</field>
+        <field name="model_id" ref="model_spa_message"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_send_queued()</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+    </record>
+</odoo>

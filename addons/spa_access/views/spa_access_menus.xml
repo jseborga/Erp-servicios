@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="spa_menu_live" name="Aforo en vivo" parent="spa_base.spa_menu_operations"
+              action="spa_space_live_action" sequence="1" groups="spa_base.group_spa_reception"/>
+    <menuitem id="spa_menu_checkin" name="Registrar ingreso" parent="spa_base.spa_menu_operations"
+              action="spa_checkin_wizard_action" sequence="2" groups="spa_base.group_spa_reception"/>
+    <menuitem id="spa_menu_access_log" name="Historial de ingresos" parent="spa_base.spa_menu_reporting"
+              action="spa_access_log_action" sequence="20"/>
+</odoo>

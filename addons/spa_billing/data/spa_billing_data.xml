@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_spa_payment_request" model="ir.sequence">
+        <field name="name">Pagos por validar</field>
+        <field name="code">spa.payment.request</field>
+        <field name="prefix">PAG/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="ir_cron_spa_billing_daily" model="ir.cron">
+        <field name="name">Spa: renovaciones, cargos del mes y devengo</field>
+        <field name="model_id" ref="spa_membership.model_spa_membership"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_billing_daily()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now().replace(hour=11, minute=5, second=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+
+    <record id="ir_cron_spa_booking_reminders" model="ir.cron">
+        <field name="name">Spa: recordatorios de reservas (24 h antes)</field>
+        <field name="model_id" ref="spa_booking.model_spa_booking"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_booking_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+    </record>
+
+    <data noupdate="1">
+        <record id="offer_annual_discount" model="spa.payment.offer">
+            <field name="name">Plan anual con 10 % de descuento</field>
+            <field name="offer_type">discount</field>
+            <field name="discount_percent">10</field>
+            <field name="months">12</field>
+            <field name="date_from" eval="DateTime.today().strftime('%Y-%m-%d')"/>
+            <field name="date_to" eval="(DateTime.today() + relativedelta(months=3)).strftime('%Y-%m-%d')"/>
+            <field name="description">Ejemplo editable: válido 3 meses desde la instalación.</field>
+        </record>
+        <record id="offer_annual_installments" model="spa.payment.offer">
+            <field name="name">Plan anual en 3 cuotas sin recargo</field>
+            <field name="offer_type">installments</field>
+            <field name="installments">3</field>
+            <field name="months">12</field>
+            <field name="date_from" eval="DateTime.today().strftime('%Y-%m-%d')"/>
+            <field name="date_to" eval="(DateTime.today() + relativedelta(months=3)).strftime('%Y-%m-%d')"/>
+            <field name="description">Ejemplo editable: la membresía se activa al pagar la primera cuota.</field>
+        </record>
+    </data>
+</odoo>

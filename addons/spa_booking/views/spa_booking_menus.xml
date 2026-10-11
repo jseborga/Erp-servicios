@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="spa_menu_booking_quick" name="Reserva rápida" parent="spa_base.spa_menu_operations"
+              action="spa_booking_slot_wizard_action" sequence="5" groups="spa_base.group_spa_reception"/>
+    <menuitem id="spa_menu_booking" name="Agenda" parent="spa_base.spa_menu_operations"
+              action="spa_booking_action" sequence="10"/>
+</odoo>

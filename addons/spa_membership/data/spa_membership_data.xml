@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_spa_membership" model="ir.sequence">
+        <field name="name">Membresías del spa</field>
+        <field name="code">spa.membership</field>
+        <field name="prefix">MEM/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="ir_cron_spa_membership_daily" model="ir.cron">
+        <field name="name">Spa: estados de membresía y saldos del mes</field>
+        <field name="model_id" ref="model_spa_membership"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_membership_daily()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now().replace(hour=10, minute=5, second=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+
+    <!-- Datos iniciales EDITABLES: planes, precios y reglas ilustrativos -->
+    <data noupdate="1">
+        <record id="product_guest_fee" model="product.product">
+            <field name="name">Tarifa de invitado</field>
+            <field name="type">service</field>
+            <field name="list_price">120.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_guest"/>
+        </record>
+        <record id="product_penalty_no_show" model="product.product">
+            <field name="name">Penalidad por no presentarse</field>
+            <field name="type">service</field>
+            <field name="list_price">100.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_penalty"/>
+        </record>
+        <record id="product_penalty_late_cancel" model="product.product">
+            <field name="name">Penalidad por cancelación tardía</field>
+            <field name="type">service</field>
+            <field name="list_price">80.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_penalty"/>
+        </record>
+
+        <record id="cancel_policy_standard" model="spa.cancel.policy">
+            <field name="name">Estándar</field>
+            <field name="free_cancel_hours">12</field>
+            <field name="late_cancel_action">lose_session</field>
+            <field name="no_show_action">lose_session</field>
+            <field name="max_cancellations_month">3</field>
+        </record>
+        <record id="cancel_policy_flexible" model="spa.cancel.policy">
+            <field name="name">Flexible (VIP)</field>
+            <field name="free_cancel_hours">4</field>
+            <field name="late_cancel_action">none</field>
+            <field name="no_show_action">fee</field>
+            <field name="no_show_fee_product_id" ref="product_penalty_no_show"/>
+            <field name="max_cancellations_month">0</field>
+        </record>
+
+        <record id="pricelist_premium" model="product.pricelist">
+            <field name="name">Socios Premium (10 % restaurante y cafetería)</field>
+            <field name="item_ids" eval="[(0, 0, {
+                'applied_on': '2_product_category',
+                'categ_id': ref('l10n_bo_spa.categ_food')
+                , 'compute_price': 'percentage', 'percent_price': 10.0})]"/>
+        </record>
+        <record id="pricelist_vip" model="product.pricelist">
+            <field name="name">Socios VIP (15 % restaurante, cafetería y tienda)</field>
+            <field name="item_ids" eval="[
+                (0, 0, {'applied_on': '2_product_category', 'categ_id': ref('l10n_bo_spa.categ_food'),
+                        'compute_price': 'percentage', 'percent_price': 15.0}),
+                (0, 0, {'applied_on': '2_product_category', 'categ_id': ref('l10n_bo_spa.categ_shop'),
+                        'compute_price': 'percentage', 'percent_price': 15.0})]"/>
+        </record>
+
+        <record id="plan_basic" model="spa.plan">
+            <field name="name">Básica</field>
+            <field name="code">BAS</field>
+            <field name="sequence">10</field>
+            <field name="guest_quota">1</field>
+            <field name="guest_fee_product_id" ref="product_guest_fee"/>
+            <field name="cancel_policy_id" ref="cancel_policy_standard"/>
+            <field name="grace_days">5</field>
+            <field name="description"><![CDATA[<p>Piscina sin límite y sauna para mantenerte en forma.</p>]]></field>
+            <field name="period_ids" eval="[(0, 0, {'months': 1, 'price': 450.0}),
+                                            (0, 0, {'months': 3, 'price': 1240.0}),
+                                            (0, 0, {'months': 12, 'price': 4590.0})]"/>
+            <field name="line_ids" eval="[
+                (0, 0, {'sequence': 1, 'service_id': ref('spa_base.service_pool'), 'unlimited': True,
+                        'hour_from': 7.0, 'hour_to': 21.0, 'guests_per_booking': 1}),
+                (0, 0, {'sequence': 2, 'service_id': ref('spa_base.service_sauna'), 'quantity': 8,
+                        'carryover': 'lose', 'guests_per_booking': 1})]"/>
+        </record>
+
+        <record id="plan_premium" model="spa.plan">
+            <field name="name">Premium</field>
+            <field name="code">PRE</field>
+            <field name="sequence">20</field>
+            <field name="guest_quota">2</field>
+            <field name="guest_fee_product_id" ref="product_guest_fee"/>
+            <field name="cancel_policy_id" ref="cancel_policy_standard"/>
+            <field name="grace_days">5</field>
+            <field name="pricelist_id" ref="pricelist_premium"/>
+            <field name="description"><![CDATA[<p>Piscina y sauna sin límite, 4 masajes y 5 sesiones de jacuzzi al mes.</p>]]></field>
+            <field name="period_ids" eval="[(0, 0, {'months': 1, 'price': 890.0}),
+                                            (0, 0, {'months': 3, 'price': 2450.0}),
+                                            (0, 0, {'months': 12, 'price': 9070.0})]"/>
+            <field name="line_ids" eval="[
+                (0, 0, {'sequence': 1, 'service_id': ref('spa_base.service_pool'), 'unlimited': True,
+                        'hour_from': 7.0, 'hour_to': 21.0, 'guests_per_booking': 1}),
+                (0, 0, {'sequence': 2, 'service_id': ref('spa_base.service_sauna'), 'unlimited': True,
+                        'guests_per_booking': 1}),
+                (0, 0, {'sequence': 3, 'service_id': ref('spa_base.service_massage'), 'quantity': 4,
+                        'freq_limit_qty': 1, 'freq_limit_period': 'week', 'carryover': 'lose'}),
+                (0, 0, {'sequence': 4, 'service_id': ref('spa_base.service_jacuzzi'), 'quantity': 5,
+                        'hour_from': 10.0, 'hour_to': 20.0, 'carryover': 'carry_limited',
+                        'carryover_max': 2, 'guests_per_booking': 1})]"/>
+        </record>
+
+        <record id="plan_vip" model="spa.plan">
+            <field name="name">VIP</field>
+            <field name="code">VIP</field>
+            <field name="sequence">30</field>
+            <field name="guest_quota">4</field>
+            <field name="guest_fee_product_id" ref="product_guest_fee"/>
+            <field name="cancel_policy_id" ref="cancel_policy_flexible"/>
+            <field name="grace_days">7</field>
+            <field name="pricelist_id" ref="pricelist_vip"/>
+            <field name="description"><![CDATA[<p>Todo sin límite, 8 masajes al mes y 4 invitados.</p>]]></field>
+            <field name="period_ids" eval="[(0, 0, {'months': 1, 'price': 1490.0}),
+                                            (0, 0, {'months': 3, 'price': 4100.0}),
+                                            (0, 0, {'months': 12, 'price': 15200.0})]"/>
+            <field name="line_ids" eval="[
+                (0, 0, {'sequence': 1, 'service_id': ref('spa_base.service_pool'), 'unlimited': True,
+                        'guests_per_booking': 2}),
+                (0, 0, {'sequence': 2, 'service_id': ref('spa_base.service_sauna'), 'unlimited': True,
+                        'guests_per_booking': 2}),
+                (0, 0, {'sequence': 3, 'service_id': ref('spa_base.service_jacuzzi'), 'unlimited': True,
+                        'guests_per_booking': 2}),
+                (0, 0, {'sequence': 4, 'service_id': ref('spa_base.service_massage'), 'quantity': 8,
+                        'freq_limit_qty': 2, 'freq_limit_period': 'week', 'carryover': 'accumulate',
+                        'carryover_max': 4})]"/>
+        </record>
+    </data>
+</odoo>

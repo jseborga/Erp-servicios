@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_access_log_view_list" model="ir.ui.view">
+        <field name="name">spa.access.log.list</field>
+        <field name="model">spa.access.log</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="check_in"/>
+                <field name="partner_id"/>
+                <field name="space_id"/>
+                <field name="people" sum="Personas"/>
+                <field name="membership_id" optional="show"/>
+                <field name="booking_id" optional="hide"/>
+                <field name="method" optional="show"/>
+                <field name="check_out"/>
+                <field name="state" widget="badge" decoration-success="state == 'open'"/>
+                <button name="action_check_out" type="object" string="Registrar salida" invisible="state != 'open'" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_access_log_view_search" model="ir.ui.view">
+        <field name="name">spa.access.log.search</field>
+        <field name="model">spa.access.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="space_id"/>
+                <filter name="inside" string="Dentro ahora" domain="[('state', '=', 'open')]"/>
+                <group>
+                    <filter name="group_space" string="Espacio" context="{'group_by': 'space_id'}"/>
+                    <filter name="group_day" string="Día" context="{'group_by': 'check_in:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_access_log_open_action" model="ir.actions.act_window">
+        <field name="name">Quién está dentro</field>
+        <field name="res_model">spa.access.log</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_inside': 1}</field>
+    </record>
+
+    <record id="spa_access_log_action" model="ir.actions.act_window">
+        <field name="name">Historial de ingresos</field>
+        <field name="res_model">spa.access.log</field>
+        <field name="view_mode">list,pivot,graph</field>
+    </record>
+
+    <record id="spa_space_view_kanban_live" model="ir.ui.view">
+        <field name="name">spa.space.kanban.live</field>
+        <field name="model">spa.space</field>
+        <field name="arch" type="xml">
+            <kanban create="0" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="capacity"/>
+                <field name="occupancy"/>
+                <field name="free_now"/>
+                <field name="access_mode"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <field name="state" widget="badge" decoration-success="state == 'active'" decoration-warning="state == 'maintenance'"/>
+                        </div>
+                        <div class="text-muted small"><field name="access_mode"/></div>
+                        <div class="my-2">
+                            <field name="occupancy_percent" widget="progressbar"/>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span><field name="occupancy"/> de <field name="capacity"/> dentro</span>
+                            <span class="fw-bold"><field name="free_now"/> libres</span>
+                        </div>
+                        <footer class="mt-2">
+                            <button name="%(spa_checkin_wizard_action)d" type="action" class="btn btn-primary btn-sm"
+                                    context="{'default_space_id': id}">Registrar ingreso</button>
+                            <button name="%(spa_access_log_open_action)d" type="action" class="btn btn-secondary btn-sm"
+                                    context="{'search_default_space_id': id}">Quién está dentro</button>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="spa_space_live_action" model="ir.actions.act_window">
+        <field name="name">Aforo en vivo</field>
+        <field name="res_model">spa.space</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="spa_space_view_kanban_live"/>
+        <field name="domain">[('state', '!=', 'closed')]</field>
+    </record>
+</odoo>

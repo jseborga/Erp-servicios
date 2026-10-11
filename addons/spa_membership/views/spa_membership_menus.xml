@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="spa_menu_membership" name="Membresías" parent="spa_base.spa_menu_members"
+              action="spa_membership_action" sequence="10"/>
+    <menuitem id="spa_menu_guest" name="Invitados" parent="spa_base.spa_menu_members"
+              action="spa_guest_action" sequence="30"/>
+    <menuitem id="spa_menu_consumption" name="Libro de consumos" parent="spa_base.spa_menu_reporting"
+              action="spa_consumption_action" sequence="10"/>
+    <menuitem id="spa_menu_plan" name="Planes de membresía" parent="spa_base.spa_menu_config"
+              action="spa_plan_action" sequence="5"/>
+    <menuitem id="spa_menu_cancel_policy" name="Políticas de cancelación" parent="spa_base.spa_menu_config"
+              action="spa_cancel_policy_action" sequence="6"/>
+</odoo>

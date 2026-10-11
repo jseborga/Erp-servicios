@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_spa_payment_request_reception,spa.payment.request.reception,model_spa_payment_request,spa_base.group_spa_reception,1,1,1,0
+access_spa_payment_request_manager,spa.payment.request.manager,model_spa_payment_request,spa_base.group_spa_manager,1,1,1,1
+access_spa_payment_offer_user,spa.payment.offer.user,model_spa_payment_offer,base.group_user,1,0,0,0
+access_spa_payment_offer_manager,spa.payment.offer.manager,model_spa_payment_offer,spa_base.group_spa_manager,1,1,1,1
+access_spa_deferral_line_manager,spa.deferral.line.manager,model_spa_deferral_line,spa_base.group_spa_manager,1,1,1,1
+access_spa_deferral_line_accountant,spa.deferral.line.accountant,model_spa_deferral_line,account.group_account_user,1,1,0,0

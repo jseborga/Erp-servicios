@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_membership_view_form_billing" model="ir.ui.view">
+        <field name="name">spa.membership.form.billing</field>
+        <field name="model">spa.membership</field>
+        <field name="inherit_id" ref="spa_membership.spa_membership_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_activate']" position="before">
+                <button name="action_create_invoice" type="object" string="Facturar período" class="btn-primary"
+                        invisible="state == 'cancelled' or amount_due &gt; 0" groups="spa_base.group_spa_reception"/>
+                <button name="action_register_payment_request" type="object" string="Registrar pago" class="btn-primary"
+                        invisible="state == 'cancelled'" groups="spa_base.group_spa_reception"/>
+            </xpath>
+            <div name="button_box" position="inside">
+                <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                        groups="spa_base.group_spa_reception">
+                    <field name="invoice_count" widget="statinfo" string="Facturas"/>
+                </button>
+            </div>
+            <xpath expr="//field[@name='guests_this_month']" position="after">
+                <field name="amount_due" decoration-danger="amount_due &gt; 0"/>
+                <field name="offer_id" options="{'no_create': True}" invisible="state == 'cancelled'"/>
+                <field name="auto_renew"/>
+            </xpath>
+            <xpath expr="//page[@name='notes']" position="before">
+                <page string="Pagos informados" name="payments">
+                    <field name="payment_request_ids" readonly="1">
+                        <list>
+                            <field name="create_date" string="Informado"/>
+                            <field name="name"/>
+                            <field name="method"/>
+                            <field name="amount"/>
+                            <field name="state"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Devengo" name="deferral" invisible="not deferral_line_ids">
+                    <field name="deferral_line_ids" readonly="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="amount" sum="Total"/>
+                            <field name="state"/>
+                            <field name="move_id"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="spa_membership_view_list_billing" model="ir.ui.view">
+        <field name="name">spa.membership.list.billing</field>
+        <field name="model">spa.membership</field>
+        <field name="inherit_id" ref="spa_membership.spa_membership_view_list"/>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="amount_due" optional="show" decoration-danger="amount_due &gt; 0"/>
+                <field name="currency_id" column_invisible="1"/>
+            </field>
+        </field>
+    </record>
+</odoo>

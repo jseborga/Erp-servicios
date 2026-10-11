@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_booking_slot_wizard_view_form" model="ir.ui.view">
+        <field name="name">spa.booking.slot.wizard.form</field>
+        <field name="model">spa.booking.slot.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reserva rápida">
+                <group>
+                    <group>
+                        <field name="partner_id"/>
+                        <field name="membership_id" options="{'no_create': True}"
+                               placeholder="Sin membresía: pago suelto"/>
+                        <field name="channel"/>
+                    </group>
+                    <group>
+                        <field name="service_id" options="{'no_create': True}"/>
+                        <field name="date"/>
+                        <field name="guest_names" placeholder="María López, +59170000000"/>
+                    </group>
+                </group>
+                <button name="action_search" type="object" string="Ver horarios" class="btn-primary mb-3"/>
+                <field name="line_ids" invisible="not line_ids" readonly="1">
+                    <list decoration-muted="not available" create="0" delete="0">
+                        <field name="label"/>
+                        <field name="free"/>
+                        <field name="capacity"/>
+                        <field name="available" column_invisible="1"/>
+                        <field name="reason"/>
+                        <button name="action_book" type="object" string="Reservar" class="btn-link"
+                                invisible="not available"/>
+                    </list>
+                </field>
+                <footer>
+                    <button special="cancel" string="Cerrar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_booking_slot_wizard_action" model="ir.actions.act_window">
+        <field name="name">Reserva rápida</field>
+        <field name="res_model">spa.booking.slot.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

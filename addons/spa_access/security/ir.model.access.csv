@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_spa_access_log_reception,spa.access.log.reception,model_spa_access_log,spa_base.group_spa_reception,1,1,1,0
+access_spa_access_log_manager,spa.access.log.manager,model_spa_access_log,spa_base.group_spa_manager,1,1,1,1
+access_spa_checkin_wizard_reception,spa.checkin.wizard.reception,model_spa_checkin_wizard,spa_base.group_spa_reception,1,1,1,1

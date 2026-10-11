@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_checkin_wizard_view_form" model="ir.ui.view">
+        <field name="name">spa.checkin.wizard.form</field>
+        <field name="model">spa.checkin.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Registrar ingreso">
+                <group>
+                    <field name="space_id" options="{'no_create': True}"/>
+                    <field name="token" placeholder="Escanee la credencial del socio" default_focus="1"/>
+                    <field name="partner_id" options="{'no_create': True}"/>
+                    <field name="guests"/>
+                </group>
+                <footer>
+                    <button name="action_check_in" type="object" string="Registrar ingreso" class="btn-primary"/>
+                    <button special="cancel" string="Cerrar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_checkin_wizard_action" model="ir.actions.act_window">
+        <field name="name">Registrar ingreso</field>
+        <field name="res_model">spa.checkin.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

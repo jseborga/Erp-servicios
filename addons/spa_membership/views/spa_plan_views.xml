@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_plan_view_list" model="ir.ui.view">
+        <field name="name">spa.plan.list</field>
+        <field name="model">spa.plan</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="min_price" string="Desde (por mes)"/>
+                <field name="guest_quota"/>
+                <field name="cancel_policy_id"/>
+                <field name="member_count"/>
+                <field name="website_published" widget="boolean_toggle"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_plan_view_form" model="ir.ui.view">
+        <field name="name">spa.plan.form</field>
+        <field name="model">spa.plan</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_members" type="object" class="oe_stat_button" icon="fa-users">
+                            <field name="member_count" widget="statinfo" string="Socios vigentes"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Ej. Premium"/></h1>
+                    </div>
+                    <group>
+                        <group string="Reglas del plan">
+                            <field name="cancel_policy_id"/>
+                            <field name="grace_days"/>
+                            <field name="guest_quota"/>
+                            <field name="guest_fee_product_id"/>
+                        </group>
+                        <group string="Beneficios y web">
+                            <field name="pricelist_id"/>
+                            <field name="website_published"/>
+                            <field name="code"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Servicios incluidos" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="service_id"/>
+                                    <field name="unlimited"/>
+                                    <field name="quantity" readonly="unlimited"/>
+                                    <field name="freq_limit_qty"/>
+                                    <field name="freq_limit_period" invisible="not freq_limit_qty"/>
+                                    <field name="hour_from" widget="float_time"/>
+                                    <field name="hour_to" widget="float_time"/>
+                                    <field name="carryover" readonly="unlimited"/>
+                                    <field name="carryover_max" invisible="carryover == 'lose'"/>
+                                    <field name="guests_per_booking"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Duraciones y precios" name="periods">
+                            <field name="period_ids">
+                                <list editable="bottom">
+                                    <field name="months"/>
+                                    <field name="name"/>
+                                    <field name="price"/>
+                                    <field name="monthly_price"/>
+                                    <field name="product_id"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Descripción web" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_plan_action" model="ir.actions.act_window">
+        <field name="name">Planes de membresía</field>
+        <field name="res_model">spa.plan</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cree el primer plan</p>
+            <p>Un plan reúne servicios con sus cantidades, horarios, invitados y precios por duración.</p>
+        </field>
+    </record>
+
+    <record id="spa_cancel_policy_view_list" model="ir.ui.view">
+        <field name="name">spa.cancel.policy.list</field>
+        <field name="model">spa.cancel.policy</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="free_cancel_hours" widget="float_time"/>
+                <field name="late_cancel_action"/>
+                <field name="late_cancel_fee_product_id" invisible="late_cancel_action != 'fee'"/>
+                <field name="no_show_action"/>
+                <field name="no_show_fee_product_id" invisible="no_show_action != 'fee'"/>
+                <field name="max_cancellations_month"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_cancel_policy_action" model="ir.actions.act_window">
+        <field name="name">Políticas de cancelación</field>
+        <field name="res_model">spa.cancel.policy</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

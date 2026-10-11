@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_spa_space_user,spa.space.user,model_spa_space,base.group_user,1,0,0,0
+access_spa_space_manager,spa.space.manager,model_spa_space,group_spa_manager,1,1,1,1
+access_spa_space_closure_user,spa.space.closure.user,model_spa_space_closure,base.group_user,1,0,0,0
+access_spa_space_closure_manager,spa.space.closure.manager,model_spa_space_closure,group_spa_manager,1,1,1,1
+access_spa_service_user,spa.service.user,model_spa_service,base.group_user,1,0,0,0
+access_spa_service_manager,spa.service.manager,model_spa_service,group_spa_manager,1,1,1,1
+access_spa_skill_user,spa.skill.user,model_spa_skill,base.group_user,1,0,0,0
+access_spa_skill_manager,spa.skill.manager,model_spa_skill,group_spa_manager,1,1,1,1

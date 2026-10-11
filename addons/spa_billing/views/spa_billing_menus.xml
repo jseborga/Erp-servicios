@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="spa_menu_payment_request" name="Pagos por validar" parent="spa_base.spa_menu_operations"
+              action="spa_payment_request_action" sequence="20" groups="spa_base.group_spa_reception"/>
+    <menuitem id="spa_menu_payment_offer" name="Ofertas de pago" parent="spa_base.spa_menu_config"
+              action="spa_payment_offer_action" sequence="8"/>
+    <menuitem id="spa_menu_deferral" name="Devengo de membresías" parent="spa_base.spa_menu_reporting"
+              action="spa_deferral_line_action" sequence="30"/>
+</odoo>

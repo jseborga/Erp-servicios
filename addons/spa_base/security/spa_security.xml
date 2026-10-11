@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_groups_privilege_spa" model="res.groups.privilege">
+        <field name="name">Spa</field>
+        <field name="sequence">5</field>
+        <field name="category_id" ref="base.module_category_services"/>
+    </record>
+
+    <record id="group_spa_therapist" model="res.groups">
+        <field name="name">Terapeuta / Instructor</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_spa"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Ve su agenda y marca sesiones atendidas o no-show.</field>
+    </record>
+
+    <record id="group_spa_reception" model="res.groups">
+        <field name="name">Recepción / Atención al cliente</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_spa"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Alta de socios, reservas, check-in, invitados y registro de pagos por validar.</field>
+    </record>
+
+    <record id="group_spa_cashier" model="res.groups">
+        <field name="name">Caja</field>
+        <field name="sequence">30</field>
+        <field name="privilege_id" ref="res_groups_privilege_spa"/>
+        <field name="implied_ids" eval="[(4, ref('group_spa_reception'))]"/>
+        <field name="comment">Valida pagos por QR, transferencia o efectivo.</field>
+    </record>
+
+    <record id="group_spa_marketing" model="res.groups">
+        <field name="name">Marketing / CRM</field>
+        <field name="sequence">40</field>
+        <field name="privilege_id" ref="res_groups_privilege_spa"/>
+        <field name="implied_ids" eval="[(4, ref('group_spa_reception'))]"/>
+        <field name="comment">Fuentes, cortesías, promociones y seguimiento de prospectos.</field>
+    </record>
+
+    <record id="group_spa_manager" model="res.groups">
+        <field name="name">Gerente</field>
+        <field name="sequence">50</field>
+        <field name="privilege_id" ref="res_groups_privilege_spa"/>
+        <field name="implied_ids" eval="[(4, ref('group_spa_cashier')), (4, ref('group_spa_marketing')), (4, ref('group_spa_therapist'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        <field name="comment">Configuración de espacios, servicios y planes; aprobaciones y métricas.</field>
+    </record>
+
+    <data noupdate="1">
+        <record id="spa_space_company_rule" model="ir.rule">
+            <field name="name">Espacios: multiempresa</field>
+            <field name="model_id" ref="model_spa_space"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="spa_service_company_rule" model="ir.rule">
+            <field name="name">Servicios: multiempresa</field>
+            <field name="model_id" ref="model_spa_service"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+    </data>
+</odoo>

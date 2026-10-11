@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_message_view_list" model="ir.ui.view">
+        <field name="name">spa.message.list</field>
+        <field name="model">spa.message</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-muted="state in ('sent', 'cancelled')" decoration-danger="state == 'failed'">
+                <field name="create_date" string="Creado"/>
+                <field name="partner_id"/>
+                <field name="phone"/>
+                <field name="template_id"/>
+                <field name="body"/>
+                <field name="state" widget="badge" decoration-info="state == 'ready'" decoration-success="state == 'sent'" decoration-danger="state == 'failed'"/>
+                <button name="action_open_whatsapp" type="object" string="Abrir WhatsApp" icon="fa-whatsapp"
+                        class="btn-link" invisible="state != 'ready'"/>
+                <button name="action_discard" type="object" string="Descartar" icon="fa-times"
+                        class="btn-link" invisible="state not in ('ready', 'failed')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_message_view_form" model="ir.ui.view">
+        <field name="name">spa.message.form</field>
+        <field name="model">spa.message</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header>
+                    <button name="action_open_whatsapp" type="object" string="Abrir WhatsApp" class="btn-primary" invisible="state != 'ready'"/>
+                    <button name="action_retry" type="object" string="Reintentar" invisible="state != 'failed'"/>
+                    <button name="action_open_record" type="object" string="Ver origen" invisible="not res_id"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="phone"/>
+                            <field name="template_id"/>
+                            <field name="provider"/>
+                        </group>
+                        <group>
+                            <field name="sent_date"/>
+                            <field name="sent_by_id"/>
+                            <field name="res_model" invisible="1"/>
+                            <field name="res_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="body"/>
+                    <field name="error" invisible="not error"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_message_view_search" model="ir.ui.view">
+        <field name="name">spa.message.search</field>
+        <field name="model">spa.message</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="phone"/>
+                <field name="template_id"/>
+                <filter name="pending" string="Por enviar" domain="[('state', 'in', ('ready', 'queued', 'failed'))]"/>
+                <filter name="sent" string="Enviados" domain="[('state', '=', 'sent')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_message_action" model="ir.actions.act_window">
+        <field name="name">Mensajes de WhatsApp</field>
+        <field name="res_model">spa.message</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin mensajes pendientes</p>
+            <p>Aquí aparecen los avisos de renovación, pagos y recordatorios listos para enviar por WhatsApp.</p>
+        </field>
+    </record>
+
+    <record id="spa_message_template_view_list" model="ir.ui.view">
+        <field name="name">spa.message.template.list</field>
+        <field name="model">spa.message.template</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="code" readonly="1"/>
+                <field name="body"/>
+                <field name="meta_template_name" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_message_template_action" model="ir.actions.act_window">
+        <field name="name">Plantillas de mensajes</field>
+        <field name="res_model">spa.message.template</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+    <menuitem id="spa_menu_message" name="Mensajes WhatsApp" parent="spa_base.spa_menu_operations"
+              action="spa_message_action" sequence="40" groups="spa_base.group_spa_reception"/>
+    <menuitem id="spa_menu_message_template" name="Plantillas de mensajes" parent="spa_base.spa_menu_config"
+              action="spa_message_template_action" sequence="60"/>
+</odoo>

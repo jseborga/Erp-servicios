@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_spa_billing" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.spa.billing</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="spa_base.res_config_settings_view_form_spa"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='spa_general']" position="after">
+                <block title="Cobros" name="spa_billing">
+                    <setting string="QR de pago" help="Imagen del QR de su cuenta bancaria. Se muestra al socio en la web y en recepción.">
+                        <field name="spa_payment_qr" widget="image" class="w-25"/>
+                        <field name="spa_bank_account_text" placeholder="Banco, Nº de cuenta, titular"/>
+                        <field name="spa_payment_instructions"/>
+                    </setting>
+                    <setting string="Diarios de cobro" help="Dónde se registran los pagos validados.">
+                        <div><label for="spa_payment_journal_id" class="me-2"/><field name="spa_payment_journal_id"/></div>
+                        <div><label for="spa_cash_journal_id" class="me-2"/><field name="spa_cash_journal_id"/></div>
+                    </setting>
+                    <setting string="Renovación" help="Días antes del vencimiento en que se genera la factura y el aviso.">
+                        <field name="spa_renewal_days"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

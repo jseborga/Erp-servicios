@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_guest_view_list" model="ir.ui.view">
+        <field name="name">spa.guest.list</field>
+        <field name="model">spa.guest</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="phone"/>
+                <field name="host_partner_id"/>
+                <field name="service_id"/>
+                <field name="charge_type" widget="badge" decoration-success="charge_type == 'free_pass'" decoration-warning="charge_type == 'fee'"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_guest_view_form" model="ir.ui.view">
+        <field name="name">spa.guest.form</field>
+        <field name="model">spa.guest</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_attended" type="object" string="Asistió" class="btn-primary" invisible="state != 'planned'"/>
+                    <button name="action_cancel" type="object" string="Cancelar" invisible="state != 'planned'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="phone"/>
+                            <field name="email"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="membership_id"/>
+                            <field name="host_partner_id"/>
+                            <field name="date"/>
+                            <field name="service_id"/>
+                            <field name="charge_type"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_guest_action" model="ir.actions.act_window">
+        <field name="name">Invitados</field>
+        <field name="res_model">spa.guest</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

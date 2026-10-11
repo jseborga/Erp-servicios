@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_spa_message_reception,spa.message.reception,model_spa_message,spa_base.group_spa_reception,1,1,0,0
+access_spa_message_manager,spa.message.manager,model_spa_message,spa_base.group_spa_manager,1,1,1,1
+access_spa_message_template_user,spa.message.template.user,model_spa_message_template,base.group_user,1,0,0,0
+access_spa_message_template_manager,spa.message.template.manager,model_spa_message_template,spa_base.group_spa_manager,1,1,1,1

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="tpl_booking_confirmed" model="spa.message.template">
+            <field name="code">booking_confirmed</field>
+            <field name="name">Reserva confirmada</field>
+            <field name="active" eval="False"/>
+            <field name="body">Hola {nombre}, tu reserva de {servicio} está confirmada para el {fecha} a las {hora}. Si necesitas cancelar, hazlo con {horas_cancelacion} h de anticipación. ¡Te esperamos!</field>
+        </record>
+        <record id="tpl_booking_reminder" model="spa.message.template">
+            <field name="code">booking_reminder</field>
+            <field name="name">Recordatorio de reserva (24 h antes)</field>
+            <field name="body">Hola {nombre}, te recordamos tu reserva de {servicio} mañana {fecha} a las {hora}. Responde a este mensaje si necesitas cambiarla.</field>
+        </record>
+        <record id="tpl_renewal_notice" model="spa.message.template">
+            <field name="code">renewal_notice</field>
+            <field name="name">Aviso de renovación</field>
+            <field name="body">Hola {nombre}, tu membresía {plan} vence el {vence}. Para renovarla, paga {monto} con el QR o por transferencia y envíanos el comprobante. Gracias por ser parte de {empresa}.</field>
+        </record>
+        <record id="tpl_payment_validated" model="spa.message.template">
+            <field name="code">payment_validated</field>
+            <field name="name">Pago recibido</field>
+            <field name="body">Hola {nombre}, recibimos tu pago de {monto}. Tu membresía {plan} está vigente hasta el {vence}. ¡Gracias!</field>
+        </record>
+        <record id="tpl_payment_rejected" model="spa.message.template">
+            <field name="code">payment_rejected</field>
+            <field name="name">Pago no validado</field>
+            <field name="body">Hola {nombre}, no pudimos validar tu pago de {monto}: {motivo}. Por favor envíanos un nuevo comprobante.</field>
+        </record>
+        <record id="tpl_grace_notice" model="spa.message.template">
+            <field name="code">grace_notice</field>
+            <field name="name">Membresía vencida (en gracia)</field>
+            <field name="body">Hola {nombre}, tu membresía {plan} venció el {vence}. Conservas el acceso hasta el {gracia}. Renueva pagando {monto} para no perder tus beneficios.</field>
+        </record>
+        <record id="tpl_suspended_notice" model="spa.message.template">
+            <field name="code">suspended_notice</field>
+            <field name="name">Membresía suspendida</field>
+            <field name="body">Hola {nombre}, tu membresía {plan} quedó suspendida por falta de pago. Cuando renueves, el acceso se reactiva al instante. Escríbenos si necesitas ayuda.</field>
+        </record>
+        <record id="tpl_guest_welcome" model="spa.message.template">
+            <field name="code">guest_welcome</field>
+            <field name="name">Bienvenida a invitados</field>
+            <field name="body">Hola {nombre}, {anfitrion} te invitó a {empresa} el {fecha}. ¡Te esperamos! Si te gusta, pregúntanos por nuestros planes.</field>
+        </record>
+        <record id="tpl_courtesy_pass" model="spa.message.template">
+            <field name="code">courtesy_pass</field>
+            <field name="name">Pase de cortesía</field>
+            <field name="body">Hola {nombre}, tienes un pase de cortesía en {empresa} válido hasta el {vence} para: {servicios}. Presenta este código en recepción: {codigo}.</field>
+        </record>
+    </data>
+</odoo>

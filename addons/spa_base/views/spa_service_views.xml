@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_service_view_list" model="ir.ui.view">
+        <field name="name">spa.service.list</field>
+        <field name="model">spa.service</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="space_id"/>
+                <field name="duration" widget="float_time"/>
+                <field name="requires_staff"/>
+                <field name="skill_id" optional="show"/>
+                <field name="guest_allowed" optional="show"/>
+                <field name="list_price"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_service_view_form" model="ir.ui.view">
+        <field name="name">spa.service.form</field>
+        <field name="model">spa.service</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Ej. Masaje relajante 60 min"/></h1>
+                    </div>
+                    <group>
+                        <group string="Dónde y cuánto dura">
+                            <field name="space_id"/>
+                            <field name="access_mode"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="seats_per_booking"/>
+                            <field name="guest_allowed"/>
+                        </group>
+                        <group string="Precio y personal">
+                            <field name="product_id" context="{'default_type': 'service'}"/>
+                            <field name="list_price"/>
+                            <field name="requires_staff"/>
+                            <field name="skill_id" invisible="not requires_staff" required="requires_staff"/>
+                        </group>
+                        <group string="Reglas de reserva">
+                            <field name="booking_lead_min" widget="float_time"/>
+                            <field name="booking_lead_max"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Descripción que verá el socio en la web"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_service_action" model="ir.actions.act_window">
+        <field name="name">Servicios</field>
+        <field name="res_model">spa.service</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_booking_view_list" model="ir.ui.view">
+        <field name="name">spa.booking.list</field>
+        <field name="model">spa.booking</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('cancelled', 'late_cancel')" decoration-danger="state == 'no_show'">
+                <field name="start"/>
+                <field name="partner_id"/>
+                <field name="service_id"/>
+                <field name="space_id" optional="show"/>
+                <field name="employee_id" optional="show"/>
+                <field name="seats"/>
+                <field name="payment_mode" optional="hide"/>
+                <field name="channel" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'confirmed'" decoration-success="state in ('checked_in', 'done')" decoration-danger="state == 'no_show'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_booking_view_calendar" model="ir.ui.view">
+        <field name="name">spa.booking.calendar</field>
+        <field name="model">spa.booking</field>
+        <field name="arch" type="xml">
+            <calendar string="Agenda" date_start="start" date_stop="stop" color="space_id" mode="day"
+                      event_open_popup="1" quick_create="0">
+                <field name="partner_id"/>
+                <field name="service_id"/>
+                <field name="employee_id" filters="1"/>
+                <field name="space_id" filters="1"/>
+                <field name="seats"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="spa_booking_view_form" model="ir.ui.view">
+        <field name="name">spa.booking.form</field>
+        <field name="model">spa.booking</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" type="object" string="Confirmar" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_check_in" type="object" string="Registrar llegada" class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_done" type="object" string="Marcar atendida" invisible="state != 'checked_in'"/>
+                    <button name="action_no_show" type="object" string="No se presentó" invisible="state != 'confirmed'"
+                            confirm="Se aplicará la política de no-show del plan. ¿Continuar?"/>
+                    <button name="action_cancel" type="object" string="Cancelar reserva" invisible="state not in ('draft', 'confirmed')"
+                            confirm="Si faltan menos horas que las de la política, se aplicará la penalidad. ¿Cancelar?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,checked_in,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Cliente">
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="phone"/>
+                            <field name="payment_mode" widget="radio" readonly="state != 'draft'"/>
+                            <field name="membership_id" readonly="state != 'draft'" invisible="payment_mode != 'membership'"
+                                   required="payment_mode == 'membership'" options="{'no_create': True}"/>
+                            <field name="channel" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Servicio">
+                            <field name="service_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="space_id"/>
+                            <field name="start" readonly="state != 'draft'"/>
+                            <field name="stop" readonly="1"/>
+                            <field name="requires_staff" invisible="1"/>
+                            <field name="employee_id" invisible="not requires_staff" readonly="state != 'draft'"
+                                   placeholder="Se asigna automáticamente"/>
+                            <field name="seats"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Invitados" name="guests" invisible="payment_mode != 'membership'">
+                            <field name="guest_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="phone"/>
+                                    <field name="charge_type"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Consumos" name="consumption" invisible="payment_mode != 'membership'">
+                            <field name="consumption_ids" readonly="1">
+                                <list>
+                                    <field name="service_date"/>
+                                    <field name="qty"/>
+                                    <field name="reason"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_booking_view_search" model="ir.ui.view">
+        <field name="name">spa.booking.search</field>
+        <field name="model">spa.booking</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="name"/>
+                <field name="service_id"/>
+                <field name="space_id"/>
+                <field name="employee_id"/>
+                <filter name="today" string="Hoy"
+                        domain="[('start', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S')),
+                                 ('start', '&lt;', datetime.datetime.combine(context_today() + relativedelta(days=1), datetime.time(0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                <filter name="upcoming" string="Próximas" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="no_show" string="No-show" domain="[('state', '=', 'no_show')]"/>
+                <separator/>
+                <filter name="my_bookings" string="Mis sesiones" domain="[('employee_id.user_id', '=', uid)]"/>
+                <group>
+                    <filter name="group_space" string="Espacio" context="{'group_by': 'space_id'}"/>
+                    <filter name="group_service" string="Servicio" context="{'group_by': 'service_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_booking_view_pivot" model="ir.ui.view">
+        <field name="name">spa.booking.pivot</field>
+        <field name="model">spa.booking</field>
+        <field name="arch" type="xml">
+            <pivot string="Ocupación">
+                <field name="space_id" type="row"/>
+                <field name="start" type="col" interval="week"/>
+                <field name="seats" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="spa_booking_action" model="ir.actions.act_window">
+        <field name="name">Agenda</field>
+        <field name="res_model">spa.booking</field>
+        <field name="view_mode">calendar,list,form,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Sin reservas</p>
+            <p>Use «Reserva rápida» para ver las franjas libres y reservar en un clic.</p>
+        </field>
+    </record>
+
+    <record id="spa_membership_view_form_booking" model="ir.ui.view">
+        <field name="name">spa.membership.form.booking</field>
+        <field name="model">spa.membership</field>
+        <field name="inherit_id" ref="spa_membership.spa_membership_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_suspend']" position="before">
+                <button name="action_new_booking" type="object" string="Reservar" class="btn-primary"
+                        invisible="state not in ('active', 'grace')"/>
+            </xpath>
+            <div name="button_box" position="inside">
+                <button name="action_view_bookings" type="object" class="oe_stat_button" icon="fa-calendar">
+                    <field name="booking_count" widget="statinfo" string="Reservas"/>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

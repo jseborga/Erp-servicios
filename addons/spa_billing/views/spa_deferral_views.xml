@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_deferral_line_view_list" model="ir.ui.view">
+        <field name="name">spa.deferral.line.list</field>
+        <field name="model">spa.deferral.line</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="date"/>
+                <field name="membership_id"/>
+                <field name="invoice_id"/>
+                <field name="amount" sum="Total"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'"/>
+                <field name="move_id"/>
+                <field name="currency_id" column_invisible="1"/>
+                <button name="action_post" type="object" string="Contabilizar" invisible="state != 'planned'" class="btn-link"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_deferral_line_action" model="ir.actions.act_window">
+        <field name="name">Devengo de membresías</field>
+        <field name="res_model">spa.deferral.line</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

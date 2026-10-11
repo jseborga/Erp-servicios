@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="spa_menu_root" name="Spa" sequence="5"
+              web_icon="spa_base,static/description/icon.png"
+              groups="group_spa_reception,group_spa_therapist"/>
+
+    <menuitem id="spa_menu_operations" name="Operación" parent="spa_menu_root" sequence="10"/>
+    <menuitem id="spa_menu_members" name="Socios" parent="spa_menu_root" sequence="20"/>
+    <menuitem id="spa_menu_reporting" name="Reportes" parent="spa_menu_root" sequence="80"
+              groups="group_spa_manager"/>
+    <menuitem id="spa_menu_config" name="Configuración" parent="spa_menu_root" sequence="90"
+              groups="group_spa_manager"/>
+
+    <menuitem id="spa_menu_settings" name="Ajustes" parent="spa_menu_config" action="spa_settings_action" sequence="1"/>
+    <menuitem id="spa_menu_space" name="Espacios" parent="spa_menu_config" action="spa_space_action" sequence="10"/>
+    <menuitem id="spa_menu_service" name="Servicios" parent="spa_menu_config" action="spa_service_action" sequence="20"/>
+    <menuitem id="spa_menu_skill" name="Especialidades del personal" parent="spa_menu_config" action="spa_skill_action" sequence="30"/>
+</odoo>

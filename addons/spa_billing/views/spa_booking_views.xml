@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_booking_view_form_billing" model="ir.ui.view">
+        <field name="name">spa.booking.form.billing</field>
+        <field name="model">spa.booking</field>
+        <field name="inherit_id" ref="spa_booking.spa_booking_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_check_in']" position="before">
+                <button name="action_register_payment_request" type="object" string="Cobrar" class="btn-primary"
+                        invisible="not invoice_id or payment_state in ('paid', 'reversed')"/>
+            </xpath>
+            <field name="channel" position="after">
+                <field name="invoice_id" invisible="not invoice_id"/>
+                <field name="payment_state" invisible="not invoice_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>
