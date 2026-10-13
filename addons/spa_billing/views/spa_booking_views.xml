@@ -7,11 +7,17 @@
         <field name="arch" type="xml">
             <xpath expr="//header/button[@name='action_check_in']" position="before">
                 <button name="action_register_payment_request" type="object" string="Cobrar" class="btn-primary"
-                        invisible="not invoice_id or payment_state in ('paid', 'reversed')"/>
+                        invisible="payment_mode != 'single' or state in ('draft', 'cancelled', 'late_cancel', 'no_show') or invoice_state == 'cancel' or payment_state in ('paid', 'reversed', 'in_payment')"
+                        groups="spa_base.group_spa_reception"/>
             </xpath>
             <field name="channel" position="after">
-                <field name="invoice_id" invisible="not invoice_id"/>
-                <field name="payment_state" invisible="not invoice_id"/>
+                <!-- Recepción no lee facturas: ve el estado del cobro; la factura solo caja y contabilidad. -->
+                <field name="invoice_id" invisible="not invoice_id" groups="account.group_account_invoice"/>
+                <field name="charge_status" invisible="not charge_status" widget="badge"
+                       decoration-success="charge_status == 'paid'"
+                       decoration-warning="charge_status in ('pending', 'invoiced', 'partial')"/>
+                <field name="invoice_state" invisible="1"/>
+                <field name="payment_state" invisible="1"/>
             </field>
         </field>
     </record>

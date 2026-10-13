@@ -1,6 +1,7 @@
 # Part of ERP Servicios Spa. License LGPL-3.
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools import float_compare, float_round
 
 
 class SpaPaymentOffer(models.Model):
@@ -54,20 +55,35 @@ class SpaPaymentOffer(models.Model):
         offers = self.search([('company_id', '=', period.company_id.id)])
         return offers.filtered(lambda o: o._is_applicable(period, partner, day))
 
+    def _installment_percentages(self):
+        """Porcentajes de cada cuota con la precisión de «Payment Terms» (6 decimales): 9.070 / 3 →
+        33,333333 % + 33,333333 % + 33,333334 % = 3.023,33 + 3.023,33 + 3.023,34."""
+        self.ensure_one()
+        digits = self.env['decimal.precision'].precision_get('Payment Terms')
+        share = float_round(100.0 / self.installments, precision_digits=digits)
+        last = float_round(100.0 - share * (self.installments - 1), precision_digits=digits)
+        return [share] * (self.installments - 1) + [last]
+
     def _get_payment_term(self):
         """Plazos de pago en cuotas mensuales iguales (se crean una vez por oferta)."""
         self.ensure_one()
         if self.offer_type != 'installments':
             return self.env['account.payment.term']
-        if not self.payment_term_id:
-            share = round(100.0 / self.installments, 2)
-            lines = []
-            for index in range(self.installments):
-                value = share if index < self.installments - 1 else round(100.0 - share * (self.installments - 1), 2)
-                lines.append((0, 0, {'value': 'percent', 'value_amount': value, 'nb_days': 30 * index}))
-            self.payment_term_id = self.env['account.payment.term'].sudo().create({
+        percentages = self._installment_percentages()
+        term = self.payment_term_id
+        if term:
+            current = [line.value_amount for line in term.line_ids.sorted(lambda l: (l.nb_days, l.id))]
+            digits = self.env['decimal.precision'].precision_get('Payment Terms')
+            if len(current) != len(percentages) or any(
+                    float_compare(a, b, precision_digits=digits) for a, b in zip(current, percentages)):
+                term = self.env['account.payment.term']  # plazos de una versión anterior (2 decimales)
+        if not term:
+            lines = [(0, 0, {'value': 'percent', 'value_amount': value, 'nb_days': 30 * index})
+                     for index, value in enumerate(percentages)]
+            term = self.env['account.payment.term'].sudo().create({
                 'name': self.env._('%s cuotas mensuales', self.installments),
                 'company_id': self.company_id.id,
                 'line_ids': lines,
             })
-        return self.payment_term_id
+            self.sudo().payment_term_id = term
+        return term

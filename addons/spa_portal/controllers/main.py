@@ -24,6 +24,8 @@ from odoo.tools.mimetypes import guess_mimetype
 
 from odoo.addons.portal.controllers.portal import CustomerPortal
 
+from odoo.addons.spa_billing.models.account_move import PENDING_KINDS
+
 from ..models.res_config_settings import DEFAULT_BOOKING_DAYS, DEFAULT_RECEIPT_MAX_MB
 
 ACCESS_STATES = ('active', 'grace')
@@ -88,10 +90,16 @@ class SpaPortal(CustomerPortal):
             m.partner_id != partner, STATE_RANK.get(m.state, 9),
             -(m.date_end.toordinal() if m.date_end else 0), -m.id))[:1]
 
+    def _spa_payable_domain(self):
+        """Lo que el socio puede pagar: facturas emitidas con saldo y cobros pendientes (borrador: la factura
+        se emite al validar el pago). Los cargos del mes en curso se emiten al cerrar el mes."""
+        return [('move_type', '=', 'out_invoice'), ('amount_residual', '>', 0), ('spa_invoice_kind', '!=', False),
+                ('payment_state', 'not in', ('paid', 'reversed', 'in_payment')),
+                '|', ('state', '=', 'posted'), '&', ('state', '=', 'draft'), ('spa_invoice_kind', 'in', list(PENDING_KINDS))]
+
     def _spa_open_invoices(self):
-        return request.env['account.move'].sudo().search(self._spa_owner_domain() + [
-            ('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('amount_residual', '>', 0),
-            ('spa_invoice_kind', '!=', False)], order='invoice_date_due, id')
+        return request.env['account.move'].sudo().search(
+            self._spa_owner_domain() + self._spa_payable_domain(), order='invoice_date_due, id')
 
     def _spa_param(self, key, default, cast):
         value = request.env['ir.config_parameter'].sudo().get_param(key)
@@ -285,8 +293,7 @@ class SpaPortal(CustomerPortal):
 
     def _spa_redirect_existing(self, membership):
         """Lleva al socio a su membresía (o a pagarla) en lugar de duplicarla."""
-        invoice = membership._open_period_invoice().filtered(
-            lambda m: m.state == 'posted' and m.amount_residual > 0)[:1]
+        invoice = membership._open_period_invoice().filtered(lambda m: m.amount_residual > 0)[:1]
         if membership.state == 'draft' and not invoice:
             invoice = membership.with_context(mail_create_nosubscribe=True).action_create_invoice()
             self._spa_clean_salesperson(invoice)
@@ -438,6 +445,7 @@ class SpaPortal(CustomerPortal):
             'policy_text': self._spa_policy_text(membership.plan_id.cancel_policy_id),
             'open_invoices': invoices,
             'amount_due': sum(invoices.mapped('amount_residual')),
+            'access_until': membership._spa_access_until() if membership.state == 'grace' else False,
             'payment_requests': request.env['spa.payment.request'].sudo().search(
                 self._spa_owner_domain(), limit=10),
         })
@@ -734,7 +742,8 @@ class SpaPortal(CustomerPortal):
     # ------------------------------------------------------------------
     def _spa_get_invoice(self, invoice_id):
         invoice = self._spa_get_owned('account.move', invoice_id)
-        if invoice.move_type != 'out_invoice' or invoice.state != 'posted' or not invoice.spa_invoice_kind:
+        if invoice.move_type != 'out_invoice' or not invoice.spa_invoice_kind or not (
+                invoice.state == 'posted' or invoice._spa_is_pending_charge()):
             raise NotFound()
         return invoice
 
@@ -756,11 +765,13 @@ class SpaPortal(CustomerPortal):
             'invoice': invoice,
             'currency': invoice.currency_id,
             'payable': payable,
+            'pending_charge': invoice._spa_is_pending_charge(),
+            'doc_label': invoice._spa_document_label(),
             'amount_due': invoice.amount_residual,
             'next_amount': next_amount,
             'installment': next_values.get('installment_state') in ('next', 'overdue'),
             'next_due_date': next_values.get('next_due_date'),
-            'payment_ref': invoice.payment_reference or invoice.name,
+            'payment_ref': invoice._spa_payment_reference(),
             'has_qr': bool(company.spa_payment_qr),
             'qr_url': '/my/spa/pay/%s/qr' % invoice.id,
             'bank_text': company.spa_bank_account_text,

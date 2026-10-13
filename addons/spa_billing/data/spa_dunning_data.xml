@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Plantillas de WhatsApp de cobranza (modelo de spa_messaging; textos editables). -->
+    <data noupdate="1">
+        <record id="tpl_membership_due" model="spa.message.template">
+            <field name="code">membership_due</field>
+            <field name="name">Cobranza: vence hoy</field>
+            <field name="body">Hola {nombre}, tu membresía {plan} vence hoy ({vence}). Renueva pagando {monto} con el QR o por transferencia y envíanos el comprobante para seguir disfrutando de {empresa}.</field>
+        </record>
+        <record id="tpl_grace_reminder" model="spa.message.template">
+            <field name="code">grace_reminder</field>
+            <field name="name">Cobranza: recordatorio en gracia</field>
+            <field name="body">Hola {nombre}, te recordamos que tu membresía {plan} venció el {vence}. Conservas el acceso hasta el {gracia}: renueva pagando {monto} para no perder tus beneficios.</field>
+        </record>
+        <record id="tpl_last_call" model="spa.message.template">
+            <field name="code">last_call</field>
+            <field name="name">Cobranza: última llamada</field>
+            <field name="body">Hola {nombre}, tu membresía {plan} está suspendida desde el vencimiento del {vence}. ¡Queremos volver a verte! Renueva pagando {monto} o escríbenos y te ayudamos con una opción de pago.</field>
+        </record>
+        <record id="tpl_installment_reminder" model="spa.message.template">
+            <field name="code">installment_reminder</field>
+            <field name="name">Cuota vencida: recordatorio</field>
+            <field name="body">Hola {nombre}, tu cuota de {monto} del plan {plan} venció el {fecha}. Págala con el QR o por transferencia y envíanos el comprobante para mantener tu membresía activa.</field>
+        </record>
+        <record id="tpl_installment_suspended" model="spa.message.template">
+            <field name="code">installment_suspended</field>
+            <field name="name">Cuota vencida: membresía suspendida</field>
+            <field name="body">Hola {nombre}, tu membresía {plan} quedó suspendida porque la cuota de {monto} (vencida el {fecha}) sigue pendiente. Al pagarla se reactiva al instante.</field>
+        </record>
+
+        <!-- Escalera de cobranza de ejemplo (editable en Spa > Configuración > Escalera de cobranza). -->
+        <record id="dunning_step_renewal" model="spa.dunning.step">
+            <field name="name">Aviso de renovación</field>
+            <field name="sequence">10</field>
+            <field name="offset_days">-5</field>
+            <field name="action">notify</field>
+            <field name="template_id" ref="spa_messaging.tpl_renewal_notice"/>
+        </record>
+        <record id="dunning_step_due" model="spa.dunning.step">
+            <field name="name">Vence hoy</field>
+            <field name="sequence">20</field>
+            <field name="offset_days">0</field>
+            <field name="action">notify</field>
+            <field name="template_id" ref="tpl_membership_due"/>
+        </record>
+        <record id="dunning_step_grace" model="spa.dunning.step">
+            <field name="name">Recordatorio en gracia</field>
+            <field name="sequence">30</field>
+            <field name="offset_days">3</field>
+            <field name="action">notify</field>
+            <field name="template_id" ref="tpl_grace_reminder"/>
+        </record>
+        <record id="dunning_step_suspend" model="spa.dunning.step">
+            <field name="name">Suspensión por falta de pago</field>
+            <field name="sequence">40</field>
+            <field name="offset_days">5</field>
+            <field name="action">suspend</field>
+            <field name="template_id" ref="spa_messaging.tpl_suspended_notice"/>
+            <field name="note">Solo si la renovación sigue impaga. Los días de gracia del plan también suspenden (lo que ocurra primero).</field>
+        </record>
+        <record id="dunning_step_last_call" model="spa.dunning.step">
+            <field name="name">Última llamada</field>
+            <field name="sequence">50</field>
+            <field name="offset_days">15</field>
+            <field name="action">notify</field>
+            <field name="template_id" ref="tpl_last_call"/>
+        </record>
+    </data>
+
+    <!-- Reparto de ejemplo del ingreso de los planes por área (solo planes sin áreas: no pisa cambios). -->
+    <function model="spa.plan" name="_spa_set_default_analytic"/>
+</odoo>

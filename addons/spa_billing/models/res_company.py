@@ -14,7 +14,16 @@ class ResCompany(models.Model):
                                              domain="[('type', '=', 'bank'), ('company_id', '=', id)]")
     spa_cash_journal_id = fields.Many2one('account.journal', string='Caja de recepción',
                                           domain="[('type', '=', 'cash'), ('company_id', '=', id)]")
-    spa_renewal_days = fields.Integer('Avisar la renovación con (días)', default=5)
+    spa_renewal_days = fields.Integer('Generar el cobro de renovación con (días)', default=5,
+                                      help='Días antes del vencimiento en que se genera el cobro pendiente de la '
+                                           'renovación. Los avisos los envía la escalera de cobranza.')
+    spa_installment_reminder_days = fields.Integer(
+        'Aviso de cuota vencida (días)', default=3,
+        help='Días después del vencimiento de una cuota impaga en que se envía el recordatorio por WhatsApp. 0 = no.')
+    spa_installment_suspend_days = fields.Integer(
+        'Suspensión por cuota vencida (días)', default=10,
+        help='Días después del vencimiento de una cuota impaga en que se suspende la membresía (se reactiva al '
+             'pagarla). 0 = no se suspende.')
 
     def _spa_sale_taxes(self):
         """IVA 13 % (precio incluido) + IT 3 % de la localización boliviana."""

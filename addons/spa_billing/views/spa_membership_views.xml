@@ -6,24 +6,42 @@
         <field name="inherit_id" ref="spa_membership.spa_membership_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header/button[@name='action_activate']" position="before">
-                <button name="action_create_invoice" type="object" string="Facturar período" class="btn-primary"
-                        invisible="state == 'cancelled' or amount_due &gt; 0" groups="spa_base.group_spa_reception"/>
+                <button name="action_create_invoice" type="object" string="Generar cobro del período" class="btn-primary"
+                        invisible="state == 'cancelled' or amount_due &gt; 0" groups="spa_base.group_spa_reception"
+                        help="Crea el cobro pendiente del período (la factura se emite al validar el pago)."/>
                 <button name="action_register_payment_request" type="object" string="Registrar pago" class="btn-primary"
                         invisible="state == 'cancelled'" groups="spa_base.group_spa_reception"/>
+                <button name="action_open_plan_change" type="object" string="Cambiar de plan"
+                        invisible="state not in ('active', 'grace')" groups="spa_base.group_spa_reception"/>
+                <button name="action_cancel_plan_change" type="object" string="Anular cambio de plan"
+                        invisible="not spa_next_plan_id or spa_plan_switch_date" groups="spa_base.group_spa_reception"
+                        confirm="¿Anular el cambio de plan programado para el próximo período?"/>
             </xpath>
             <div name="button_box" position="inside">
                 <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o"
-                        groups="spa_base.group_spa_reception">
+                        groups="account.group_account_invoice">
                     <field name="invoice_count" widget="statinfo" string="Facturas"/>
                 </button>
             </div>
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="after">
+                <div class="alert alert-info" role="status" invisible="not spa_next_plan_id">
+                    Cambio de plan programado: <field name="spa_next_plan_id" readonly="1" class="fw-bold"/>
+                    (<field name="spa_next_period_id" readonly="1" options="{'no_open': True}"/>)
+                    <span invisible="not spa_plan_switch_date"> desde el <field name="spa_plan_switch_date" readonly="1"/></span>
+                    <span invisible="spa_plan_switch_date"> desde el próximo período (se cobra en la renovación).</span>
+                </div>
+                <div class="alert alert-warning" role="status" invisible="not spa_installment_suspended">
+                    Suspendida por una cuota vencida: se reactiva al registrar su pago.
+                    <field name="spa_installment_suspended" invisible="1"/>
+                </div>
+            </xpath>
             <xpath expr="//field[@name='guests_this_month']" position="after">
                 <field name="amount_due" decoration-danger="amount_due &gt; 0"/>
                 <field name="offer_id" options="{'no_create': True}" invisible="state == 'cancelled'"/>
                 <field name="auto_renew"/>
             </xpath>
             <xpath expr="//page[@name='notes']" position="before">
-                <page string="Pagos informados" name="payments">
+                <page string="Pagos informados" name="payments" groups="spa_base.group_spa_reception">
                     <field name="payment_request_ids" readonly="1">
                         <list>
                             <field name="create_date" string="Informado"/>
@@ -35,9 +53,21 @@
                         </list>
                     </field>
                 </page>
-                <page string="Devengo" name="deferral" invisible="not deferral_line_ids">
+                <page string="Cobranza" name="dunning" groups="spa_base.group_spa_reception">
+                    <field name="dunning_log_ids" readonly="1">
+                        <list decoration-muted="result == 'skipped'">
+                            <field name="date"/>
+                            <field name="kind"/>
+                            <field name="step_id"/>
+                            <field name="action"/>
+                            <field name="result"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Devengo" name="deferral" groups="spa_base.group_spa_manager,account.group_account_user">
                     <field name="deferral_line_ids" readonly="1">
-                        <list>
+                        <list decoration-muted="state == 'cancelled'">
                             <field name="date"/>
                             <field name="amount" sum="Total"/>
                             <field name="state"/>
@@ -59,6 +89,18 @@
                 <field name="amount_due" optional="show" decoration-danger="amount_due &gt; 0"/>
                 <field name="currency_id" column_invisible="1"/>
             </field>
+        </field>
+    </record>
+
+    <record id="spa_membership_view_search_billing" model="ir.ui.view">
+        <field name="name">spa.membership.search.billing</field>
+        <field name="model">spa.membership</field>
+        <field name="inherit_id" ref="spa_membership.spa_membership_view_search"/>
+        <field name="arch" type="xml">
+            <filter name="draft" position="after">
+                <filter name="plan_change" string="Con cambio de plan programado" domain="[('spa_next_plan_id', '!=', False)]"/>
+                <filter name="installment_suspended" string="Suspendidas por cuota" domain="[('spa_installment_suspended', '=', True)]"/>
+            </filter>
         </field>
     </record>
 </odoo>

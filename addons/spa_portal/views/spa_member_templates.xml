@@ -36,8 +36,8 @@
                                     <p t-if="membership.date_end" class="small mt-2 mb-0">
                                         Vigente del <t t-out="fmt_date(membership.date_start)"/>
                                         al <strong t-out="fmt_date(membership.date_end)"/>
-                                        <t t-if="membership.state == 'grace' and membership.grace_until">
-                                            · <span class="text-warning-emphasis">en gracia hasta el <t t-out="fmt_date(membership.grace_until)"/></span>
+                                        <t t-if="membership.state == 'grace' and access_until">
+                                            · <span class="text-warning-emphasis">en gracia hasta el <t t-out="fmt_date(access_until)"/></span>
                                         </t>
                                     </p>
                                     <div t-if="show_qr" class="text-center mt-3">
@@ -148,10 +148,11 @@
                                     <li t-foreach="open_invoices" t-as="open_invoice"
                                         class="list-group-item px-0 d-flex justify-content-between align-items-center gap-2">
                                         <div>
-                                            <span t-out="open_invoice.name"/>
+                                            <span t-out="open_invoice._spa_document_label()"/>
                                             <small class="d-block text-muted">
                                                 <span t-field="open_invoice.spa_invoice_kind"/>
-                                                <t t-if="open_invoice.invoice_date_due"> · vence el <t t-out="fmt_date(open_invoice.invoice_date_due)"/></t>
+                                                <t t-set="due_date" t-value="open_invoice._spa_due_date()"/>
+                                                <t t-if="due_date"> · vence el <t t-out="fmt_date(due_date)"/></t>
                                             </small>
                                         </div>
                                         <div class="d-flex align-items-center gap-2">
@@ -454,7 +455,7 @@
                 <div class="mb-3">
                     <h1 class="h4 mb-0">Pagar</h1>
                     <small class="text-muted">
-                        <t t-out="invoice.name"/>
+                        <t t-out="doc_label"/>
                         <t t-if="invoice.spa_membership_id"> · Membresía <t t-out="invoice.spa_membership_id.plan_id.name"/></t>
                     </small>
                 </div>
@@ -468,8 +469,8 @@
                                     Próxima cuota: <strong t-out="money(next_amount, currency)"/>
                                     <t t-if="next_due_date"> · vence el <t t-out="fmt_date(next_due_date)"/></t>
                                 </div>
-                                <p t-elif="invoice.invoice_date_due and payable" class="small text-muted mb-2">
-                                    Vence el <t t-out="fmt_date(invoice.invoice_date_due)"/>
+                                <p t-elif="invoice._spa_due_date() and payable" class="small text-muted mb-2">
+                                    Vence el <t t-out="fmt_date(invoice._spa_due_date())"/>
                                 </p>
                                 <div t-if="not payable" class="alert alert-success small mb-2" role="status">
                                     Esta factura no tiene saldo pendiente.
@@ -481,7 +482,10 @@
                                         <span class="text-nowrap" t-out="money(inv_line.price_total, currency)"/>
                                     </li>
                                 </ul>
-                                <a t-att-href="invoice.access_url" class="small d-inline-block mt-2">Ver factura</a>
+                                <a t-if="not pending_charge" t-att-href="invoice.access_url" class="small d-inline-block mt-2">Ver factura</a>
+                                <p t-else="" class="small text-muted mt-2 mb-0">
+                                    Tu factura se emite cuando caja confirme el pago.
+                                </p>
                             </div>
                         </div>
                     </div>

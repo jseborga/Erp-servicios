@@ -18,8 +18,10 @@ Reportes de gestión del spa (solo lectura, con vistas de lista, pivote y gráfi
 * **Ingresos del spa**: facturado y devengado por mes, tipo de cobro, plan y categoría; incluye el
   devengo de planes prepagados y las ventas del POS sin factura individual.
 * **Socios y mora**: membresías por estado y plan, saldo por cobrar, vencido, días de mora y antigüedad.
+  Incluye las renovaciones impagas aún sin factura (cobro pendiente: mora desde el vencimiento).
 * **Rentabilidad por área**: apuntes analíticos del plan «Áreas del negocio» por sección del estado de
   resultados, y la plantilla MIS Builder «Estado de resultados por área» con una columna por área.
+  El ingreso de las membresías se reparte por área según el plan (factura mensual y devengo mensual).
 
 Las fechas se calculan en la zona horaria del spa (parámetro ``spa.timezone``) en cada consulta.
 """,

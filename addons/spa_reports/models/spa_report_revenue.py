@@ -21,7 +21,8 @@ class SpaReportRevenue(models.Model):
       «Facturado» es todo el importe sin impuestos; «Devengado» solo lo que fue a cuentas de
       ingreso (los planes prepagados van a 215100 Ingresos diferidos y se devengan mes a mes).
       Las facturas de órdenes del POS sin tipo de cobro del spa cuentan como restaurante y cafetería.
-    * **Devengo de prepagados**: cuotas mensuales contabilizadas de ``spa.deferral.line``.
+    * **Devengo de prepagados**: cuotas mensuales contabilizadas de ``spa.deferral.line`` (y la reversión
+      de meses ya devengados que se devolvieron con una nota de crédito, en negativo).
     * **Venta POS sin factura**: órdenes pagadas del POS que no se facturaron una por una.
 
     «Devengado» por mes = ingreso del estado de resultados que generó el spa en ese mes.
@@ -122,7 +123,7 @@ class SpaReportRevenue(models.Model):
                                   WHERE line.move_id = dl.move_id AND line.credit > 0
                                   ORDER BY line.id
                                   LIMIT 1) income ON TRUE
-             WHERE dl.state = 'posted'
+             WHERE dl.state IN ('posted', 'reversed')
 
             UNION ALL
 

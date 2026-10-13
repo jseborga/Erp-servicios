@@ -4,16 +4,37 @@
         <field name="name">spa.deferral.line.list</field>
         <field name="model">spa.deferral.line</field>
         <field name="arch" type="xml">
-            <list create="0">
+            <list create="0" decoration-muted="state == 'cancelled'">
                 <field name="date"/>
                 <field name="membership_id"/>
                 <field name="invoice_id"/>
                 <field name="amount" sum="Total"/>
-                <field name="state" widget="badge" decoration-success="state == 'posted'"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-muted="state == 'cancelled'"
+                       decoration-warning="state == 'reversed'"/>
+                <field name="refund_move_id" optional="hide"/>
+                <field name="cancel_reason" optional="show"/>
                 <field name="move_id"/>
                 <field name="currency_id" column_invisible="1"/>
                 <button name="action_post" type="object" string="Contabilizar" invisible="state != 'planned'" class="btn-link"/>
+                <button name="action_recognize_now" type="object" string="Reconocer ahora" invisible="state != 'cancelled'"
+                        class="btn-link" confirm="¿Reconocer hoy este saldo como ingreso? Úselo solo si el socio desistió SIN devolución del dinero."/>
             </list>
+        </field>
+    </record>
+
+    <record id="spa_deferral_line_view_search" model="ir.ui.view">
+        <field name="name">spa.deferral.line.search</field>
+        <field name="model">spa.deferral.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="membership_id"/>
+                <field name="invoice_id"/>
+                <filter name="planned" string="Programados" domain="[('state', '=', 'planned')]"/>
+                <filter name="cancelled" string="Anulados" domain="[('state', '=', 'cancelled')]"/>
+                <group>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
