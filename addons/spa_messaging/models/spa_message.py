@@ -104,8 +104,11 @@ class SpaMessage(models.Model):
             _logger.info('spa_messaging: %s sin celular válido; no se genera %s', partner.name, template_code)
             return self.browse()
         values = dict(values or {})
+        company = self.env.company
+        if record and 'company_id' in record._fields and record._name != 'res.partner':
+            company = record.sudo().company_id or company
         values.setdefault('nombre', (partner.name or '').split(' ')[0])
-        values.setdefault('empresa', self.env.company.name)
+        values.setdefault('empresa', company.name)
         provider = self._provider()
         message = self.sudo().create({
             'partner_id': partner.id,
@@ -116,6 +119,7 @@ class SpaMessage(models.Model):
             'state': 'ready' if provider == 'wa_link' else 'queued',
             'res_model': record._name if record else False,
             'res_id': record.id if record else False,
+            'company_id': company.id,
         })
         if provider != 'wa_link':
             message._send_now()

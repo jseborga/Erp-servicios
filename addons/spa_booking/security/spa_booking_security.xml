@@ -18,5 +18,23 @@
             <field name="domain_force">[('employee_id.user_id', '=', user.id)]</field>
             <field name="groups" eval="[(4, ref('spa_base.group_spa_therapist'))]"/>
         </record>
+        <record id="spa_booking_waitlist_company_rule" model="ir.rule">
+            <field name="name">Lista de espera: multiempresa</field>
+            <field name="model_id" ref="model_spa_booking_waitlist"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+        <!-- Invitados: el terapeuta ve solo los de sus sesiones; recepción (y el gerente) todos. -->
+        <record id="spa_guest_reception_rule" model="ir.rule">
+            <field name="name">Invitados: recepción ve todos</field>
+            <field name="model_id" ref="spa_membership.model_spa_guest"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('spa_base.group_spa_reception'))]"/>
+        </record>
+        <record id="spa_guest_therapist_rule" model="ir.rule">
+            <field name="name">Invitados: el terapeuta ve los de sus sesiones</field>
+            <field name="model_id" ref="spa_membership.model_spa_guest"/>
+            <field name="domain_force">[('booking_id.employee_id.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('spa_base.group_spa_therapist'))]"/>
+        </record>
     </data>
 </odoo>

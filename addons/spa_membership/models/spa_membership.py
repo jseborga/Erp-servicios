@@ -236,6 +236,14 @@ class SpaMembership(models.Model):
                                    state=dict(self._fields['state'].selection)[self.state]))
         if not self._covers_date(day):
             return fail(self.env._('La membresía %(name)s no está vigente el %(day)s.', name=self.name, day=day))
+        freeze = self._spa_frozen_on(day)
+        if freeze:
+            return fail(self.env._(
+                'La membresía %(name)s está congelada del %(from)s al %(to)s (%(reason)s). '
+                'Puede volver a usarla desde el %(next)s.',
+                **{'name': self.name, 'from': freeze.date_from.strftime('%d/%m/%Y'),
+                   'to': freeze.date_to.strftime('%d/%m/%Y'), 'reason': freeze.reason,
+                   'next': (freeze.date_to + timedelta(days=1)).strftime('%d/%m/%Y')}))
         line = self.plan_id._line_for_service(service)
         if not line:
             return fail(self.env._('El plan %(plan)s no incluye %(service)s.', plan=self.plan_id.name,

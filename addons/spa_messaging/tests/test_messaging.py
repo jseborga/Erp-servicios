@@ -35,6 +35,24 @@ class TestMessaging(TransactionCase):
         nophone = self.env['res.partner'].create({'name': 'Sin celular'})
         self.assertFalse(self.Message.queue('renewal_notice', nophone, {}))
 
+    def test_messages_are_isolated_by_company(self):
+        """Celulares y textos (datos personales): cada empresa ve solo sus mensajes."""
+        message = self.Message.queue('renewal_notice', self.partner, {})
+        self.assertEqual(message.company_id, self.env.company)
+        branch = self.env['res.company'].create({'name': 'Spa Sucursal (prueba)'})
+        other = self.env['res.users'].create({
+            'name': 'Recepción sucursal', 'login': 'spa_msg_branch', 'company_id': branch.id,
+            'company_ids': [(6, 0, branch.ids)],
+            'group_ids': [(6, 0, [self.env.ref('spa_base.group_spa_reception').id])]})
+        self.assertFalse(self.Message.with_user(other).search([('id', '=', message.id)]))
+        # El mensaje toma la empresa del registro relacionado.
+        record = self.env['spa.space'].create({'name': 'Piscina sucursal', 'company_id': branch.id})
+        branch_message = self.Message.queue('renewal_notice', self.partner, {}, record=record)
+        self.assertEqual(branch_message.company_id, branch)
+        self.assertIn('Spa Sucursal (prueba)', branch_message.body)
+        self.assertEqual(self.Message.with_user(other).search([('id', 'in', (message | branch_message).ids)]),
+                         branch_message)
+
     def test_meta_cloud_provider(self):
         params = self.env['ir.config_parameter'].sudo()
         params.set_param('spa_messaging.provider', 'meta_cloud')

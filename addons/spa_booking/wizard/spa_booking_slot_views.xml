@@ -25,9 +25,12 @@
                         <field name="free"/>
                         <field name="capacity"/>
                         <field name="available" column_invisible="1"/>
+                        <field name="can_wait" column_invisible="1"/>
                         <field name="reason"/>
                         <button name="action_book" type="object" string="Reservar" class="btn-link"
                                 invisible="not available"/>
+                        <button name="action_waitlist" type="object" string="Lista de espera" class="btn-link"
+                                invisible="available or not can_wait"/>
                     </list>
                 </field>
                 <footer>

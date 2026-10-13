@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_membership_freeze_wizard_view_form" model="ir.ui.view">
+        <field name="name">spa.membership.freeze.wizard.form</field>
+        <field name="model">spa.membership.freeze.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Congelar membresía">
+                <p class="text-muted">
+                    Durante el congelamiento el socio no puede reservar ni ingresar. El vencimiento se corre
+                    los mismos días. Cancele antes las reservas que tenga en esas fechas.
+                </p>
+                <group>
+                    <group>
+                        <field name="membership_id" readonly="1" force_save="1"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="reason" placeholder="Ej. Viaje al exterior, certificado médico"/>
+                    </group>
+                    <group>
+                        <field name="days"/>
+                        <field name="days_left"/>
+                        <field name="date_end_current"/>
+                        <field name="date_end_new"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Congelar" class="btn-primary"/>
+                    <button special="cancel" string="Cancelar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

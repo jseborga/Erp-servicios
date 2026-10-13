@@ -36,11 +36,13 @@ class SpaBookingSlotWizard(models.TransientModel):
     def action_search(self):
         self.ensure_one()
         guests = self._guests()
-        slots = self.service_id._get_slots(self.date, seats=1 + len(guests), membership=self.membership_id,
-                                           guests=len(guests), ignore_lead=True)
+        service = self.service_id.with_context(spa_waitlist_partner_id=self.partner_id.id)
+        slots = service._get_slots(self.date, seats=1 + len(guests), membership=self.membership_id,
+                                   guests=len(guests), ignore_lead=True)
         self.line_ids = [(5, 0, 0)] + [(0, 0, {
             'start': slot['start'], 'stop': slot['stop'], 'label': slot['label'], 'free': slot['free'],
             'capacity': slot['capacity'], 'available': slot['available'], 'reason': slot['reason'] or '',
+            'can_wait': slot.get('waitlist', False),
         }) for slot in slots]
         return {
             'type': 'ir.actions.act_window',
@@ -65,6 +67,7 @@ class SpaBookingSlotLine(models.TransientModel):
     capacity = fields.Integer('Aforo')
     available = fields.Boolean('Disponible')
     reason = fields.Char('Motivo')
+    can_wait = fields.Boolean('Admite lista de espera')
 
     def action_book(self):
         self.ensure_one()
@@ -86,6 +89,21 @@ class SpaBookingSlotLine(models.TransientModel):
             'type': 'ir.actions.act_window',
             'res_model': 'spa.booking',
             'res_id': booking.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    def action_waitlist(self):
+        """Franja llena: anota a la persona en la lista de espera."""
+        self.ensure_one()
+        wizard = self.wizard_id
+        entry = self.env['spa.booking.waitlist']._spa_join(
+            wizard.partner_id, wizard.service_id, self.start, membership=wizard.membership_id or None,
+            guests=len(wizard._guests()), channel=wizard.channel)
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'spa.booking.waitlist',
+            'res_id': entry.id,
             'view_mode': 'form',
             'target': 'current',
         }

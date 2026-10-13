@@ -8,7 +8,8 @@
 ERP Servicios Spa – instalación completa
 ========================================
 
-Módulo «paraguas» sin menús ni datos propios. Al instalarlo se instalan juntos:
+Módulo «paraguas» sin menús. Solo agrega los permisos que cruzan módulos (el Gerente aprueba
+compras y actúa como contador del spa: fondos fijos, Libro de Compras). Al instalarlo se instalan juntos:
 
 * Contabilidad Bolivia: ``l10n_bo_spa`` (plan de cuentas, retenciones, analítica por área),
   ``l10n_bo_purchase`` (compras con CUF / dosificación, unicidad, Libro de Compras),
@@ -47,7 +48,9 @@ hora de La Paz).
         'account_asset_management',
         'account_fiscal_year',
     ],
-    'data': [],
+    'data': [
+        'data/spa_all_security.xml',
+    ],
     'application': False,
     'auto_install': False,
     'installable': True,

@@ -33,6 +33,11 @@
                         <field name="spa_crm_retention_expiry_days"/>
                     </setting>
                 </block>
+                <block title="CRM: altas sin pagar" name="spa_crm_signup">
+                    <setting help="Las altas web sin pagar crean (o avanzan) el prospecto de Captación en «Propuesta» con un seguimiento. Active esto para hacer lo mismo con las membresías en borrador que registra el personal.">
+                        <field name="spa_crm_signup_lead_reception"/>
+                    </setting>
+                </block>
             </xpath>
         </field>
     </record>

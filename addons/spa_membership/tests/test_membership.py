@@ -145,6 +145,26 @@ class TestMembership(SpaCommon):
         membership.action_suspend()
         self.assertFalse(partner.specific_property_product_pricelist)
 
+    def test_multicompany_rules(self):
+        """Saldos, políticas, duraciones y congelamientos de una empresa no se ven desde otra."""
+        membership = self._membership(self.plan_premium)
+        self.assertTrue(membership.entitlement_ids)
+        branch = self.env['res.company'].create({'name': 'Spa Sucursal (prueba)'})
+        other = self.env['res.users'].create({
+            'name': 'Recepción sucursal', 'login': 'spa_mem_branch', 'company_id': branch.id,
+            'company_ids': [(6, 0, branch.ids)],
+            'group_ids': [(6, 0, [self.env.ref('spa_base.group_spa_reception').id])]})
+        for model in ('spa.membership', 'spa.entitlement', 'spa.cancel.policy', 'spa.plan.period',
+                      'spa.membership.freeze', 'spa.guest', 'spa.consumption'):
+            self.assertFalse(self.env[model].with_user(other).search([('company_id', '!=', branch.id)]), model)
+
+    def test_guest_contact_matched_by_phone(self):
+        """El invitado con el celular escrito distinto reutiliza el contacto existente."""
+        membership = self._membership(self.plan_premium)
+        friend = self.env['res.partner'].create({'name': 'Amiga', 'phone': '+591 7123-4500'})
+        guest = self.env['spa.guest'].create({'name': 'Amiga', 'phone': '71234500', 'membership_id': membership.id})
+        self.assertEqual(guest.partner_id, friend)
+
     def test_manual_adjust_requires_manager(self):
         membership = self._membership(self.plan_premium)
         wizard = self.env['spa.consumption.adjust'].create({

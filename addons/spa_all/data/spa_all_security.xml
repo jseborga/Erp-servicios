@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Roles que cruzan módulos (docs/10 y docs/08). Viven aquí porque spa_base no depende de
+         Compras ni de los módulos fiscales; spa_all los instala todos juntos.
+
+         Gerente / Administrador: «todos los anteriores».
+         * Compras: aprueba las órdenes sobre el monto de doble validación («> Bs 1.000 aprueba Gerente»).
+         * Contador del spa (l10n_bo_purchase): crea fondos fijos y cambia su monto (docs/08), ve el
+           Libro de Compras y aprueba rendiciones. Implica Contabilidad: usuario (asientos).
+         Las demás implicaciones ya están en cada módulo: Recepción → Contactos y CRM usuario
+         (spa_base, spa_crm), Caja → Facturación (spa_billing) y POS (spa_pos), Marketing → CRM gerente
+         (spa_crm), Comprador → Compras usuario (l10n_bo_purchase). -->
+    <record id="spa_base.group_spa_manager" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('purchase.group_purchase_manager')),
+                                         (4, ref('l10n_bo_purchase.group_spa_accountant'))]"/>
+    </record>
+</odoo>

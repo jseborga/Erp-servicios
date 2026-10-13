@@ -77,15 +77,49 @@ class CrmLead(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Un prospecto con fuente y sin equipo (p. ej. formulario web) va al embudo de su fuente."""
+        """Un prospecto sin equipo va al embudo de su fuente; los del sitio web, a Captación.
+
+        La fuente puede venir en los valores o por defecto (``utm.mixin.default_get``: cookie
+        ``odoo_utm_source`` del visitante que llegó desde un anuncio). El formulario de contacto
+        del sitio (website_crm) envía ``team_id`` vacío cuando el sitio no tiene equipo por
+        defecto: también se trata como «sin equipo».
+        """
         if not self.env.context.get('default_team_id'):
             Source = self.env['utm.source'].sudo()
+            website_medium = self.env.ref('utm.utm_medium_website', raise_if_not_found=False)
+            default_source = None
             for vals in vals_list:
-                if not vals.get('team_id') and vals.get('source_id'):
-                    team = Source.browse(vals['source_id']).spa_team_id
-                    if team and team.active:
-                        vals['team_id'] = team.id
+                if vals.get('team_id'):
+                    continue
+                source_id = vals.get('source_id')
+                if not source_id and 'source_id' not in vals:
+                    if default_source is None:
+                        default_source = self.default_get(['source_id']).get('source_id') or False
+                    source_id = default_source
+                team = Source.browse(source_id).spa_team_id if source_id else self.env['crm.team']
+                if not (team and team.active) and website_medium and vals.get('medium_id') == website_medium.id:
+                    company = self.env['res.company'].browse(vals.get('company_id')) if vals.get('company_id') \
+                        else self.env.company
+                    team = self._spa_team('acquisition', company)
+                if team and team.active:
+                    vals['team_id'] = team.id
         return super().create(vals_list)
+
+    @api.model
+    def _spa_setup_website_team(self):
+        """Los formularios «Contáctenos» del sitio crean prospectos en Captación.
+
+        Solo si website_crm está instalado (campo ``website.crm_default_team_id``) y el sitio no
+        tiene ya un equipo elegido por el administrador. Se ejecuta al instalar/actualizar.
+        """
+        if 'website' not in self.env or 'crm_default_team_id' not in self.env['website']._fields:
+            return False
+        websites = self.env['website'].sudo().search([('crm_default_team_id', '=', False)])
+        for website in websites:
+            team = self._spa_team('acquisition', website.company_id)
+            if team:
+                website.crm_default_team_id = team
+        return True
 
     # ------------------------------------------------------------------
     # Embudos y etapas del spa
@@ -148,6 +182,9 @@ class CrmLead(models.Model):
         con una oportunidad de retención abierta, se anota allí y no se crea un prospecto nuevo.
         """
         Lead = self.sudo()
+        if partner and partner._spa_has_live_membership():
+            # Un socio vigente (aunque esté en gracia o suspendido) no es un prospecto de captación.
+            return Lead.browse()
         if partner and not lead:
             retention = Lead.search([('spa_pipeline', '=', 'retention'), ('won_status', '=', 'pending'),
                                      ('partner_id', '=', partner.id)], limit=1)

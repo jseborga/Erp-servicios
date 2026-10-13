@@ -9,6 +9,7 @@
     'depends': ['spa_base'],
     'data': [
         'security/ir.model.access.csv',
+        'security/spa_messaging_security.xml',
         'data/spa_message_template_data.xml',
         'data/spa_messaging_data.xml',
         'views/spa_message_views.xml',

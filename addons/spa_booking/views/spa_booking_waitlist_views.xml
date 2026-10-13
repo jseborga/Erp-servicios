@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_booking_waitlist_view_list" model="ir.ui.view">
+        <field name="name">spa.booking.waitlist.list</field>
+        <field name="model">spa.booking.waitlist</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'notified'" decoration-success="state == 'booked'"
+                  decoration-muted="state in ('expired', 'cancelled')">
+                <field name="start"/>
+                <field name="service_id"/>
+                <field name="partner_id"/>
+                <field name="phone" optional="show"/>
+                <field name="seats"/>
+                <field name="position"/>
+                <field name="channel" optional="hide"/>
+                <field name="priority_until" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'notified'"
+                       decoration-success="state == 'booked'" decoration-warning="state == 'waiting'"/>
+                <button name="action_book" type="object" string="Reservar" class="btn-link"
+                        invisible="state not in ('waiting', 'notified')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_booking_waitlist_view_form" model="ir.ui.view">
+        <field name="name">spa.booking.waitlist.form</field>
+        <field name="model">spa.booking.waitlist</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_book" type="object" string="Reservar" class="btn-primary"
+                            invisible="state not in ('waiting', 'notified')"/>
+                    <button name="action_check_availability" type="object" string="Revisar cupo"
+                            invisible="state != 'waiting'"/>
+                    <button name="action_cancel" type="object" string="Retirar de la lista"
+                            invisible="state not in ('waiting', 'notified')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="waiting,notified,booked"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Cliente">
+                            <field name="partner_id" readonly="state != 'waiting'"/>
+                            <field name="phone"/>
+                            <field name="membership_id" readonly="state != 'waiting'" options="{'no_create': True}"/>
+                            <field name="channel" readonly="state != 'waiting'"/>
+                        </group>
+                        <group string="Franja">
+                            <field name="service_id" readonly="state != 'waiting'" options="{'no_create': True}"/>
+                            <field name="space_id"/>
+                            <field name="start" readonly="state != 'waiting'"/>
+                            <field name="stop"/>
+                            <field name="guests" readonly="state != 'waiting'"/>
+                            <field name="seats"/>
+                            <field name="position" invisible="state not in ('waiting', 'notified')"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Aviso" invisible="not notified_at">
+                        <field name="notified_at"/>
+                        <field name="priority_until"/>
+                        <field name="spa_message_id"/>
+                        <field name="booking_id"/>
+                    </group>
+                    <field name="note" placeholder="Notas (preferencias de horario, etc.)"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_booking_waitlist_view_search" model="ir.ui.view">
+        <field name="name">spa.booking.waitlist.search</field>
+        <field name="model">spa.booking.waitlist</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="service_id"/>
+                <field name="space_id"/>
+                <filter name="open" string="Pendientes" domain="[('state', 'in', ('waiting', 'notified'))]"/>
+                <filter name="notified" string="Avisados" domain="[('state', '=', 'notified')]"/>
+                <separator/>
+                <filter name="upcoming" string="Próximas franjas"
+                        domain="[('start', '&gt;=', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                <group>
+                    <filter name="group_service" string="Servicio" context="{'group_by': 'service_id'}"/>
+                    <filter name="group_start" string="Franja" context="{'group_by': 'start:day'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_booking_waitlist_action" model="ir.actions.act_window">
+        <field name="name">Lista de espera</field>
+        <field name="res_model">spa.booking.waitlist</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nadie en espera</p>
+            <p>Cuando una franja está llena, anote a la persona desde «Reserva rápida» (botón «Lista de espera»).
+               Si se libera un cupo, el sistema avisa por WhatsApp a la primera de la lista y le guarda el cupo.</p>
+        </field>
+    </record>
+</odoo>
