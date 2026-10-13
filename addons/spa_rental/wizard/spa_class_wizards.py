@@ -35,7 +35,7 @@ class SpaClassPackageWizard(models.TransientModel):
     price = fields.Monetary('Precio total', compute='_compute_price', store=True, readonly=False,
                             help='IVA incluido. Precio del paquete o precio por sesión × sesiones.')
     channel = fields.Selection([('reception', 'Recepción'), ('phone', 'Teléfono'), ('whatsapp', 'WhatsApp')],
-                               default='reception', required=True)
+                               default='reception', required=True, string='Canal')
 
     @api.depends('template_id')
     def _compute_sessions(self):
@@ -50,7 +50,7 @@ class SpaClassPackageWizard(models.TransientModel):
             else:
                 wizard.sessions = len(template._spa_upcoming_sessions())
 
-    can_edit_price = fields.Boolean(compute='_compute_can_edit_price')
+    can_edit_price = fields.Boolean(compute='_compute_can_edit_price', string='Puede cambiar el precio')
 
     def _compute_can_edit_price(self):
         allowed = self.env.user.has_group('spa_base.group_spa_manager')

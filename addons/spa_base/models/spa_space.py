@@ -18,7 +18,7 @@ class SpaSpace(models.Model):
     code = fields.Char('Código', size=10)
     sequence = fields.Integer(default=10)
     color = fields.Integer()
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     capacity = fields.Integer('Aforo', required=True, default=1, tracking=True,
                               help='Personas que pueden estar a la vez en el espacio.')
     access_mode = fields.Selection([
@@ -42,13 +42,13 @@ class SpaSpace(models.Model):
         ('active', 'Operativo'),
         ('maintenance', 'En mantenimiento'),
         ('closed', 'Cerrado'),
-    ], default='active', required=True, tracking=True)
+    ], default='active', required=True, tracking=True, string='Estado')
     analytic_account_id = fields.Many2one('account.analytic.account', string='Área (analítica)',
                                           help='Centro de costo para medir la rentabilidad del espacio.')
     closure_ids = fields.One2many('spa.space.closure', 'space_id', string='Cierres programados')
     service_ids = fields.One2many('spa.service', 'space_id', string='Servicios')
     note = fields.Html('Notas')
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string='Activo')
 
     _capacity_positive = models.Constraint('CHECK (capacity > 0)', 'El aforo debe ser mayor que cero.')
 
@@ -102,7 +102,7 @@ class SpaSpaceClosure(models.Model):
     _description = 'Cierre programado de un espacio'
     _order = 'date_from desc'
 
-    space_id = fields.Many2one('spa.space', required=True, ondelete='cascade', index=True)
+    space_id = fields.Many2one('spa.space', required=True, ondelete='cascade', index=True, string='Espacio')
     date_from = fields.Date('Desde', required=True)
     date_to = fields.Date('Hasta', required=True)
     reason = fields.Char('Motivo', required=True)

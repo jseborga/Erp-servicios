@@ -37,7 +37,7 @@ class SpaMembership(models.Model):
     _inherit = 'spa.membership'
 
     booking_ids = fields.One2many('spa.booking', 'membership_id', string='Reservas')
-    booking_count = fields.Integer(compute='_compute_booking_count')
+    booking_count = fields.Integer(compute='_compute_booking_count', string='Nº de reservas')
 
     def _compute_booking_count(self):
         for membership in self:

@@ -17,10 +17,10 @@ class SpaEntitlement(models.Model):
     _description = 'Saldo de un servicio por mes'
     _order = 'period_start desc, id'
 
-    membership_id = fields.Many2one('spa.membership', required=True, ondelete='cascade', index=True)
+    membership_id = fields.Many2one('spa.membership', required=True, ondelete='cascade', index=True, string='Membresía')
     partner_id = fields.Many2one(related='membership_id.partner_id', store=True)
-    company_id = fields.Many2one(related='membership_id.company_id', store=True)
-    plan_line_id = fields.Many2one('spa.plan.line', required=True, ondelete='restrict')
+    company_id = fields.Many2one(related='membership_id.company_id', store=True, string='Compañía')
+    plan_line_id = fields.Many2one('spa.plan.line', required=True, ondelete='restrict', string='Línea del plan')
     service_id = fields.Many2one(related='plan_line_id.service_id', store=True)
     period_start = fields.Date('Mes desde', required=True)
     period_end = fields.Date('Mes hasta', required=True)
@@ -28,7 +28,7 @@ class SpaEntitlement(models.Model):
     granted = fields.Integer('Del plan')
     carried_in = fields.Integer('Traslado del mes anterior')
     carry_pending = fields.Boolean('Traslado pendiente')
-    consumption_ids = fields.One2many('spa.consumption', 'entitlement_id')
+    consumption_ids = fields.One2many('spa.consumption', 'entitlement_id', string='Consumos')
     used = fields.Integer('Usados', compute='_compute_used', store=True)
     remaining = fields.Integer('Disponibles', compute='_compute_used', store=True)
 
@@ -53,12 +53,12 @@ class SpaConsumption(models.Model):
     _description = 'Consumo de un servicio del plan'
     _order = 'service_date desc, id desc'
 
-    membership_id = fields.Many2one('spa.membership', required=True, ondelete='cascade', index=True)
+    membership_id = fields.Many2one('spa.membership', required=True, ondelete='cascade', index=True, string='Membresía')
     partner_id = fields.Many2one(related='membership_id.partner_id', store=True)
     plan_id = fields.Many2one(related='membership_id.plan_id', store=True)
-    company_id = fields.Many2one(related='membership_id.company_id', store=True)
-    entitlement_id = fields.Many2one('spa.entitlement', ondelete='restrict', index=True)
-    service_id = fields.Many2one('spa.service', required=True)
+    company_id = fields.Many2one(related='membership_id.company_id', store=True, string='Compañía')
+    entitlement_id = fields.Many2one('spa.entitlement', ondelete='restrict', index=True, string='Saldo del mes')
+    service_id = fields.Many2one('spa.service', required=True, string='Servicio')
     service_date = fields.Datetime('Fecha del servicio', required=True, default=fields.Datetime.now)
     qty = fields.Integer('Cantidad', required=True, default=1, help='Negativo = devolución de sesión.')
     reason = fields.Selection(CONSUMPTION_REASONS, string='Motivo', required=True)

@@ -55,21 +55,21 @@ class SpaMessage(models.Model):
     phone = fields.Char('Celular', required=True)
     body = fields.Text('Mensaje', required=True)
     template_id = fields.Many2one('spa.message.template', string='Plantilla')
-    provider = fields.Selection(PROVIDERS, required=True, default='wa_link')
+    provider = fields.Selection(PROVIDERS, required=True, default='wa_link', string='Proveedor')
     state = fields.Selection([
         ('ready', 'Listo para enviar'),
         ('queued', 'En cola'),
         ('sent', 'Enviado'),
         ('failed', 'Falló'),
         ('cancelled', 'Descartado'),
-    ], default='ready', required=True, index=True)
+    ], default='ready', required=True, index=True, string='Estado')
     wa_url = fields.Char('Enlace WhatsApp', compute='_compute_wa_url')
     res_model = fields.Char('Modelo relacionado')
     res_id = fields.Integer('Registro relacionado')
     sent_date = fields.Datetime('Enviado el')
     sent_by_id = fields.Many2one('res.users', string='Enviado por')
     error = fields.Text('Error')
-    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company, string='Compañía')
 
     @api.depends('phone', 'body')
     def _compute_wa_url(self):

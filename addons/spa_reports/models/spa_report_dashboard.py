@@ -47,6 +47,11 @@ class SpaReportDashboard(models.TransientModel):
     leads_won = fields.Integer('Convertidos (de los prospectos del mes)', compute='_compute_kpis')
     conversion_rate = fields.Float('Conversión del mes (%)', compute='_compute_kpis', digits=(16, 1))
 
+    def _compute_display_name(self):
+        # Migas de pan legibles («Resumen del spa» en vez de «spa.report.dashboard,7»).
+        for dashboard in self:
+            dashboard.display_name = self.env._('Resumen del spa')
+
     # ------------------------------------------------------------------
     # Fechas
     # ------------------------------------------------------------------

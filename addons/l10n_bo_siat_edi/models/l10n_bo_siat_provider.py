@@ -55,7 +55,7 @@ class L10nBoSiatProvider(models.Model):
 
     name = fields.Char(string='Nombre', required=True)
     sequence = fields.Integer(default=10)
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string='Activo')
     company_id = fields.Many2one(
         'res.company', string='Compañía', required=True, index=True, default=lambda self: self.env.company)
     provider_type = fields.Selection(

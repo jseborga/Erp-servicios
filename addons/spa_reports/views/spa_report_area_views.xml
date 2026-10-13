@@ -92,6 +92,8 @@
     <record id="spa_report_area_analytic_server_action" model="ir.actions.server">
         <field name="name">Apuntes analíticos por área</field>
         <field name="model_id" ref="model_spa_report_area_move"/>
+        <!-- Sin grupos, Odoo exige permiso de escritura sobre el modelo (solo lectura para el gerente). -->
+        <field name="group_ids" eval="[(4, ref('spa_base.group_spa_manager')), (4, ref('account.group_account_readonly'))]"/>
         <field name="state">code</field>
         <field name="code">action = model.action_open_analytic_lines()</field>
     </record>

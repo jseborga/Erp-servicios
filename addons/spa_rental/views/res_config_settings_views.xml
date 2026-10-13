@@ -11,12 +11,12 @@
                         <field name="spa_rental_reminder_hours"/>
                     </setting>
                     <setting string="Garantías" help="Pasivo de las garantías recibidas (vacío = 216200) y producto para cobrar daños.">
-                        <div><label for="spa_rental_deposit_account_id" class="me-2"/><field name="spa_rental_deposit_account_id" options="{'no_create': True}"/></div>
-                        <div><label for="spa_rental_damage_product_id" class="me-2"/><field name="spa_rental_damage_product_id" options="{'no_create': True}"/></div>
+                        <div class="row mt-2"><label for="spa_rental_deposit_account_id" class="col-lg-5 o_light_label"/><field name="spa_rental_deposit_account_id" class="col-lg-7" options="{'no_create': True}"/></div>
+                        <div class="row mt-2"><label for="spa_rental_damage_product_id" class="col-lg-5 o_light_label"/><field name="spa_rental_damage_product_id" class="col-lg-7" options="{'no_create': True}"/></div>
                     </setting>
                     <setting string="Analítica y CRM" help="Área de las facturas de alquileres y clases (vacío = «Eventos, clases y alquileres») y embudo de las cotizaciones.">
-                        <div><label for="spa_rental_analytic_id" class="me-2"/><field name="spa_rental_analytic_id" options="{'no_create': True}"/></div>
-                        <div><label for="spa_rental_team_id" class="me-2"/><field name="spa_rental_team_id" options="{'no_create': True}"/></div>
+                        <div class="row mt-2"><label for="spa_rental_analytic_id" class="col-lg-5 o_light_label"/><field name="spa_rental_analytic_id" class="col-lg-7" options="{'no_create': True}"/></div>
+                        <div class="row mt-2"><label for="spa_rental_team_id" class="col-lg-5 o_light_label"/><field name="spa_rental_team_id" class="col-lg-7" options="{'no_create': True}"/></div>
                     </setting>
                 </block>
                 <block title="Clases" name="spa_rental_classes">

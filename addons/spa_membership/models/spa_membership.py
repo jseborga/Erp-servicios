@@ -20,9 +20,9 @@ class SpaMembership(models.Model):
 
     name = fields.Char('Número', readonly=True, copy=False, default='/')
     partner_id = fields.Many2one('res.partner', string='Socio', required=True, tracking=True, index=True)
-    phone = fields.Char(related='partner_id.phone')
-    email = fields.Char(related='partner_id.email')
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    phone = fields.Char(related='partner_id.phone', string='Celular')
+    email = fields.Char(related='partner_id.email', string='Correo')
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     currency_id = fields.Many2one(related='company_id.currency_id')
     plan_id = fields.Many2one('spa.plan', string='Plan', required=True, tracking=True, check_company=True)
     period_id = fields.Many2one('spa.plan.period', string='Duración', required=True, tracking=True,
@@ -38,7 +38,7 @@ class SpaMembership(models.Model):
         ('suspended', 'Suspendida'),
         ('expired', 'Vencida'),
         ('cancelled', 'Cancelada'),
-    ], default='draft', required=True, tracking=True, copy=False, index=True)
+    ], default='draft', required=True, tracking=True, copy=False, index=True, string='Estado')
     qr_token = fields.Char('Credencial QR', readonly=True, copy=False, index=True,
                            default=lambda self: uuid.uuid4().hex)
     entitlement_ids = fields.One2many('spa.entitlement', 'membership_id', string='Saldos')
@@ -76,7 +76,10 @@ class SpaMembership(models.Model):
 
     def _compute_display_name(self):
         for membership in self:
-            membership.display_name = f'{membership.name} · {membership.partner_id.name or ""} · {membership.plan_id.name or ""}'
+            # Sin el «/» provisional de una membresía aún no guardada.
+            parts = (membership.name if membership.name != '/' else '', membership.partner_id.name,
+                     membership.plan_id.name)
+            membership.display_name = ' · '.join(part for part in parts if part)
 
     # ------------------------------------------------------------------
     # Ciclo de vida

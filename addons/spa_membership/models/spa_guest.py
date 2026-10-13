@@ -17,7 +17,7 @@ class SpaGuest(models.Model):
     membership_id = fields.Many2one('spa.membership', string='Membresía del anfitrión', required=True,
                                     ondelete='cascade', index=True, check_company=True)
     host_partner_id = fields.Many2one(related='membership_id.partner_id', string='Anfitrión', store=True)
-    company_id = fields.Many2one(related='membership_id.company_id', store=True)
+    company_id = fields.Many2one(related='membership_id.company_id', store=True, string='Compañía')
     date = fields.Date('Fecha de visita', required=True, default=lambda self: self.env['spa.tools'].local_today())
     service_id = fields.Many2one('spa.service', string='Servicio')
     charge_type = fields.Selection([('free_pass', 'Free pass'), ('fee', 'Tarifa de invitado')],
@@ -26,7 +26,7 @@ class SpaGuest(models.Model):
         ('planned', 'Programado'),
         ('attended', 'Asistió'),
         ('cancelled', 'Cancelado'),
-    ], default='planned', required=True, tracking=True)
+    ], default='planned', required=True, tracking=True, string='Estado')
 
     @api.model_create_multi
     def create(self, vals_list):

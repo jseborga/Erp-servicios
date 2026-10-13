@@ -31,9 +31,9 @@ class SpaRental(models.Model):
                                         '«Reservado para evento: evento privado».')
     partner_id = fields.Many2one('res.partner', string='Cliente', required=True, tracking=True, index=True)
     phone = fields.Char('Celular de contacto', compute='_compute_phone', store=True, readonly=False, precompute=True)
-    email = fields.Char(related='partner_id.email')
+    email = fields.Char(related='partner_id.email', string='Correo')
     user_id = fields.Many2one('res.users', string='Responsable', default=lambda self: self.env.user, tracking=True)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     currency_id = fields.Many2one(related='company_id.currency_id')
     space_id = fields.Many2one('spa.space', string='Espacio', required=True, tracking=True, check_company=True,
                                index=True)
@@ -89,7 +89,7 @@ class SpaRental(models.Model):
         ('in_progress', 'En curso'),
         ('done', 'Realizado'),
         ('cancelled', 'Cancelado'),
-    ], default='quotation', required=True, tracking=True, index=True, copy=False)
+    ], default='quotation', required=True, tracking=True, index=True, copy=False, string='Estado')
     lead_id = fields.Many2one('crm.lead', string='Oportunidad', copy=False, index='btree_not_null')
     reminder_sent = fields.Boolean('Recordatorio generado', copy=False)
     availability_warning = fields.Text('Disponibilidad', compute='_compute_availability_warning')
@@ -745,9 +745,9 @@ class SpaRentalLine(models.Model):
     _description = 'Línea de precio del alquiler'
     _order = 'rental_id, sequence, id'
 
-    rental_id = fields.Many2one('spa.rental', required=True, ondelete='cascade', index=True)
+    rental_id = fields.Many2one('spa.rental', required=True, ondelete='cascade', index=True, string='Alquiler')
     sequence = fields.Integer(default=10)
-    company_id = fields.Many2one(related='rental_id.company_id', store=True)
+    company_id = fields.Many2one(related='rental_id.company_id', store=True, string='Compañía')
     currency_id = fields.Many2one(related='rental_id.currency_id')
     product_id = fields.Many2one('product.product', string='Producto', required=True,
                                  domain=[('type', '=', 'service'), ('sale_ok', '=', True)])

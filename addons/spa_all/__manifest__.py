@@ -9,7 +9,8 @@ ERP Servicios Spa – instalación completa
 ========================================
 
 Módulo «paraguas» sin menús. Solo agrega los permisos que cruzan módulos (el Gerente aprueba
-compras y actúa como contador del spa: fondos fijos, Libro de Compras). Al instalarlo se instalan juntos:
+compras y actúa como contador del spa: fondos fijos, Libro de Compras) y une la web del socio con
+las clases (enlace «Clases» en el menú del socio). Al instalarlo se instalan juntos:
 
 * Contabilidad Bolivia: ``l10n_bo_spa`` (plan de cuentas, retenciones, analítica por área),
   ``l10n_bo_purchase`` (compras con CUF / dosificación, unicidad, Libro de Compras),
@@ -27,6 +28,9 @@ Pruebas de punta a punta (``--test-tags /spa_all`` o la etiqueta ``spa_e2e``): u
 con usuarios reales por rol (recepción, caja, terapeuta, marketing, gerente, comprador, contador,
 custodio de fondo fijo, mesero del POS y socios del portal) y fechas fijas (marzo-abril de 2027,
 hora de La Paz).
+
+Pruebas de humo de la interfaz (etiqueta ``spa_ui``): un recorrido por rol en Chrome headless
+(``tests/test_ui_tours.py``). Odoo busca Chrome en el PATH o en ``ODOO_BROWSER_BIN``.
 """,
     'author': 'ERP Servicios Spa',
     'website': 'https://github.com/jseborga/erp-servicios',
@@ -55,7 +59,14 @@ hora de La Paz).
     ],
     'data': [
         'data/spa_all_security.xml',
+        'views/spa_portal_classes_templates.xml',
     ],
+    'assets': {
+        # Recorridos de humo de la interfaz por rol (tests/test_ui_tours.py).
+        'web.assets_tests': [
+            'spa_all/static/tests/tours/**/*',
+        ],
+    },
     'application': False,
     'auto_install': False,
     'installable': True,

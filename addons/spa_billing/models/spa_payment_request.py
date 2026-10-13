@@ -21,9 +21,10 @@ class SpaPaymentRequest(models.Model):
                                         "('payment_state', 'not in', ('paid', 'reversed')), '|', ('state', '=', 'posted'), "
                                         "'&', ('state', '=', 'draft'), ('spa_invoice_kind', 'in', %s)]" % (list(PENDING_KINDS),),
                                  help='Factura emitida o cobro pendiente del spa (se emite la factura al validar el pago).')
-    invoice_label = fields.Char('Cobro', compute='_compute_invoice_label', compute_sudo=True,
+    # Sin compute_sudo: sudo() descarta del contexto los «default_*» que usa el cálculo (lee con sudo adentro).
+    invoice_label = fields.Char('Cobro', compute='_compute_invoice_label',
                                 help='Factura emitida o cobro pendiente (número de la membresía o la reserva).')
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     currency_id = fields.Many2one(related='company_id.currency_id')
     amount = fields.Monetary('Monto pagado', required=True, tracking=True)
     method = fields.Selection([
@@ -35,22 +36,36 @@ class SpaPaymentRequest(models.Model):
     reference = fields.Char('Referencia / Nº de transacción')
     receipt = fields.Binary('Comprobante', attachment=True)
     receipt_filename = fields.Char('Nombre del comprobante')
+    receipt_is_image = fields.Boolean('Comprobante en imagen', compute='_compute_receipt_is_image',
+                                      help='Para mostrar a caja la vista previa del comprobante.')
     channel = fields.Selection([('portal', 'Web del socio'), ('reception', 'Recepción'), ('whatsapp', 'WhatsApp')],
-                               default='reception', required=True)
+                               default='reception', required=True, string='Canal')
     state = fields.Selection([
         ('pending', 'Por validar'),
         ('validated', 'Validado'),
         ('rejected', 'Rechazado'),
-    ], default='pending', required=True, tracking=True, index=True)
+    ], default='pending', required=True, tracking=True, index=True, string='Estado')
     payment_id = fields.Many2one('account.payment', string='Pago contable', readonly=True, copy=False)
     validated_by_id = fields.Many2one('res.users', string='Validado por', readonly=True, copy=False)
     validated_date = fields.Datetime('Validado el', readonly=True, copy=False)
     reject_reason = fields.Char('Motivo de rechazo')
 
+    @api.depends('receipt_filename')
+    def _compute_receipt_is_image(self):
+        for request in self:
+            name = (request.receipt_filename or '').lower()
+            request.receipt_is_image = name.endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'))
+
     @api.depends('invoice_id.name', 'invoice_id.state', 'invoice_id.invoice_origin')
     def _compute_invoice_label(self):
+        default_id = self.env.context.get('default_invoice_id')
         for request in self:
-            request.invoice_label = request.invoice_id._spa_document_label() if request.invoice_id else False
+            invoice = request.sudo().invoice_id  # recepción no lee facturas
+            if not invoice and not request.id and isinstance(default_id, int):
+                # Pago nuevo abierto desde una membresía o un pase diario: recepción no ve el campo
+                # Factura; se muestra el cobro del contexto para que sepa qué está cobrando.
+                invoice = self.env['account.move'].sudo().browse(default_id).exists()
+            request.invoice_label = invoice._spa_document_label() if invoice else False
 
     @api.model_create_multi
     def create(self, vals_list):

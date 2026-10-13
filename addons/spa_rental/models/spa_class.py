@@ -33,8 +33,8 @@ class SpaClassTemplate(models.Model):
     name = fields.Char('Clase', required=True, tracking=True, help='Ej. «Natación niños L-M-V 18:00».')
     sequence = fields.Integer(default=10)
     color = fields.Integer()
-    active = fields.Boolean(default=True, tracking=True)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    active = fields.Boolean(default=True, tracking=True, string='Activo')
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     currency_id = fields.Many2one(related='company_id.currency_id')
     service_id = fields.Many2one('spa.service', string='Servicio', required=True, check_company=True, tracking=True,
                                  domain=[('spa_is_class', '=', True)])
@@ -330,7 +330,7 @@ class SpaClassSession(models.Model):
     name = fields.Char('Sesión', compute='_compute_name', store=True)
     template_id = fields.Many2one('spa.class.template', string='Horario', index=True, ondelete='restrict',
                                   check_company=True)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     currency_id = fields.Many2one(related='company_id.currency_id')
     service_id = fields.Many2one('spa.service', string='Servicio', required=True, check_company=True,
                                  domain=[('spa_is_class', '=', True)])
@@ -347,7 +347,7 @@ class SpaClassSession(models.Model):
         ('planned', 'Programada'),
         ('done', 'Realizada'),
         ('cancelled', 'Cancelada'),
-    ], default='planned', required=True, tracking=True, index=True)
+    ], default='planned', required=True, tracking=True, index=True, string='Estado')
     cancel_reason = fields.Char('Motivo de cancelación', tracking=True)
     color = fields.Integer(related='template_id.color')
     note = fields.Text('Notas')
@@ -621,10 +621,10 @@ class SpaClassEnrollment(models.Model):
     instructor_id = fields.Many2one(related='session_id.instructor_id', string='Instructor')
     start = fields.Datetime(related='session_id.start', store=True, string='Inicio', index=True)
     stop = fields.Datetime(related='session_id.stop', store=True, string='Fin')
-    company_id = fields.Many2one(related='session_id.company_id', store=True)
+    company_id = fields.Many2one(related='session_id.company_id', store=True, string='Compañía')
     currency_id = fields.Many2one(related='session_id.currency_id')
     partner_id = fields.Many2one('res.partner', string='Alumno', required=True, index=True, tracking=True)
-    phone = fields.Char(related='partner_id.phone')
+    phone = fields.Char(related='partner_id.phone', string='Celular')
     membership_id = fields.Many2one('spa.membership', string='Membresía', check_company=True, tracking=True,
                                     domain="[('partner_id', '=', partner_id), ('state', 'in', ('active', 'grace'))]")
     payment_mode = fields.Selection([
@@ -651,7 +651,7 @@ class SpaClassEnrollment(models.Model):
         ('attended', 'Asistió'),
         ('absent', 'No asistió'),
         ('cancelled', 'Cancelada'),
-    ], default='draft', required=True, tracking=True, index=True, copy=False)
+    ], default='draft', required=True, tracking=True, index=True, copy=False, string='Estado')
     attended_at = fields.Datetime('Ingreso', readonly=True, copy=False)
     cancel_reason = fields.Char('Motivo de cancelación', copy=False)
     channel = fields.Selection([

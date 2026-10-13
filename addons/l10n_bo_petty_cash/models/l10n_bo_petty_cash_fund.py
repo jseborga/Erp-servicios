@@ -16,7 +16,7 @@ class L10nBoPettyCashFund(models.Model):
     _check_company_auto = True
 
     name = fields.Char(string='Nombre', required=True, tracking=True)
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string='Activo')
     company_id = fields.Many2one('res.company', string='Compañía', required=True, index=True,
                                  default=lambda self: self.env.company)
     currency_id = fields.Many2one(related='company_id.currency_id')
@@ -82,9 +82,9 @@ class L10nBoPettyCashFund(models.Model):
     balance = fields.Monetary(string='Saldo contable', compute='_compute_balance')
     pending_amount = fields.Monetary(string='Gastos por rendir', compute='_compute_pending')
     cash_expected = fields.Monetary(string='Efectivo esperado', compute='_compute_pending')
-    voucher_count = fields.Integer(compute='_compute_counts')
-    report_count = fields.Integer(compute='_compute_counts')
-    move_count = fields.Integer(compute='_compute_counts')
+    voucher_count = fields.Integer(compute='_compute_counts', string='Nº de comprobantes')
+    report_count = fields.Integer(compute='_compute_counts', string='Nº de rendiciones')
+    move_count = fields.Integer(compute='_compute_counts', string='Asientos')
 
     _account_unique = models.Constraint(
         'UNIQUE (company_id, account_id)', 'Cada fondo fijo debe tener su propia cuenta contable.')

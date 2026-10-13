@@ -8,7 +8,7 @@ from odoo.exceptions import UserError
 class SpaSpace(models.Model):
     _inherit = 'spa.space'
 
-    access_log_ids = fields.One2many('spa.access.log', 'space_id')
+    access_log_ids = fields.One2many('spa.access.log', 'space_id', string='Ingresos')
     occupancy = fields.Integer('Personas dentro', compute='_compute_occupancy')
     free_now = fields.Integer('Cupos libres ahora', compute='_compute_occupancy')
     occupancy_percent = fields.Float('Ocupación (%)', compute='_compute_occupancy')
@@ -72,7 +72,7 @@ class SpaAccessLog(models.Model):
     membership_id = fields.Many2one('spa.membership', string='Membresía', index=True)
     courtesy_ref = fields.Char('Pase / referencia')
     space_id = fields.Many2one('spa.space', string='Espacio', required=True, index=True, check_company=True)
-    company_id = fields.Many2one(related='space_id.company_id', store=True)
+    company_id = fields.Many2one(related='space_id.company_id', store=True, string='Compañía')
     booking_id = fields.Many2one('spa.booking', string='Reserva')
     service_id = fields.Many2one('spa.service', string='Servicio', check_company=True,
                                  help='Servicio usado (espacios de acceso libre): define el precio del pase diario.')
@@ -81,8 +81,10 @@ class SpaAccessLog(models.Model):
     people = fields.Integer('Personas', default=1, required=True, help='Socio + invitados que ingresan juntos.')
     check_in = fields.Datetime('Ingreso', required=True, default=fields.Datetime.now)
     check_out = fields.Datetime('Salida')
-    method = fields.Selection([('qr', 'Credencial QR'), ('manual', 'Manual')], default='manual', required=True)
-    state = fields.Selection([('open', 'Dentro'), ('closed', 'Salió')], default='open', required=True, index=True)
+    method = fields.Selection([('qr', 'Credencial QR'), ('manual', 'Manual')], default='manual', required=True,
+                              string='Método')
+    state = fields.Selection([('open', 'Dentro'), ('closed', 'Salió')], default='open', required=True, index=True,
+                             string='Estado')
     user_id = fields.Many2one('res.users', string='Registró', default=lambda self: self.env.user)
 
     def action_check_out(self):

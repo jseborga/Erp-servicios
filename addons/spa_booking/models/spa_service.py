@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 BLOCKING_STATES = ('confirmed', 'checked_in')
 
@@ -95,7 +96,7 @@ class SpaService(models.Model):
             stop = start + timedelta(hours=self.duration)
             taken = space._seats_taken(start, stop)
             free = max(space.capacity - taken, 0)
-            reason = code = False
+            reason = code = detail = False
             if start <= now:
                 reason, code = self.env._('Ya pasó'), 'past'
             elif not ignore_lead and start < now + timedelta(hours=self.booking_lead_min):
@@ -109,9 +110,13 @@ class SpaService(models.Model):
             elif membership and membership._spa_frozen_on(local_start.date()):
                 reason, code = self.env._('Membresía congelada'), 'frozen'
             elif membership:
-                ok = membership._spa_check_access(self, start, stop, guests=guests, raise_error=False)
-                if ok is False:
+                try:
+                    membership._spa_check_access(self, start, stop, guests=guests)
+                except UserError as error:
                     reason, code = self.env._('No incluido en su plan a esta hora'), 'plan'
+                    # Motivo concreto (tope semanal, saldo del mes, horario del plan…) para recepción;
+                    # la web del socio lo muestra una sola vez arriba de las franjas.
+                    detail = error.args[0]
             slots.append({
                 'start': start,
                 'stop': stop,
@@ -121,6 +126,7 @@ class SpaService(models.Model):
                 'capacity': space.capacity,
                 'available': not reason,
                 'reason': reason,
+                'detail': detail or reason,
                 'code': code,
                 # Franja llena (o sin personal): se puede pedir la lista de espera (spa.booking.waitlist._spa_join).
                 'waitlist': code in ('full', 'no_staff'),

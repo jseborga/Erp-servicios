@@ -20,6 +20,15 @@ class SpaCourtesyRedeemWizard(models.TransientModel):
         if spaces and self.space_id not in spaces:
             self.space_id = spaces[:1]
 
+    @api.onchange('token')
+    def _onchange_token(self):
+        """Al escanear el QR, propone el espacio del pase (como al elegirlo de la lista)."""
+        if not self.token:
+            return
+        spaces = self.env['spa.courtesy.pass']._find_by_token(self.token).service_ids.space_id
+        if spaces and self.space_id not in spaces:
+            self.space_id = spaces[:1]
+
     def action_redeem(self):
         self.ensure_one()
         courtesy = self.pass_id
