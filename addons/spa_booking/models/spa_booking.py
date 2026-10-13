@@ -16,14 +16,14 @@ class SpaBooking(models.Model):
 
     name = fields.Char('Reserva', readonly=True, copy=False, default='/')
     partner_id = fields.Many2one('res.partner', string='Cliente', required=True, tracking=True, index=True)
-    phone = fields.Char(related='partner_id.phone')
+    phone = fields.Char(related='partner_id.phone', string='Celular')
     membership_id = fields.Many2one('spa.membership', string='Membresía', tracking=True, check_company=True,
                                     domain="[('partner_id', '=', partner_id), ('state', 'in', ('active', 'grace'))]")
     payment_mode = fields.Selection([
         ('membership', 'Con su membresía'),
         ('single', 'Pago suelto'),
     ], string='Forma de pago', required=True, default='membership', tracking=True)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     service_id = fields.Many2one('spa.service', string='Servicio', required=True, tracking=True, check_company=True)
     space_id = fields.Many2one(related='service_id.space_id', store=True, string='Espacio', index=True)
     employee_id = fields.Many2one('hr.employee', string='Profesional', tracking=True, check_company=True)
@@ -46,7 +46,7 @@ class SpaBooking(models.Model):
         ('cancelled', 'Cancelada'),
         ('late_cancel', 'Cancelación tardía'),
         ('no_show', 'No se presentó'),
-    ], default='draft', required=True, tracking=True, index=True, copy=False)
+    ], default='draft', required=True, tracking=True, index=True, copy=False, string='Estado')
     consumption_ids = fields.One2many('spa.consumption', 'booking_id', string='Consumos')
     note = fields.Text('Notas')
     color = fields.Integer(related='space_id.color')

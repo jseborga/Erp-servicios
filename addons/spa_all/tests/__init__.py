@@ -2,3 +2,4 @@
 from . import test_e2e_operations  # noqa: F401
 from . import test_e2e_web  # noqa: F401
 from . import test_e2e_regressions  # noqa: F401
+from . import test_ui_tours  # noqa: F401

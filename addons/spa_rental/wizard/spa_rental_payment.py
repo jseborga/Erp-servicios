@@ -19,12 +19,13 @@ class SpaRentalPaymentWizard(models.TransientModel):
     _name = 'spa.rental.payment.wizard'
     _description = 'Registrar cobro de alquiler o clase'
 
-    kind = fields.Selection([('invoice', 'Factura'), ('deposit', 'Garantía')], required=True, default='invoice')
+    kind = fields.Selection([('invoice', 'Factura'), ('deposit', 'Garantía')], required=True, default='invoice',
+                            string='Tipo de cobro')
     rental_id = fields.Many2one('spa.rental', string='Alquiler')
     enrollment_id = fields.Many2one('spa.class.enrollment', string='Inscripción')
     invoice_id = fields.Many2one('account.move', string='Factura')
     partner_id = fields.Many2one('res.partner', string='Cliente', required=True)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     currency_id = fields.Many2one(related='company_id.currency_id')
     amount = fields.Monetary('Monto', required=True)
     method = fields.Selection(PAYMENT_METHODS, string='Medio de pago', required=True, default='cash')

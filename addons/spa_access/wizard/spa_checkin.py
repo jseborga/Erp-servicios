@@ -45,9 +45,12 @@ class SpaCheckinWizard(models.TransientModel):
                 'message': message,
                 'type': 'success',
                 'next': {
+                    # Acción anidada: el servidor no completa «views» (solo lo hace con la acción
+                    # devuelta); sin ella el cliente web falla («reading 'map'») tras registrar el ingreso.
                     'type': 'ir.actions.act_window',
                     'res_model': self._name,
                     'view_mode': 'form',
+                    'views': [(False, 'form')],
                     'target': 'new',
                     'name': self.env._('Registrar ingreso'),
                     'context': {'default_space_id': self.space_id.id},

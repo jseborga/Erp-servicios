@@ -54,9 +54,15 @@
                             <field name="receipt" filename="receipt_filename" readonly="state != 'pending'"/>
                             <field name="receipt_filename" invisible="1"/>
                             <field name="channel" readonly="state != 'pending'"/>
-                            <field name="reject_reason" invisible="state == 'validated'" readonly="state != 'pending'"/>
+                            <field name="reject_reason" invisible="state == 'validated' or not id" readonly="state != 'pending'"/>
                         </group>
                     </group>
+                    <!-- Vista previa del comprobante para que caja lo compare con el extracto. -->
+                    <div class="text-center mb-3" invisible="not receipt or not receipt_is_image">
+                        <field name="receipt_is_image" invisible="1"/>
+                        <field name="receipt" widget="image" readonly="1" nolabel="1"
+                               options="{'size': [0, 420], 'zoom': true}"/>
+                    </div>
                     <group invisible="state != 'validated'">
                         <field name="payment_id" groups="account.group_account_invoice"/>
                         <field name="validated_by_id"/>

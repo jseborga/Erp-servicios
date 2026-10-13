@@ -18,7 +18,7 @@ class SpaMembership(models.Model):
 
     invoice_ids = fields.One2many('account.move', 'spa_membership_id', string='Facturas')
     # compute_sudo: recepción y marketing ven el saldo sin permisos sobre las facturas.
-    invoice_count = fields.Integer(compute='_compute_billing', compute_sudo=True)
+    invoice_count = fields.Integer(compute='_compute_billing', compute_sudo=True, string='Nº de facturas')
     amount_due = fields.Monetary('Saldo por cobrar', compute='_compute_billing', compute_sudo=True,
                                  help='Facturas emitidas con saldo y cobros pendientes (aún sin factura).')
     payment_request_ids = fields.One2many('spa.payment.request', 'membership_id', string='Pagos informados')

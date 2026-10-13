@@ -15,7 +15,7 @@ class L10nBoSiatCancelReason(models.Model):
     code = fields.Integer(string='Código SIN', required=True)
     name = fields.Char(string='Descripción', required=True, translate=True)
     sequence = fields.Integer(default=10)
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string='Activo')
     note = fields.Char(string='Cuándo usarlo')
 
     _code_unique = models.Constraint('UNIQUE (code)', 'Ya existe un motivo de anulación con ese código.')

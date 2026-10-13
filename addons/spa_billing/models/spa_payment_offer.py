@@ -11,8 +11,8 @@ class SpaPaymentOffer(models.Model):
     _check_company_auto = True
 
     name = fields.Char('Oferta', required=True, translate=True)
-    active = fields.Boolean(default=True)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    active = fields.Boolean(default=True, string='Activo')
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     date_from = fields.Date('Vigente desde', required=True, default=fields.Date.context_today)
     date_to = fields.Date('Vigente hasta', required=True)
     plan_ids = fields.Many2many('spa.plan', string='Planes', help='Vacío = todos los planes.')

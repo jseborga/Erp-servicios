@@ -15,7 +15,8 @@ class AccountMove(models.Model):
     _name = 'account.move'
     _inherit = ['account.move', 'l10n_bo.fiscal.document.mixin']
 
-    l10n_bo_duplicate_warning = fields.Text(compute='_compute_l10n_bo_duplicate_warning')
+    l10n_bo_duplicate_warning = fields.Text(compute='_compute_l10n_bo_duplicate_warning',
+                                            string='Aviso de documento duplicado')
 
     # Un documento de proveedor publicado (no cancelado) es único por compañía, NIT, número y
     # CUF/autorización. La restricción en Python da un mensaje con el documento existente;

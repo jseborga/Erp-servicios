@@ -59,7 +59,8 @@ class AccountMove(models.Model):
         help='Obligatorio. Explique el caso permitido por la norma (confirmado con el contador).')
     l10n_bo_sale_no_invoice_user_id = fields.Many2one(
         'res.users', string='Venta sin factura validada por', readonly=True, copy=False)
-    l10n_bo_sale_user_can_no_invoice = fields.Boolean(compute='_compute_l10n_bo_sale_user_can_no_invoice')
+    l10n_bo_sale_user_can_no_invoice = fields.Boolean(compute='_compute_l10n_bo_sale_user_can_no_invoice',
+                                                      string='Puede registrar ventas sin factura')
 
     # ------------------------------------------------------------------
     # Datos SIAT
@@ -87,7 +88,7 @@ class AccountMove(models.Model):
         help='Nota de crédito contable creada al anular la factura en el SIAT. No es una nota de crédito-débito fiscal.')
     l10n_bo_siat_attempts = fields.Integer(string='Intentos de envío', readonly=True, copy=False)
     l10n_bo_siat_log = fields.Text(string='Respuestas del proveedor / bitácora SIAT', readonly=True, copy=False)
-    l10n_bo_siat_warning = fields.Text(compute='_compute_l10n_bo_siat_warning')
+    l10n_bo_siat_warning = fields.Text(compute='_compute_l10n_bo_siat_warning', string='Aviso SIAT')
 
     _l10n_bo_siat_cuf_unique = models.UniqueIndex(
         "(company_id, l10n_bo_siat_cuf) WHERE l10n_bo_siat_cuf IS NOT NULL",

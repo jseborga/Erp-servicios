@@ -26,6 +26,7 @@ referencia del pago es el número de la membresía): la factura se emite cuando 
     'assets': {
         'web.assets_frontend': [
             'spa_portal/static/src/scss/spa_portal.scss',
+            'spa_portal/static/src/interactions/spa_member_nav.js',
         ],
     },
     'installable': True,

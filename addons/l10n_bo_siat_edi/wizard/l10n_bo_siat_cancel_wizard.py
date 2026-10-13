@@ -10,7 +10,7 @@ class L10nBoSiatCancelWizard(models.TransientModel):
     move_id = fields.Many2one('account.move', string='Factura', required=True, readonly=True, ondelete='cascade')
     siat_number = fields.Char(related='move_id.l10n_bo_siat_number', string='N.º de factura SIAT')
     cuf = fields.Char(related='move_id.l10n_bo_siat_cuf', string='CUF')
-    uses_provider = fields.Boolean(compute='_compute_info')
+    uses_provider = fields.Boolean(compute='_compute_info', string='Usa proveedor SIAT')
     simulated = fields.Boolean(related='move_id.l10n_bo_siat_simulated')
     deadline = fields.Date(string='Plazo para anular', compute='_compute_info')
     reason_id = fields.Many2one('l10n_bo.siat.cancel.reason', string='Motivo de anulación')

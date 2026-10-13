@@ -12,8 +12,8 @@ class L10nBoQrWizard(models.TransientModel):
     _name = 'l10n_bo.qr.wizard'
     _description = 'Lector de QR de facturas (Bolivia)'
 
-    res_model = fields.Char(required=True)
-    res_id = fields.Integer(required=True)
+    res_model = fields.Char(required=True, string='Modelo')
+    res_id = fields.Integer(required=True, string='ID del registro')
     qr_text = fields.Text(
         string='Texto del QR',
         help='Escanee el QR con un lector (funciona como teclado) o pegue el texto/enlace leído con el celular.')
@@ -27,7 +27,7 @@ class L10nBoQrWizard(models.TransientModel):
     amount_total = fields.Float(
         string='Importe total', compute='_compute_parsed', store=True, readonly=False, digits='Account',
         help='El QR de las facturas en línea no trae el monto: ingréselo si el documento aún no tiene líneas.')
-    message = fields.Text(compute='_compute_parsed', store=True)
+    message = fields.Text(compute='_compute_parsed', store=True, string='Mensaje')
 
     @api.model
     def _action_open(self, record):

@@ -29,7 +29,7 @@ class SpaMembershipFreeze(models.Model):
     membership_id = fields.Many2one('spa.membership', string='Membresía', required=True, ondelete='cascade',
                                     index=True)
     partner_id = fields.Many2one(related='membership_id.partner_id', store=True, string='Socio')
-    company_id = fields.Many2one(related='membership_id.company_id', store=True)
+    company_id = fields.Many2one(related='membership_id.company_id', store=True, string='Compañía')
     date_from = fields.Date('Desde', required=True)
     date_to = fields.Date('Hasta', required=True)
     days = fields.Integer('Días', compute='_compute_days', store=True)

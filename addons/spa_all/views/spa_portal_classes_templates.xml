@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Unión de la web del socio (spa_portal) con las clases (spa_rental), que no dependen entre sí:
+         «Clases» en el menú del socio y el mismo menú en la página de clases (en el celular era un
+         callejón sin salida: solo tenía la miga de pan al inicio). -->
+    <template id="spa_member_nav_classes" name="Spa: menú del socio (clases)" inherit_id="spa_portal.spa_member_nav">
+        <xpath expr="//a[@href='/my/spa/guests']" position="after">
+            <a href="/my/spa/classes" t-attf-class="nav-link text-nowrap #{'active' if page_name == 'spa_classes' else ''}"
+               t-att-aria-current="'page' if page_name == 'spa_classes' else None">
+                <i class="fa fa-graduation-cap me-1" aria-hidden="true"/>Clases
+            </a>
+        </xpath>
+    </template>
+
+    <template id="portal_my_classes_member_nav" name="Spa: clases con el menú del socio"
+              inherit_id="spa_rental.portal_my_classes">
+        <xpath expr="//div[hasclass('o_spa_classes')]/h1" position="before">
+            <t t-call="spa_portal.spa_member_nav"/>
+        </xpath>
+    </template>
+</odoo>

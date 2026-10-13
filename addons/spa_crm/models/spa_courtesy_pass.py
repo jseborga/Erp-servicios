@@ -60,7 +60,7 @@ class SpaCourtesyPass(models.Model):
         ('expired', 'Vencido'),
         ('cancelled', 'Anulado'),
     ], string='Estado', default='issued', required=True, tracking=True, index=True, copy=False)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     note = fields.Text('Notas internas')
 
     _token_uniq = models.Constraint('UNIQUE (token)', 'El código del pase de cortesía debe ser único.')
@@ -92,7 +92,9 @@ class SpaCourtesyPass(models.Model):
 
     def _compute_display_name(self):
         for courtesy in self:
-            courtesy.display_name = f'{courtesy.name} · {courtesy.guest_name or ""}'
+            # Sin el «/» provisional de un pase aún no guardado.
+            parts = (courtesy.name if courtesy.name != '/' else '', courtesy.guest_name)
+            courtesy.display_name = ' · '.join(part for part in parts if part)
 
     @api.constrains('valid_from', 'valid_to')
     def _check_dates(self):

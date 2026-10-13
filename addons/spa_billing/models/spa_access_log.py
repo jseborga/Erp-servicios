@@ -58,6 +58,7 @@ class SpaCheckinWizard(models.TransientModel):
             'name': self.env._('Cobrar pase diario'),
             'res_model': 'spa.payment.request',
             'view_mode': 'form',
+            'views': [(False, 'form')],  # acción anidada: el cliente web exige «views»
             'target': 'new',
             'context': {
                 'default_partner_id': log.partner_id.id,

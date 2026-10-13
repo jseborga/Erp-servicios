@@ -12,7 +12,7 @@ class ResPartner(models.Model):
         ('draft', 'Por activar'), ('active', 'Activa'), ('grace', 'En gracia'), ('suspended', 'Suspendida'),
         ('expired', 'Vencida'), ('cancelled', 'Cancelada'),
     ], string='Estado de socio', compute='_compute_spa_membership')
-    spa_membership_count = fields.Integer(compute='_compute_spa_membership')
+    spa_membership_count = fields.Integer(compute='_compute_spa_membership', string='Nº de membresías')
 
     @api.depends('spa_membership_ids.state', 'spa_membership_ids.date_end')
     def _compute_spa_membership(self):

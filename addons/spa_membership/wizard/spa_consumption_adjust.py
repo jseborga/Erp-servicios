@@ -7,10 +7,11 @@ class SpaConsumptionAdjust(models.TransientModel):
     _name = 'spa.consumption.adjust'
     _description = 'Ajuste manual de saldo'
 
-    membership_id = fields.Many2one('spa.membership', required=True)
+    membership_id = fields.Many2one('spa.membership', required=True, string='Membresía')
     service_id = fields.Many2one('spa.service', required=True,
-                                 domain="[('id', 'in', allowed_service_ids)]")
-    allowed_service_ids = fields.Many2many('spa.service', compute='_compute_allowed_service_ids')
+                                 domain="[('id', 'in', allowed_service_ids)]", string='Servicio')
+    allowed_service_ids = fields.Many2many('spa.service', compute='_compute_allowed_service_ids',
+                                           string='Servicios permitidos')
     qty = fields.Integer('Sesiones a devolver (positivo) o descontar (negativo)', required=True, default=1)
     reason = fields.Char('Motivo', required=True)
 

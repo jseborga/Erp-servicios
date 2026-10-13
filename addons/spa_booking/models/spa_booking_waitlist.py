@@ -29,10 +29,10 @@ class SpaBookingWaitlist(models.Model):
     _check_company_auto = True
 
     partner_id = fields.Many2one('res.partner', string='Cliente', required=True, index=True, tracking=True)
-    phone = fields.Char(related='partner_id.phone')
+    phone = fields.Char(related='partner_id.phone', string='Celular')
     membership_id = fields.Many2one('spa.membership', string='Membresía', check_company=True,
                                     domain="[('partner_id', '=', partner_id), ('state', 'in', ('active', 'grace'))]")
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     service_id = fields.Many2one('spa.service', string='Servicio', required=True, check_company=True,
                                  domain=[('space_id.access_mode', '=', 'slot')])
     space_id = fields.Many2one(related='service_id.space_id', store=True, string='Espacio', index=True)

@@ -9,9 +9,9 @@ class SpaDeferralLine(models.Model):
     _description = 'Devengo mensual de membresía'
     _order = 'date, id'
 
-    membership_id = fields.Many2one('spa.membership', required=True, ondelete='cascade', index=True)
+    membership_id = fields.Many2one('spa.membership', required=True, ondelete='cascade', index=True, string='Membresía')
     invoice_id = fields.Many2one('account.move', string='Factura', required=True, ondelete='cascade')
-    company_id = fields.Many2one(related='membership_id.company_id', store=True)
+    company_id = fields.Many2one(related='membership_id.company_id', store=True, string='Compañía')
     currency_id = fields.Many2one(related='company_id.currency_id')
     date = fields.Date('Mes', required=True, index=True)
     amount = fields.Monetary('Monto', required=True)
@@ -25,7 +25,8 @@ class SpaDeferralLine(models.Model):
         ('reversed', 'Ingreso revertido'),
         ('cancelled', 'Anulado'),
     ], default='planned', required=True, index=True,
-        help='Ingreso revertido: nota de crédito que devolvió meses ya devengados (Debe ingresos / Haber 215100).')
+        help='Ingreso revertido: nota de crédito que devolvió meses ya devengados (Debe ingresos / Haber 215100).',
+        string='Estado')
     cancel_reason = fields.Char('Motivo de anulación', readonly=True, copy=False)
     refund_move_id = fields.Many2one('account.move', string='Nota de crédito', readonly=True, copy=False,
                                      help='Nota de crédito que devolvió esta cuota (ya no se puede reconocer).')

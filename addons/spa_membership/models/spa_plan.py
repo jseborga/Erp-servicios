@@ -16,8 +16,8 @@ class SpaPlan(models.Model):
     code = fields.Char('Código')
     sequence = fields.Integer(default=10)
     color = fields.Integer()
-    active = fields.Boolean(default=True)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    active = fields.Boolean(default=True, string='Activo')
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     currency_id = fields.Many2one(related='company_id.currency_id')
     description = fields.Html('Descripción para la web', translate=True)
     website_published = fields.Boolean('Visible en la web', default=True)
@@ -38,7 +38,7 @@ class SpaPlan(models.Model):
     pricelist_id = fields.Many2one('product.pricelist', string='Lista de precios del socio',
                                    help='Descuentos del plan en restaurante, cafetería y tienda. '
                                         'Se asigna al socio mientras la membresía esté vigente.')
-    membership_ids = fields.One2many('spa.membership', 'plan_id')
+    membership_ids = fields.One2many('spa.membership', 'plan_id', string='Membresías')
     member_count = fields.Integer('Socios vigentes', compute='_compute_member_count')
     min_price = fields.Monetary('Desde', compute='_compute_min_price')
 
@@ -76,7 +76,7 @@ class SpaPlanPeriod(models.Model):
     _order = 'months'
 
     plan_id = fields.Many2one('spa.plan', required=True, ondelete='cascade', index=True)
-    company_id = fields.Many2one(related='plan_id.company_id', store=True)
+    company_id = fields.Many2one(related='plan_id.company_id', store=True, string='Compañía')
     currency_id = fields.Many2one(related='plan_id.currency_id')
     months = fields.Integer('Meses', required=True, default=1)
     name = fields.Char('Duración', compute='_compute_name', store=True)
@@ -84,7 +84,7 @@ class SpaPlanPeriod(models.Model):
     monthly_price = fields.Monetary('Equivale por mes', compute='_compute_monthly_price')
     product_id = fields.Many2one('product.product', string='Producto de venta', readonly=True, copy=False,
                                  help='Se crea automáticamente; lleva impuestos y cuenta de ingreso.')
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string='Activo')
 
     _months_positive = models.Constraint('CHECK (months > 0)', 'La duración debe ser de al menos un mes.')
     _plan_months_uniq = models.Constraint('UNIQUE (plan_id, months)', 'El plan ya tiene esa duración.')

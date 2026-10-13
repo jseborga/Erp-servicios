@@ -56,6 +56,12 @@ def parse_amount(text):
     return value
 
 
+def day_label(env, day):
+    """«Jueves 15 de octubre»: mayúscula solo al inicio (``text-capitalize`` daría «15 De Octubre»)."""
+    label = format_date(env, day, date_format="EEEE d 'de' MMMM")
+    return label[:1].upper() + label[1:]
+
+
 class SpaPortal(CustomerPortal):
 
     # ------------------------------------------------------------------
@@ -584,7 +590,7 @@ class SpaPortal(CustomerPortal):
                       'number': d.day, 'open': service.space_id._is_open_on(d)} for d in days],
             'day': day,
             'day_value': fields.Date.to_string(day),
-            'day_label': format_date(request.env, day, date_format="EEEE d 'de' MMMM"),
+            'day_label': day_label(request.env, day),
             'guests': guests,
             'guest_choices': list(range(max_guests + 1)),
             'guest_rows': list(range(guests)),
@@ -673,7 +679,7 @@ class SpaPortal(CustomerPortal):
         used = membership.guests_this_month
         values.update({
             'guest_lines': lines,
-            'days': [{'value': fields.Date.to_string(d), 'label': format_date(request.env, d, date_format="EEEE d 'de' MMMM")}
+            'days': [{'value': fields.Date.to_string(d), 'label': day_label(request.env, d)}
                      for d in days],
             'guest_quota': quota,
             'guest_used': used,

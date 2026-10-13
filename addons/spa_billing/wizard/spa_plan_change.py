@@ -21,7 +21,7 @@ class SpaPlanChange(models.TransientModel):
 
     membership_id = fields.Many2one('spa.membership', string='Membresía', required=True, readonly=True)
     partner_id = fields.Many2one(related='membership_id.partner_id')
-    company_id = fields.Many2one(related='membership_id.company_id')
+    company_id = fields.Many2one(related='membership_id.company_id', string='Compañía')
     currency_id = fields.Many2one(related='membership_id.currency_id')
     current_period_id = fields.Many2one(related='membership_id.period_id', string='Plan actual')
     current_plan_id = fields.Many2one(related='membership_id.plan_id', string='Plan')

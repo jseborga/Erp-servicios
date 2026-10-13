@@ -15,7 +15,7 @@ class SpaBookingSlotWizard(models.TransientModel):
                                  domain=[('space_id.access_mode', '=', 'slot')])
     date = fields.Date('Día', required=True, default=lambda self: self.env['spa.tools'].local_today())
     channel = fields.Selection([('reception', 'Recepción'), ('phone', 'Teléfono'), ('whatsapp', 'WhatsApp')],
-                               default='reception', required=True)
+                               default='reception', required=True, string='Canal')
     guest_names = fields.Text('Invitados', help='Un invitado por línea: "Nombre, celular".')
     line_ids = fields.One2many('spa.booking.slot.line', 'wizard_id', string='Franjas')
 
@@ -41,7 +41,9 @@ class SpaBookingSlotWizard(models.TransientModel):
                                    guests=len(guests), ignore_lead=True)
         self.line_ids = [(5, 0, 0)] + [(0, 0, {
             'start': slot['start'], 'stop': slot['stop'], 'label': slot['label'], 'free': slot['free'],
-            'capacity': slot['capacity'], 'available': slot['available'], 'reason': slot['reason'] or '',
+            'capacity': slot['capacity'], 'available': slot['available'],
+            # Motivo concreto para recepción (p. ej. «Su plan permite 1 masaje por semana y ya los usó»).
+            'reason': slot.get('detail') or slot['reason'] or '',
             'can_wait': slot.get('waitlist', False),
         }) for slot in slots]
         return {
@@ -59,9 +61,9 @@ class SpaBookingSlotLine(models.TransientModel):
     _description = 'Franja disponible'
     _order = 'start'
 
-    wizard_id = fields.Many2one('spa.booking.slot.wizard', required=True, ondelete='cascade')
-    start = fields.Datetime(required=True)
-    stop = fields.Datetime(required=True)
+    wizard_id = fields.Many2one('spa.booking.slot.wizard', required=True, ondelete='cascade', string='Asistente')
+    start = fields.Datetime(required=True, string='Inicio')
+    stop = fields.Datetime(required=True, string='Fin')
     label = fields.Char('Horario')
     free = fields.Integer('Libres')
     capacity = fields.Integer('Aforo')

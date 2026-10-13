@@ -15,8 +15,8 @@
                     <div class="oe_title">
                         <h1>Resumen del spa</h1>
                         <div class="text-muted">
-                            Hoy <field name="today" class="d-inline"/> · actualizado
-                            <field name="as_of" class="d-inline"/>
+                            Hoy <field name="today" class="d-inline-block"/> · actualizado
+                            <field name="as_of" class="d-inline-block"/>
                         </div>
                     </div>
 

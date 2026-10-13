@@ -12,7 +12,7 @@ class SpaService(models.Model):
 
     name = fields.Char('Servicio', required=True, translate=True, tracking=True)
     sequence = fields.Integer(default=10)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     space_id = fields.Many2one('spa.space', string='Espacio', required=True, check_company=True, tracking=True)
     access_mode = fields.Selection(related='space_id.access_mode')
     product_id = fields.Many2one('product.product', string='Producto (precio suelto)', required=True,
@@ -28,7 +28,7 @@ class SpaService(models.Model):
                                     help='Tiempo mínimo entre la reserva y el inicio del servicio.')
     booking_lead_max = fields.Integer('Anticipación máxima (días)', default=30)
     description = fields.Text('Descripción para el socio', translate=True)
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string='Activo')
 
     @api.constrains('requires_staff', 'skill_id', 'duration', 'seats_per_booking')
     def _check_service(self):

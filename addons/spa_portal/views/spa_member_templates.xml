@@ -241,7 +241,7 @@
                             </a>
                         </t>
                     </div>
-                    <h2 class="h6 text-capitalize mb-3" t-out="day_label"/>
+                    <h2 class="h6 mb-3" t-out="day_label"/>
 
                     <!-- Invitados -->
                     <div t-if="len(guest_choices) &gt; 1" class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -401,7 +401,7 @@
                                                 <select id="spa_guest_date" name="date" class="form-select" required="required">
                                                     <option t-foreach="days" t-as="d" t-att-value="d['value']"
                                                             t-att-selected="'selected' if d['value'] == form.get('date') else None"
-                                                            class="text-capitalize" t-out="d['label']"/>
+                                                            t-out="d['label']"/>
                                                 </select>
                                             </div>
                                             <div class="col-12 col-md-6">

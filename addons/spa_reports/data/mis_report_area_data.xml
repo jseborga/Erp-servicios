@@ -226,5 +226,8 @@
         <field name="res_id" ref="mis_instance_area_pl"/>
         <field name="view_id" ref="mis_builder.mis_report_instance_result_view_form"/>
         <field name="target">current</field>
+        <!-- El widget de MIS Builder (19.0) obtiene la instancia del contexto (active_model/active_id),
+             como hace su botón «Vista previa»: sin esto, abrir el menú falla con «Invalid ids list». -->
+        <field name="context" eval="{'active_model': 'mis.report.instance', 'active_id': ref('mis_instance_area_pl')}"/>
     </record>
 </odoo>

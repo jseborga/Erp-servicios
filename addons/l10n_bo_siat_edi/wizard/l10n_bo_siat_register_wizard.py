@@ -19,7 +19,7 @@ class L10nBoSiatRegisterWizard(models.TransientModel):
     _description = 'Registrar datos SIAT de una factura'
 
     move_id = fields.Many2one('account.move', string='Factura', required=True, readonly=True, ondelete='cascade')
-    company_id = fields.Many2one(related='move_id.company_id')
+    company_id = fields.Many2one(related='move_id.company_id', string='Compañía')
     currency_id = fields.Many2one(related='move_id.currency_id')
     amount_total = fields.Monetary(related='move_id.amount_total', string='Importe total')
     qr_text = fields.Char(

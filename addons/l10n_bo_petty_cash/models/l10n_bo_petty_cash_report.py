@@ -41,7 +41,7 @@ class L10nBoPettyCashReport(models.Model):
     replenish_move_id = fields.Many2one('account.move', string='Asiento de reposición', readonly=True, copy=False)
     bill_ids = fields.Many2many('account.move', string='Facturas', compute='_compute_bill_ids',
                                 groups='account.group_account_invoice,account.group_account_readonly')
-    bill_count = fields.Integer(compute='_compute_bill_count')
+    bill_count = fields.Integer(compute='_compute_bill_count', string='Nº de facturas')
     approved_by_id = fields.Many2one('res.users', string='Aprobada por', readonly=True, copy=False)
     approval_date = fields.Date(string='Fecha de aprobación', readonly=True, copy=False)
     note = fields.Text(string='Observaciones')

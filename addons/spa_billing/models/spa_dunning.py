@@ -16,8 +16,8 @@ class SpaDunningStep(models.Model):
 
     name = fields.Char('Paso', required=True, translate=True)
     sequence = fields.Integer(default=10)
-    active = fields.Boolean(default=True)
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    active = fields.Boolean(default=True, string='Activo')
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, string='Compañía')
     offset_days = fields.Integer('Día respecto al vencimiento', required=True, default=0,
                                  help='Negativo: días antes del vencimiento de la membresía. 0: el día del vencimiento. '
                                       'Positivo: días después (renovación aún impaga).')
@@ -54,7 +54,7 @@ class SpaDunningLog(models.Model):
     membership_id = fields.Many2one('spa.membership', string='Membresía', required=True, ondelete='cascade',
                                     index=True)
     partner_id = fields.Many2one(related='membership_id.partner_id', store=True, string='Socio')
-    company_id = fields.Many2one(related='membership_id.company_id', store=True)
+    company_id = fields.Many2one(related='membership_id.company_id', store=True, string='Compañía')
     date = fields.Date('Fecha', required=True, index=True)
     period_end = fields.Date('Vencimiento del período', help='Vencimiento de la membresía cuando se aplicó.')
     kind = fields.Selection([
