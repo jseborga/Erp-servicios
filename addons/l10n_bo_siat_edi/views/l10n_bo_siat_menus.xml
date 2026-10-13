@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_l10n_bo_siat_root"
+              name="Bolivia SIAT"
+              parent="account.menu_finance"
+              groups="account.group_account_invoice,account.group_account_readonly"
+              sequence="15"/>
+
+    <menuitem id="menu_l10n_bo_siat_invoices"
+              name="Facturas SIAT"
+              parent="menu_l10n_bo_siat_root"
+              action="action_l10n_bo_siat_invoices"
+              groups="account.group_account_invoice"
+              sequence="10"/>
+
+    <menuitem id="menu_l10n_bo_sale_no_invoice"
+              name="Ventas sin factura"
+              parent="menu_l10n_bo_siat_root"
+              action="action_l10n_bo_sale_no_invoice"
+              groups="account.group_account_invoice,account.group_account_readonly"
+              sequence="20"/>
+
+    <menuitem id="menu_l10n_bo_sale_book"
+              name="Libro de Ventas"
+              parent="menu_l10n_bo_siat_root"
+              action="l10n_bo_sale_book_action"
+              groups="account.group_account_invoice,account.group_account_readonly"
+              sequence="30"/>
+
+    <menuitem id="menu_l10n_bo_siat_providers"
+              name="Proveedores SIAT"
+              parent="menu_l10n_bo_siat_root"
+              action="l10n_bo_siat_provider_action"
+              groups="account.group_account_manager"
+              sequence="80"/>
+
+    <menuitem id="menu_l10n_bo_siat_cancel_reasons"
+              name="Motivos de anulación"
+              parent="menu_l10n_bo_siat_root"
+              action="l10n_bo_siat_cancel_reason_action"
+              groups="account.group_account_manager"
+              sequence="90"/>
+
+    <!-- También junto al Libro de Compras -->
+    <menuitem id="menu_l10n_bo_sale_book_fiscal"
+              name="Libro de Ventas (SIN)"
+              parent="account.account_reports_taxes_and_fiscal_menu"
+              action="l10n_bo_sale_book_action"
+              groups="account.group_account_invoice,account.group_account_readonly"
+              sequence="41"/>
+</odoo>

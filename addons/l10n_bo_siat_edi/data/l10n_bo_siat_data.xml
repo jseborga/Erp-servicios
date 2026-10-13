@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Actividades para caja / contabilidad -->
+        <record id="mail_activity_siat_register" model="mail.activity.type">
+            <field name="name">Registrar factura SIAT</field>
+            <field name="summary">Registrar factura SIAT</field>
+            <field name="icon">fa-file-text-o</field>
+            <field name="res_model">account.move</field>
+        </record>
+        <record id="mail_activity_siat_review" model="mail.activity.type">
+            <field name="name">Revisar emisión SIAT</field>
+            <field name="summary">Revisar emisión SIAT</field>
+            <field name="icon">fa-exclamation-triangle</field>
+            <field name="res_model">account.move</field>
+        </record>
+
+        <!-- Paramétrica "Motivo de anulación" del SIAT: códigos conocidos, POR VERIFICAR con la
+             lista oficial vigente (sincronizarParametricaMotivoAnulacion). Editables. -->
+        <record id="cancel_reason_1" model="l10n_bo.siat.cancel.reason">
+            <field name="code">1</field>
+            <field name="sequence">1</field>
+            <field name="name">Factura mal emitida</field>
+            <field name="note">Error en la emisión (datos del comprador, montos, detalle). Emita una nueva factura correcta.</field>
+        </record>
+        <record id="cancel_reason_2" model="l10n_bo.siat.cancel.reason">
+            <field name="code">2</field>
+            <field name="sequence">2</field>
+            <field name="name">Nota de crédito-débito mal emitida</field>
+            <field name="note">Para anular una nota de crédito-débito.</field>
+        </record>
+        <record id="cancel_reason_3" model="l10n_bo.siat.cancel.reason">
+            <field name="code">3</field>
+            <field name="sequence">3</field>
+            <field name="name">Datos de emisión incorrectos</field>
+        </record>
+        <record id="cancel_reason_4" model="l10n_bo.siat.cancel.reason">
+            <field name="code">4</field>
+            <field name="sequence">4</field>
+            <field name="name">Factura o nota de crédito-débito devuelta</field>
+        </record>
+
+        <!-- Reintentos de emisión y consulta de anulaciones (modalidad proveedor) -->
+        <record id="ir_cron_l10n_bo_siat_process" model="ir.cron">
+            <field name="name">SIAT: reintentar envíos y consultar anulaciones</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_l10n_bo_siat_process()</field>
+            <field name="interval_number">30</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

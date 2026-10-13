@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_report_occupancy_view_list" model="ir.ui.view">
+        <field name="name">spa.report.occupancy.list</field>
+        <field name="model">spa.report.occupancy</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" default_order="date desc, hour, space_id">
+                <field name="date"/>
+                <field name="weekday" optional="hide"/>
+                <field name="hour"/>
+                <field name="space_id"/>
+                <field name="access_mode" optional="hide"/>
+                <field name="is_open" optional="hide"/>
+                <field name="capacity" sum="Total"/>
+                <field name="booked_seats" sum="Total"/>
+                <field name="checkin_people" sum="Total"/>
+                <field name="present_people" sum="Total" optional="show"/>
+                <field name="occupied" sum="Total"/>
+                <field name="free_seats" sum="Total" optional="hide"/>
+                <field name="occupancy_pct" widget="progressbar" avg="Promedio"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_report_occupancy_view_pivot" model="ir.ui.view">
+        <field name="name">spa.report.occupancy.pivot</field>
+        <field name="model">spa.report.occupancy</field>
+        <field name="arch" type="xml">
+            <pivot string="Ocupación por espacio y hora" disable_linking="0" sample="1">
+                <field name="hour" type="row"/>
+                <field name="space_id" type="col"/>
+                <field name="occupancy_pct" type="measure"/>
+                <field name="booked_seats" type="measure"/>
+                <field name="checkin_people" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="spa_report_occupancy_view_graph" model="ir.ui.view">
+        <field name="name">spa.report.occupancy.graph</field>
+        <field name="model">spa.report.occupancy</field>
+        <field name="arch" type="xml">
+            <graph string="Ocupación por hora" type="bar" sample="1">
+                <field name="hour"/>
+                <field name="space_id"/>
+                <field name="occupancy_pct" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="spa_report_occupancy_view_search" model="ir.ui.view">
+        <field name="name">spa.report.occupancy.search</field>
+        <field name="model">spa.report.occupancy</field>
+        <field name="arch" type="xml">
+            <search string="Ocupación">
+                <field name="space_id"/>
+                <field name="date"/>
+                <filter name="filter_today" string="Hoy"
+                        domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_last_7" string="Últimos 7 días"
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(days=6)).strftime('%Y-%m-%d')),
+                                 ('date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_date" string="Fecha" date="date"/>
+                <separator/>
+                <filter name="filter_open" string="Horario de atención" domain="[('is_open', '=', True)]"/>
+                <filter name="filter_busy" string="Con movimiento" domain="[('occupied', '&gt;', 0)]"/>
+                <filter name="filter_full" string="Llenos" domain="[('free_seats', '=', 0)]"/>
+                <separator/>
+                <filter name="filter_slot" string="Por franja (con reserva)" domain="[('access_mode', '=', 'slot')]"/>
+                <filter name="filter_free" string="Acceso libre" domain="[('access_mode', '=', 'free')]"/>
+                <group>
+                    <filter name="group_space" string="Espacio" context="{'group_by': 'space_id'}"/>
+                    <filter name="group_day" string="Día" context="{'group_by': 'date:day'}"/>
+                    <filter name="group_weekday" string="Día de la semana" context="{'group_by': 'weekday'}"/>
+                    <filter name="group_hour" string="Hora" context="{'group_by': 'hour'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_report_occupancy_action" model="ir.actions.act_window">
+        <field name="name">Ocupación por espacio</field>
+        <field name="res_model">spa.report.occupancy</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="spa_report_occupancy_view_search"/>
+        <field name="context">{'search_default_filter_last_7': 1, 'search_default_filter_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">Sin datos de ocupación</p>
+            <p>Muestra por espacio, día y hora el aforo, los cupos reservados, los ingresos registrados y el
+               porcentaje de ocupación. Las horas sin movimiento del horario de atención cuentan como 0 %,
+               así el promedio refleja la ocupación real.</p>
+        </field>
+    </record>
+
+    <!-- Recepción: acceso desde «Aforo en vivo» -->
+    <record id="spa_space_view_kanban_live_reports" model="ir.ui.view">
+        <field name="name">spa.space.kanban.live.reports</field>
+        <field name="model">spa.space</field>
+        <field name="inherit_id" ref="spa_access.spa_space_view_kanban_live"/>
+        <field name="arch" type="xml">
+            <xpath expr="//footer" position="inside">
+                <button name="%(spa_report_occupancy_action)d" type="action" class="btn btn-link btn-sm"
+                        context="{'search_default_space_id': id}">Ocupación por hora</button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

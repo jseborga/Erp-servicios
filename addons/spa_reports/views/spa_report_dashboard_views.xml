@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_report_dashboard_view_form" model="ir.ui.view">
+        <field name="name">spa.report.dashboard.form</field>
+        <field name="model">spa.report.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Resumen del spa" create="0" delete="0" duplicate="0">
+                <header>
+                    <button name="action_refresh" type="object" string="Actualizar" icon="fa-refresh"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <field name="company_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <div class="oe_title">
+                        <h1>Resumen del spa</h1>
+                        <div class="text-muted">
+                            Hoy <field name="today" class="d-inline"/> · actualizado
+                            <field name="as_of" class="d-inline"/>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4 mb-2">Hoy</h4>
+                    <div class="row g-2">
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_inside" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-users me-1" role="img" aria-label="Icono"/>Personas dentro / aforo</div>
+                                <div class="fs-3 fw-bold">
+                                    <field name="people_inside" class="d-inline"/> / <field name="capacity_total" class="d-inline"/>
+                                </div>
+                                <div class="small"><field name="occupancy_now" class="d-inline"/> % ocupado</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_occupancy" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-th me-1" role="img" aria-label="Icono"/>Ocupación por hora</div>
+                                <div class="fs-3 fw-bold"><i class="fa fa-bar-chart" role="img" aria-label="Icono"/></div>
+                                <div class="small">Ver hoy por espacio</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_bookings_today" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-calendar me-1" role="img" aria-label="Icono"/>Reservas de hoy</div>
+                                <div class="fs-3 fw-bold"><field name="bookings_today"/></div>
+                                <div class="small">Confirmadas, en curso y atendidas</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_payments" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-qrcode me-1" role="img" aria-label="Icono"/>Pagos por validar</div>
+                                <div class="fs-3 fw-bold"><field name="payments_pending"/></div>
+                                <div class="small"><field name="payments_pending_amount" widget="monetary" class="d-inline"/></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4 mb-2">Socios</h4>
+                    <div class="row g-2">
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_members_active" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-id-card me-1" role="img" aria-label="Icono"/>Socios activos</div>
+                                <div class="fs-3 fw-bold text-success"><field name="members_active"/></div>
+                                <div class="small"><field name="members_new" class="d-inline"/> nuevos este mes</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_members_grace" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-hourglass-half me-1" role="img" aria-label="Icono"/>En gracia</div>
+                                <div class="fs-3 fw-bold text-warning"><field name="members_grace"/></div>
+                                <div class="small">Vencidos con acceso: avisar y cobrar</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_members_suspended" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-ban me-1" role="img" aria-label="Icono"/>Suspendidos</div>
+                                <div class="fs-3 fw-bold text-danger"><field name="members_suspended"/></div>
+                                <div class="small">Sin acceso por falta de pago</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_members_overdue" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-exclamation-triangle me-1" role="img" aria-label="Icono"/>Socios en mora</div>
+                                <div class="fs-3 fw-bold"><field name="members_overdue"/></div>
+                                <div class="small"><field name="amount_overdue" widget="monetary" class="d-inline"/> vencido</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_members_new" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-user-plus me-1" role="img" aria-label="Icono"/>Socios nuevos del mes</div>
+                                <div class="fs-3 fw-bold"><field name="members_new"/></div>
+                                <div class="small">Membresías que iniciaron este mes</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4 mb-2">Ingresos</h4>
+                    <div class="row g-2">
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_mrr" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-refresh me-1" role="img" aria-label="Icono"/>Ingreso mensual recurrente</div>
+                                <div class="fs-3 fw-bold"><field name="mrr" widget="monetary"/></div>
+                                <div class="small">Membresías activas y en gracia</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_revenue_month" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-money me-1" role="img" aria-label="Icono"/>Ingresos del mes</div>
+                                <div class="fs-3 fw-bold"><field name="revenue_month" widget="monetary"/></div>
+                                <div class="small">Devengado, sin impuestos</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4 mb-2">CRM</h4>
+                    <div class="row g-2">
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_leads" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-bullhorn me-1" role="img" aria-label="Icono"/>Prospectos del mes</div>
+                                <div class="fs-3 fw-bold"><field name="leads_month"/></div>
+                                <div class="small"><field name="leads_won" class="d-inline"/> convertidos en socios</div>
+                            </button>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <button name="action_view_leads" type="object" class="btn btn-light border w-100 h-100 text-start p-3">
+                                <div class="text-muted small"><i class="fa fa-line-chart me-1" role="img" aria-label="Icono"/>Conversión del mes</div>
+                                <div class="fs-3 fw-bold"><field name="conversion_rate" class="d-inline"/> %</div>
+                                <div class="small">Prospectos del mes que ya son socios</div>
+                            </button>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_report_dashboard_server_action" model="ir.actions.server">
+        <field name="name">Resumen del spa</field>
+        <field name="model_id" ref="model_spa_report_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_dashboard()</field>
+    </record>
+</odoo>

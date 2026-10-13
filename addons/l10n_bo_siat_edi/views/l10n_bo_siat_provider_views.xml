@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_siat_provider_view_list" model="ir.ui.view">
+        <field name="name">l10n_bo.siat.provider.list</field>
+        <field name="model">l10n_bo.siat.provider</field>
+        <field name="arch" type="xml">
+            <list string="Proveedores SIAT" decoration-danger="is_simulated">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="provider_type"/>
+                <field name="is_simulated" column_invisible="True"/>
+                <field name="sandbox"/>
+                <field name="emit_on_post"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_bo_siat_provider_view_form" model="ir.ui.view">
+        <field name="name">l10n_bo.siat.provider.form</field>
+        <field name="model">l10n_bo.siat.provider</field>
+        <field name="arch" type="xml">
+            <form string="Proveedor SIAT">
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="not is_simulated">
+                        <strong>Simulador – NO válido ante el SIN.</strong>
+                        No se comunica con el SIN ni con ningún proveedor: genera números y CUF ficticios
+                        (prefijo SIMULADO) solo para capacitación y pruebas. Para facturar de verdad use la
+                        modalidad "Portal Web del SIN" o instale el conector de un proveedor certificado
+                        cuando exista el contrato.
+                    </div>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="p. ej. Proveedor certificado XYZ"/></h1>
+                    </div>
+                    <group>
+                        <group string="Conector">
+                            <field name="provider_type"/>
+                            <field name="is_simulated" invisible="1"/>
+                            <field name="sandbox"/>
+                            <field name="emit_on_post"/>
+                            <field name="active" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Punto de emisión (SIN)">
+                            <field name="branch_code"/>
+                            <field name="pos_code"/>
+                            <field name="sector_code"/>
+                            <field name="demo_last_number" invisible="not is_simulated"/>
+                        </group>
+                    </group>
+                    <group string="Credenciales" invisible="is_simulated" groups="base.group_system">
+                        <field name="endpoint" placeholder="https://api.proveedor.bo/"/>
+                        <field name="username"/>
+                        <field name="api_key" password="True"/>
+                        <field name="api_secret" password="True"/>
+                    </group>
+                    <field name="note" placeholder="Contrato, contacto de soporte, costo por factura, contingencias..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_bo_siat_provider_action" model="ir.actions.act_window">
+        <field name="name">Proveedores SIAT</field>
+        <field name="res_model">l10n_bo.siat.provider</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Configure el conector de facturación SIAT</p>
+            <p>Hoy solo existe el <b>simulador</b> (NO válido ante el SIN), para capacitación y pruebas.
+               La conexión con un proveedor certificado real se agrega con un módulo adicional cuando exista el
+               contrato (método <code>_siat_emit_&lt;tipo&gt;</code>).</p>
+        </field>
+    </record>
+</odoo>

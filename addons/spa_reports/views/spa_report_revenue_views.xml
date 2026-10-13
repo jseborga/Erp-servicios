@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_report_revenue_view_list" model="ir.ui.view">
+        <field name="name">spa.report.revenue.list</field>
+        <field name="model">spa.report.revenue</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="date"/>
+                <field name="source" optional="show"/>
+                <field name="kind"/>
+                <field name="move_id" optional="show"/>
+                <field name="partner_id"/>
+                <field name="plan_id" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="categ_id" optional="hide"/>
+                <field name="account_id" optional="hide"/>
+                <field name="amount_invoiced" sum="Total"/>
+                <field name="amount_recognized" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_report_revenue_view_pivot" model="ir.ui.view">
+        <field name="name">spa.report.revenue.pivot</field>
+        <field name="model">spa.report.revenue</field>
+        <field name="arch" type="xml">
+            <pivot string="Ingresos del spa" sample="1">
+                <field name="kind" type="row"/>
+                <field name="date" interval="month" type="col"/>
+                <field name="amount_recognized" type="measure"/>
+                <field name="amount_invoiced" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="spa_report_revenue_view_graph" model="ir.ui.view">
+        <field name="name">spa.report.revenue.graph</field>
+        <field name="model">spa.report.revenue</field>
+        <field name="arch" type="xml">
+            <graph string="Ingresos por mes" type="bar" stacked="1" sample="1">
+                <field name="date" interval="month"/>
+                <field name="kind"/>
+                <field name="amount_recognized" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="spa_report_revenue_view_search" model="ir.ui.view">
+        <field name="name">spa.report.revenue.search</field>
+        <field name="model">spa.report.revenue</field>
+        <field name="arch" type="xml">
+            <search string="Ingresos del spa">
+                <field name="partner_id"/>
+                <field name="plan_id"/>
+                <field name="product_id"/>
+                <field name="categ_id"/>
+                <field name="move_id"/>
+                <filter name="filter_date" string="Fecha" date="date" default_period="year"/>
+                <separator/>
+                <filter name="filter_membership" string="Membresías"
+                        domain="[('kind', 'in', ('membership', 'renewal'))]"/>
+                <filter name="filter_services" string="Servicios y cargos"
+                        domain="[('kind', 'in', ('single', 'charges'))]"/>
+                <filter name="filter_pos" string="Restaurante y cafetería" domain="[('kind', '=', 'pos')]"/>
+                <separator/>
+                <filter name="filter_invoice" string="Facturas" domain="[('source', '=', 'invoice')]"/>
+                <filter name="filter_deferral" string="Devengo de prepagados" domain="[('source', '=', 'deferral')]"/>
+                <filter name="filter_pos_orders" string="Ventas POS sin factura" domain="[('source', '=', 'pos')]"/>
+                <group>
+                    <filter name="group_kind" string="Tipo de ingreso" context="{'group_by': 'kind'}"/>
+                    <filter name="group_plan" string="Plan" context="{'group_by': 'plan_id'}"/>
+                    <filter name="group_categ" string="Categoría de producto" context="{'group_by': 'categ_id'}"/>
+                    <filter name="group_source" string="Origen" context="{'group_by': 'source'}"/>
+                    <filter name="group_account" string="Cuenta" context="{'group_by': 'account_id'}"/>
+                    <filter name="group_month" string="Mes" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_report_revenue_action" model="ir.actions.act_window">
+        <field name="name">Ingresos del spa</field>
+        <field name="res_model">spa.report.revenue</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="spa_report_revenue_view_search"/>
+        <field name="context">{'search_default_filter_date': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">Aún no hay ingresos</p>
+            <p>«Facturado» es el importe sin impuestos de las facturas del período. «Ingreso devengado» es lo
+               que va al estado de resultados: los planes trimestrales y anuales se facturan a ingresos
+               diferidos y se devengan mes a mes (origen «Devengo de prepagados»). Las ventas del POS sin
+               factura individual se incluyen con su importe sin impuestos.</p>
+        </field>
+    </record>
+</odoo>

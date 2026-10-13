@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_sale_book_view_list" model="ir.ui.view">
+        <field name="name">l10n_bo.sale.book.list</field>
+        <field name="model">l10n_bo.sale.book</field>
+        <field name="arch" type="xml">
+            <list string="Libro de Ventas" create="0" edit="0" delete="0"
+                  decoration-muted="state == 'A'" decoration-danger="simulated">
+                <field name="currency_id" column_invisible="True"/>
+                <field name="specification" optional="hide"/>
+                <field name="date"/>
+                <field name="invoice_number"/>
+                <field name="auth_code"/>
+                <field name="buyer_doc_type" optional="hide"/>
+                <field name="buyer_number"/>
+                <field name="buyer_complement" optional="show"/>
+                <field name="buyer_name"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="amount_ice" optional="hide" sum="Total"/>
+                <field name="amount_iehd" optional="hide" sum="Total"/>
+                <field name="amount_ipj" optional="hide" sum="Total"/>
+                <field name="amount_fees" optional="hide" sum="Total"/>
+                <field name="amount_not_subject" optional="show" sum="Total"/>
+                <field name="amount_exempt" optional="show" sum="Total"/>
+                <field name="amount_zero_rate" optional="hide" sum="Total"/>
+                <field name="amount_subtotal" sum="Total"/>
+                <field name="amount_discount" optional="show" sum="Total"/>
+                <field name="amount_gift_card" optional="hide" sum="Total"/>
+                <field name="amount_base" sum="Total"/>
+                <field name="amount_debit" sum="Total"/>
+                <field name="state"/>
+                <field name="control_code" optional="hide"/>
+                <field name="sale_type" optional="hide"/>
+                <field name="siat_state" optional="hide"/>
+                <field name="simulated" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <button name="action_open_move" type="object" icon="fa-external-link" title="Ver factura"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_bo_sale_book_view_pivot" model="ir.ui.view">
+        <field name="name">l10n_bo.sale.book.pivot</field>
+        <field name="model">l10n_bo.sale.book</field>
+        <field name="arch" type="xml">
+            <pivot string="Libro de Ventas">
+                <field name="period" type="row"/>
+                <field name="amount_total" type="measure"/>
+                <field name="amount_base" type="measure"/>
+                <field name="amount_debit" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="l10n_bo_sale_book_view_search" model="ir.ui.view">
+        <field name="name">l10n_bo.sale.book.search</field>
+        <field name="model">l10n_bo.sale.book</field>
+        <field name="arch" type="xml">
+            <search string="Libro de Ventas">
+                <field name="buyer_number"/>
+                <field name="buyer_name"/>
+                <field name="invoice_number"/>
+                <field name="auth_code"/>
+                <field name="period"/>
+                <filter name="filter_date" string="Fecha" date="date"/>
+                <separator/>
+                <filter name="valid" string="Válidas" domain="[('state', '=', 'V')]"/>
+                <filter name="cancelled" string="Anuladas" domain="[('state', '=', 'A')]"/>
+                <separator/>
+                <filter name="real" string="Excluir simuladas" domain="[('simulated', '=', False)]"/>
+                <filter name="simulated" string="Simuladas (no válidas)" domain="[('simulated', '=', True)]"/>
+                <group>
+                    <filter name="group_period" string="Período" context="{'group_by': 'period'}"/>
+                    <filter name="group_partner" string="Cliente" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_bo_sale_book_action" model="ir.actions.act_window">
+        <field name="name">Libro de Ventas</field>
+        <field name="res_model">l10n_bo.sale.book</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="search_view_id" ref="l10n_bo_sale_book_view_search"/>
+        <field name="context">{'search_default_filter_date': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hay facturas SIAT en el período</p>
+            <p>Facturas de venta con datos SIAT (aceptadas y anuladas, estas en cero con estado A), con base y débito
+               fiscal del 13 %. Filtre por mes y use <b>Exportar</b>. Las facturas en línea se cargan solas en el RCV del
+               SIN: use este libro para conciliar. Las filas en rojo son <b>simuladas</b> (no válidas ante el SIN).
+               El orden y formato oficial del Registro de Ventas deben verificarse con la normativa vigente.</p>
+        </field>
+    </record>
+</odoo>

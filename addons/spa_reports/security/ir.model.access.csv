@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_spa_report_occupancy_reception,spa.report.occupancy.reception,model_spa_report_occupancy,spa_base.group_spa_reception,1,0,0,0
+access_spa_report_occupancy_manager,spa.report.occupancy.manager,model_spa_report_occupancy,spa_base.group_spa_manager,1,0,0,0
+access_spa_report_plan_usage_marketing,spa.report.plan.usage.marketing,model_spa_report_plan_usage,spa_base.group_spa_marketing,1,0,0,0
+access_spa_report_plan_usage_manager,spa.report.plan.usage.manager,model_spa_report_plan_usage,spa_base.group_spa_manager,1,0,0,0
+access_spa_report_plan_profitability_manager,spa.report.plan.profitability.manager,model_spa_report_plan_profitability,spa_base.group_spa_manager,1,0,0,0
+access_spa_report_revenue_manager,spa.report.revenue.manager,model_spa_report_revenue,spa_base.group_spa_manager,1,0,0,0
+access_spa_report_member_manager,spa.report.member.manager,model_spa_report_member,spa_base.group_spa_manager,1,0,0,0
+access_spa_report_area_move_manager,spa.report.area.move.manager,model_spa_report_area_move,spa_base.group_spa_manager,1,0,0,0
+access_spa_report_area_move_accountant,spa.report.area.move.accountant,model_spa_report_area_move,account.group_account_readonly,1,0,0,0
+access_spa_report_dashboard_manager,spa.report.dashboard.manager,model_spa_report_dashboard,spa_base.group_spa_manager,1,1,1,1

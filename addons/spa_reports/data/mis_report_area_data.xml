@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Plantilla MIS Builder: estado de resultados con una columna por área del negocio.
+         Origen de datos: spa.report.area.move (apuntes analíticos del plan «Áreas del negocio» ya
+         prorrateados), no account.move.line: así un gasto repartido 35/30/... aparece en cada área con su
+         porción, no con el importe completo. Datos editables: las actualizaciones no pisan los cambios. -->
+    <data noupdate="1">
+        <record id="mis_style_spa_total" model="mis.report.style">
+            <field name="name">Spa: subtotal</field>
+            <field name="font_weight_inherit" eval="False"/>
+            <field name="font_weight">bold</field>
+        </record>
+
+        <record id="mis_report_area_pl" model="mis.report">
+            <field name="name">Estado de resultados por área</field>
+            <field name="description">Ingresos, costos y gastos por área del negocio (plan analítico «Áreas del negocio»).</field>
+            <field name="move_lines_source" ref="model_spa_report_area_move"/>
+        </record>
+
+        <record id="mis_kpi_area_income" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">10</field>
+            <field name="name">ingresos</field>
+            <field name="description">Ingresos</field>
+            <field name="auto_expand_accounts" eval="True"/>
+            <field name="expression_ids" eval="[(0, 0, {'name': '-balp[41%]'})]"/>
+        </record>
+        <record id="mis_kpi_area_direct_cost" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">20</field>
+            <field name="name">costos_directos</field>
+            <field name="description">Costos directos</field>
+            <field name="auto_expand_accounts" eval="True"/>
+            <field name="expression_ids" eval="[(0, 0, {'name': 'balp[51%]'})]"/>
+        </record>
+        <record id="mis_kpi_area_gross_margin" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">30</field>
+            <field name="name">margen_bruto</field>
+            <field name="description">Margen bruto</field>
+            <field name="style_id" ref="mis_style_spa_total"/>
+            <field name="expression_ids" eval="[(0, 0, {'name': 'ingresos - costos_directos'})]"/>
+        </record>
+        <record id="mis_kpi_area_selling" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">40</field>
+            <field name="name">gastos_comercializacion</field>
+            <field name="description">Gastos de comercialización</field>
+            <field name="auto_expand_accounts" eval="True"/>
+            <field name="expression_ids" eval="[(0, 0, {'name': 'balp[52%]'})]"/>
+        </record>
+        <record id="mis_kpi_area_admin" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">50</field>
+            <field name="name">gastos_administracion</field>
+            <field name="description">Gastos de administración</field>
+            <field name="auto_expand_accounts" eval="True"/>
+            <field name="expression_ids" eval="[(0, 0, {'name': 'balp[53%]'})]"/>
+        </record>
+        <record id="mis_kpi_area_operating" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">60</field>
+            <field name="name">resultado_operativo</field>
+            <field name="description">Resultado operativo</field>
+            <field name="style_id" ref="mis_style_spa_total"/>
+            <field name="expression_ids"
+                   eval="[(0, 0, {'name': 'margen_bruto - gastos_comercializacion - gastos_administracion'})]"/>
+        </record>
+        <record id="mis_kpi_area_other_income" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">70</field>
+            <field name="name">otros_ingresos</field>
+            <field name="description">Otros ingresos</field>
+            <field name="auto_expand_accounts" eval="True"/>
+            <field name="expression_ids" eval="[(0, 0, {'name': '-balp[42%,43%,44%,45%,46%,47%,48%,49%]'})]"/>
+        </record>
+        <record id="mis_kpi_area_other_expense" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">80</field>
+            <field name="name">otros_gastos</field>
+            <field name="description">Otros gastos (financieros, no deducibles e impuestos)</field>
+            <field name="auto_expand_accounts" eval="True"/>
+            <field name="expression_ids" eval="[(0, 0, {'name': 'balp[54%,55%,56%,57%,58%,59%]'})]"/>
+        </record>
+        <record id="mis_kpi_area_result" model="mis.report.kpi">
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="sequence">90</field>
+            <field name="name">resultado</field>
+            <field name="description">Resultado</field>
+            <field name="style_id" ref="mis_style_spa_total"/>
+            <field name="expression_ids"
+                   eval="[(0, 0, {'name': 'resultado_operativo + otros_ingresos - otros_gastos'})]"/>
+        </record>
+
+        <!-- Instancia: gestión (año calendario) en curso, una columna por área -->
+        <record id="mis_instance_area_pl" model="mis.report.instance">
+            <field name="name">Estado de resultados por área (gestión en curso)</field>
+            <field name="report_id" ref="mis_report_area_pl"/>
+            <field name="company_id" eval="False"/>
+            <field name="target_move">posted</field>
+            <field name="display_columns_description" eval="True"/>
+            <field name="widget_show_filters" eval="False"/>
+        </record>
+
+        <record id="mis_period_area_pis" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Piscina</field>
+            <field name="sequence">10</field>
+            <field name="source">actuals</field>
+            <field name="mode">relative</field>
+            <field name="type">y</field>
+            <field name="offset">0</field>
+            <field name="duration">1</field>
+            <field name="analytic_domain" eval="str([('area_id', '=', ref('l10n_bo_spa.analytic_area_piscina'))])"/>
+        </record>
+        <record id="mis_period_area_saj" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Sauna y jacuzzi</field>
+            <field name="sequence">20</field>
+            <field name="source">actuals</field>
+            <field name="mode">relative</field>
+            <field name="type">y</field>
+            <field name="offset">0</field>
+            <field name="duration">1</field>
+            <field name="analytic_domain" eval="str([('area_id', '=', ref('l10n_bo_spa.analytic_area_sauna_jacuzzi'))])"/>
+        </record>
+        <record id="mis_period_area_spa" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Spa y masajes</field>
+            <field name="sequence">30</field>
+            <field name="source">actuals</field>
+            <field name="mode">relative</field>
+            <field name="type">y</field>
+            <field name="offset">0</field>
+            <field name="duration">1</field>
+            <field name="analytic_domain" eval="str([('area_id', '=', ref('l10n_bo_spa.analytic_area_spa'))])"/>
+        </record>
+        <record id="mis_period_area_res" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Restaurante</field>
+            <field name="sequence">40</field>
+            <field name="source">actuals</field>
+            <field name="mode">relative</field>
+            <field name="type">y</field>
+            <field name="offset">0</field>
+            <field name="duration">1</field>
+            <field name="analytic_domain" eval="str([('area_id', '=', ref('l10n_bo_spa.analytic_area_restaurante'))])"/>
+        </record>
+        <record id="mis_period_area_caf" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Cafetería</field>
+            <field name="sequence">50</field>
+            <field name="source">actuals</field>
+            <field name="mode">relative</field>
+            <field name="type">y</field>
+            <field name="offset">0</field>
+            <field name="duration">1</field>
+            <field name="analytic_domain" eval="str([('area_id', '=', ref('l10n_bo_spa.analytic_area_cafeteria'))])"/>
+        </record>
+        <record id="mis_period_area_eve" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Eventos y clases</field>
+            <field name="sequence">60</field>
+            <field name="source">actuals</field>
+            <field name="mode">relative</field>
+            <field name="type">y</field>
+            <field name="offset">0</field>
+            <field name="duration">1</field>
+            <field name="analytic_domain" eval="str([('area_id', '=', ref('l10n_bo_spa.analytic_area_eventos'))])"/>
+        </record>
+        <record id="mis_period_area_adm" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Administración</field>
+            <field name="sequence">70</field>
+            <field name="source">actuals</field>
+            <field name="mode">relative</field>
+            <field name="type">y</field>
+            <field name="offset">0</field>
+            <field name="duration">1</field>
+            <field name="analytic_domain" eval="str([('area_id', '=', ref('l10n_bo_spa.analytic_area_administracion'))])"/>
+        </record>
+        <record id="mis_period_area_total" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Total por áreas</field>
+            <field name="sequence">80</field>
+            <field name="source">sumcol</field>
+            <field name="mode">none</field>
+            <field name="source_sumcol_accdet" eval="True"/>
+            <field name="source_sumcol_ids" eval="[
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_pis'), 'sign': '+'}),
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_saj'), 'sign': '+'}),
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_spa'), 'sign': '+'}),
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_res'), 'sign': '+'}),
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_caf'), 'sign': '+'}),
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_eve'), 'sign': '+'}),
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_adm'), 'sign': '+'})]"/>
+        </record>
+        <!-- Contabilidad completa (account.move.line): incluye lo registrado sin área. -->
+        <record id="mis_period_area_books" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Total contable</field>
+            <field name="sequence">90</field>
+            <field name="source">actuals_alt</field>
+            <field name="source_aml_model_id" ref="account.model_account_move_line"/>
+            <field name="mode">relative</field>
+            <field name="type">y</field>
+            <field name="offset">0</field>
+            <field name="duration">1</field>
+        </record>
+        <record id="mis_period_area_unassigned" model="mis.report.instance.period">
+            <field name="report_instance_id" ref="mis_instance_area_pl"/>
+            <field name="name">Sin área asignada</field>
+            <field name="sequence">100</field>
+            <field name="source">sumcol</field>
+            <field name="mode">none</field>
+            <field name="source_sumcol_ids" eval="[
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_books'), 'sign': '+'}),
+                (0, 0, {'period_to_sum_id': ref('mis_period_area_total'), 'sign': '-'})]"/>
+        </record>
+    </data>
+
+    <record id="mis_instance_area_pl_action" model="ir.actions.act_window">
+        <field name="name">Estado de resultados por área</field>
+        <field name="res_model">mis.report.instance</field>
+        <field name="view_mode">form</field>
+        <field name="res_id" ref="mis_instance_area_pl"/>
+        <field name="view_id" ref="mis_builder.mis_report_instance_result_view_form"/>
+        <field name="target">current</field>
+    </record>
+</odoo>

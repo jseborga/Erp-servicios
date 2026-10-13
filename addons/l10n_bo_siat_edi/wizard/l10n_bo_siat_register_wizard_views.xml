@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_siat_register_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n_bo.siat.register.wizard.form</field>
+        <field name="model">l10n_bo.siat.register.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Registrar datos SIAT">
+                <div class="alert alert-info" role="alert">
+                    Emita la factura en el <b>Portal Web del SIN (Facturación en Línea)</b> con los mismos datos del
+                    comprador y el mismo importe, y copie aquí el número de factura y el CUF (o pegue el enlace del QR).
+                </div>
+                <group>
+                    <group string="Factura del SIN">
+                        <field name="move_id"/>
+                        <field name="amount_total"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="qr_text" placeholder="https://siat.impuestos.gob.bo/consulta/QR?nit=...&amp;cuf=...&amp;numero=..."/>
+                        <field name="siat_number" required="1"/>
+                        <field name="cuf" required="1"/>
+                        <field name="emission_date"/>
+                    </group>
+                    <group string="Comprador (como figura en la factura)">
+                        <field name="buyer_doc_type" required="1"/>
+                        <field name="buyer_number" required="1"/>
+                        <field name="buyer_complement" invisible="buyer_doc_type != '1'"/>
+                        <field name="buyer_name" required="1"/>
+                    </group>
+                </group>
+                <div class="alert alert-warning" role="status" invisible="not check_message" style="white-space: pre-line;">
+                    <field name="check_message" nolabel="1"/>
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Registrar" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancelar" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

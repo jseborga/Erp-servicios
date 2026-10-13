@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_bo_siat_provider_invoice,l10n_bo.siat.provider invoice,model_l10n_bo_siat_provider,account.group_account_invoice,1,0,0,0
+access_l10n_bo_siat_provider_readonly,l10n_bo.siat.provider readonly,model_l10n_bo_siat_provider,account.group_account_readonly,1,0,0,0
+access_l10n_bo_siat_provider_manager,l10n_bo.siat.provider manager,model_l10n_bo_siat_provider,account.group_account_manager,1,1,1,1
+access_l10n_bo_siat_cancel_reason_user,l10n_bo.siat.cancel.reason user,model_l10n_bo_siat_cancel_reason,base.group_user,1,0,0,0
+access_l10n_bo_siat_cancel_reason_manager,l10n_bo.siat.cancel.reason manager,model_l10n_bo_siat_cancel_reason,account.group_account_manager,1,1,1,1
+access_l10n_bo_sale_book_invoice,l10n_bo.sale.book invoice,model_l10n_bo_sale_book,account.group_account_invoice,1,0,0,0
+access_l10n_bo_sale_book_readonly,l10n_bo.sale.book readonly,model_l10n_bo_sale_book,account.group_account_readonly,1,0,0,0
+access_l10n_bo_siat_register_wizard_invoice,l10n_bo.siat.register.wizard invoice,model_l10n_bo_siat_register_wizard,account.group_account_invoice,1,1,1,1
+access_l10n_bo_siat_cancel_wizard_invoice,l10n_bo.siat.cancel.wizard invoice,model_l10n_bo_siat_cancel_wizard,account.group_account_invoice,1,1,1,1

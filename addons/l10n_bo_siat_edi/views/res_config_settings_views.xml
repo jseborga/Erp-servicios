@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_l10n_bo_siat" model="ir.ui.view">
+        <field name="name">res.config.settings.form.l10n_bo_siat</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='invoicing_settings']" position="after">
+                <block title="Facturación SIAT (Bolivia)" id="l10n_bo_siat_settings" invisible="country_code != 'BO'">
+                    <div class="alert alert-warning mx-3" role="alert" invisible="not l10n_bo_siat_warning"
+                         style="white-space: pre-line;">
+                        <field name="l10n_bo_siat_warning" nolabel="1"/>
+                    </div>
+                    <setting id="l10n_bo_siat_mode_setting" string="Modalidad de facturación" company_dependent="1"
+                             help="Cómo se emiten las facturas de venta ante el SIN">
+                        <field name="l10n_bo_siat_mode" widget="radio"/>
+                        <div class="content-group">
+                            <div class="row mt8" invisible="l10n_bo_siat_mode != 'provider'">
+                                <label for="l10n_bo_siat_provider_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_provider_id" required="l10n_bo_siat_mode == 'provider'"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_siat_user_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_user_id"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_siat_cuf_check" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_cuf_check"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_siat_retry_limit" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_retry_limit"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_siat_cancel_day" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_cancel_day"/>
+                            </div>
+                            <div class="mt8">
+                                <button name="%(l10n_bo_siat_provider_action)d" type="action" string="Proveedores SIAT"
+                                        icon="oi-arrow-right" class="btn-link"/>
+                                <button name="%(l10n_bo_siat_cancel_reason_action)d" type="action" string="Motivos de anulación"
+                                        icon="oi-arrow-right" class="btn-link"/>
+                            </div>
+                            <div class="text-muted small mt8">
+                                Portal Web del SIN: la caja emite la factura en el sistema gratuito del SIN y registra el
+                                número y el CUF en Odoo. Proveedor: solo existe el simulador (NO válido ante el SIN) hasta
+                                contratar un proveedor certificado.
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="l10n_bo_siat_buyer_setting" string="Consumidor final" company_dependent="1"
+                             help="Datos del comprador que no se identifica (valores por verificar con el contador)">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_bo_siat_buyer_doc_type" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_buyer_doc_type"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_siat_buyer_number" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_buyer_number"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_siat_buyer_name" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_buyer_name"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_siat_anonymous_max" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_siat_anonymous_max"/>
+                            </div>
+                            <div class="text-muted small mt8">
+                                Por defecto S/N y 0 hasta Bs 1.000 (RND 102100000011 art. 25, fuente secundaria: verificar).
+                                No use 99002 "Control Tributario": es solo para controles del SIN.
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="l10n_bo_sale_no_invoice_setting" string="Ventas sin factura" company_dependent="1"
+                             help="Solo usuarios del grupo &quot;Ventas sin factura (autorizado)&quot;, con motivo obligatorio">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_bo_sale_no_invoice_max" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_sale_no_invoice_max"/>
+                            </div>
+                            <div class="text-muted small mt8">
+                                0 = sin límite. La venta y sus impuestos (IVA, IT) se registran igual en contabilidad. La
+                                facturación es obligatoria por regla general: los casos en que la norma permite vender sin
+                                factura deben confirmarse con el contador antes de usar esta opción.
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

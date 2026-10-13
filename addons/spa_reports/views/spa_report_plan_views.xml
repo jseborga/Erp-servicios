@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Uso de los planes -->
+    <record id="spa_report_plan_usage_view_list" model="ir.ui.view">
+        <field name="name">spa.report.plan.usage.list</field>
+        <field name="model">spa.report.plan.usage</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="month" widget="date"/>
+                <field name="partner_id"/>
+                <field name="membership_id" optional="hide"/>
+                <field name="plan_id"/>
+                <field name="service_id"/>
+                <field name="membership_state" widget="badge" optional="show"
+                       decoration-success="membership_state == 'active'"
+                       decoration-warning="membership_state == 'grace'"
+                       decoration-danger="membership_state == 'suspended'"/>
+                <field name="unlimited" optional="show"/>
+                <field name="granted" sum="Total" optional="hide"/>
+                <field name="carried_in" sum="Total" optional="hide"/>
+                <field name="available" sum="Total"/>
+                <field name="used" sum="Total"/>
+                <field name="remaining" sum="Total"/>
+                <field name="utilization" widget="progressbar" avg="Promedio" invisible="unlimited"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_report_plan_usage_view_pivot" model="ir.ui.view">
+        <field name="name">spa.report.plan.usage.pivot</field>
+        <field name="model">spa.report.plan.usage</field>
+        <field name="arch" type="xml">
+            <pivot string="Uso de los planes" sample="1">
+                <field name="plan_id" type="row"/>
+                <field name="service_id" type="col"/>
+                <field name="utilization" type="measure"/>
+                <field name="used" type="measure"/>
+                <field name="available" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="spa_report_plan_usage_view_graph" model="ir.ui.view">
+        <field name="name">spa.report.plan.usage.graph</field>
+        <field name="model">spa.report.plan.usage</field>
+        <field name="arch" type="xml">
+            <graph string="Uso de los planes" type="bar" sample="1">
+                <field name="service_id"/>
+                <field name="plan_id"/>
+                <field name="utilization" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="spa_report_plan_usage_view_search" model="ir.ui.view">
+        <field name="name">spa.report.plan.usage.search</field>
+        <field name="model">spa.report.plan.usage</field>
+        <field name="arch" type="xml">
+            <search string="Uso de los planes">
+                <field name="partner_id"/>
+                <field name="plan_id"/>
+                <field name="service_id"/>
+                <filter name="filter_month" string="Mes" date="month"/>
+                <separator/>
+                <filter name="filter_live" string="Membresías vigentes"
+                        domain="[('membership_state', 'in', ('active', 'grace'))]"/>
+                <separator/>
+                <filter name="filter_limited" string="Servicios con cupo" domain="[('unlimited', '=', False)]"/>
+                <filter name="filter_unused" string="Sin uso" domain="[('used', '&lt;=', 0)]"/>
+                <group>
+                    <filter name="group_plan" string="Plan" context="{'group_by': 'plan_id'}"/>
+                    <filter name="group_service" string="Servicio" context="{'group_by': 'service_id'}"/>
+                    <filter name="group_partner" string="Socio" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_month" string="Mes" context="{'group_by': 'month:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_report_plan_usage_action" model="ir.actions.act_window">
+        <field name="name">Uso de los planes</field>
+        <field name="res_model">spa.report.plan.usage</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="spa_report_plan_usage_view_search"/>
+        <field name="context">{'search_default_filter_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">Aún no hay saldos de membresía</p>
+            <p>Por socio, servicio y mes: sesiones del plan más el traslado, usadas, sin usar y el porcentaje
+               de uso. Un uso bajo y sostenido indica un plan sobredimensionado o un socio en riesgo de baja.</p>
+        </field>
+    </record>
+
+    <!-- Rentabilidad por plan -->
+    <record id="spa_report_plan_profitability_view_list" model="ir.ui.view">
+        <field name="name">spa.report.plan.profitability.list</field>
+        <field name="model">spa.report.plan.profitability</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="month" widget="date"/>
+                <field name="partner_id"/>
+                <field name="membership_id" optional="hide"/>
+                <field name="plan_id"/>
+                <field name="membership_state" optional="hide"/>
+                <field name="uses" sum="Total"/>
+                <field name="sessions_available" sum="Total" optional="hide"/>
+                <field name="sessions_used" sum="Total" optional="hide"/>
+                <field name="utilization" widget="progressbar" avg="Promedio"/>
+                <field name="revenue" sum="Total"/>
+                <field name="service_cost" sum="Total"/>
+                <field name="margin" sum="Total"/>
+                <field name="margin_pct" avg="Promedio" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_report_plan_profitability_view_pivot" model="ir.ui.view">
+        <field name="name">spa.report.plan.profitability.pivot</field>
+        <field name="model">spa.report.plan.profitability</field>
+        <field name="arch" type="xml">
+            <pivot string="Rentabilidad por plan" display_quantity="1" sample="1">
+                <field name="plan_id" type="row"/>
+                <field name="month" interval="month" type="col"/>
+                <field name="revenue" type="measure"/>
+                <field name="service_cost" type="measure"/>
+                <field name="margin" type="measure"/>
+                <field name="uses_avg" type="measure"/>
+                <field name="utilization" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="spa_report_plan_profitability_view_graph" model="ir.ui.view">
+        <field name="name">spa.report.plan.profitability.graph</field>
+        <field name="model">spa.report.plan.profitability</field>
+        <field name="arch" type="xml">
+            <graph string="Margen por plan" type="bar" sample="1">
+                <field name="plan_id"/>
+                <field name="margin" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="spa_report_plan_profitability_view_search" model="ir.ui.view">
+        <field name="name">spa.report.plan.profitability.search</field>
+        <field name="model">spa.report.plan.profitability</field>
+        <field name="arch" type="xml">
+            <search string="Rentabilidad por plan">
+                <field name="partner_id"/>
+                <field name="plan_id"/>
+                <filter name="filter_month" string="Mes" date="month"/>
+                <separator/>
+                <filter name="filter_negative" string="Margen negativo" domain="[('margin', '&lt;', 0)]"/>
+                <filter name="filter_no_use" string="Sin uso" domain="[('uses', '&lt;=', 0)]"/>
+                <group>
+                    <filter name="group_plan" string="Plan" context="{'group_by': 'plan_id'}"/>
+                    <filter name="group_partner" string="Socio" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_month" string="Mes" context="{'group_by': 'month:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_report_plan_profitability_action" model="ir.actions.act_window">
+        <field name="name">Rentabilidad por plan</field>
+        <field name="res_model">spa.report.plan.profitability</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="spa_report_plan_profitability_view_search"/>
+        <field name="context">{'search_default_filter_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">Aún no hay meses de membresía</p>
+            <p>Ingreso mensual de cada socio (precio del período / meses) frente al costo de servirlo
+               (usos × costo del producto de cada servicio; configúrelo en la ficha del producto). El conteo
+               es de socios-mes: los «promedios» muestran el uso y el margen típicos de un socio del plan.</p>
+        </field>
+    </record>
+</odoo>

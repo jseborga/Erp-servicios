@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_siat_cancel_reason_view_list" model="ir.ui.view">
+        <field name="name">l10n_bo.siat.cancel.reason.list</field>
+        <field name="model">l10n_bo.siat.cancel.reason</field>
+        <field name="arch" type="xml">
+            <list string="Motivos de anulación" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="note"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_bo_siat_cancel_reason_action" model="ir.actions.act_window">
+        <field name="name">Motivos de anulación SIAT</field>
+        <field name="res_model">l10n_bo.siat.cancel.reason</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Paramétrica "Motivo de anulación" del SIN</p>
+            <p>Los códigos iniciales son los conocidos de la paramétrica del SIAT y <b>deben verificarse</b> con la
+               lista oficial vigente (o la que entregue el proveedor certificado).</p>
+        </field>
+    </record>
+</odoo>

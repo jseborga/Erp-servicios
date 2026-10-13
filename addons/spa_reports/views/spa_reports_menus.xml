@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Spa > Reportes (gerente) -->
+    <menuitem id="spa_menu_report_dashboard" name="Resumen" parent="spa_base.spa_menu_reporting"
+              action="spa_report_dashboard_server_action" sequence="1"/>
+    <menuitem id="spa_menu_report_occupancy" name="Ocupación por espacio" parent="spa_base.spa_menu_reporting"
+              action="spa_report_occupancy_action" sequence="2"/>
+    <menuitem id="spa_menu_report_plan_usage" name="Uso de los planes" parent="spa_base.spa_menu_reporting"
+              action="spa_report_plan_usage_action" sequence="3"/>
+    <menuitem id="spa_menu_report_plan_profitability" name="Rentabilidad por plan"
+              parent="spa_base.spa_menu_reporting" action="spa_report_plan_profitability_action" sequence="4"/>
+    <menuitem id="spa_menu_report_member" name="Socios y mora" parent="spa_base.spa_menu_reporting"
+              action="spa_report_member_action" sequence="5"/>
+    <menuitem id="spa_menu_report_revenue" name="Ingresos del spa" parent="spa_base.spa_menu_reporting"
+              action="spa_report_revenue_action" sequence="6"/>
+    <menuitem id="spa_menu_report_area" name="Rentabilidad por área" parent="spa_base.spa_menu_reporting"
+              action="spa_report_area_move_action" sequence="40"/>
+    <menuitem id="spa_menu_report_area_mis" name="Estado de resultados por área"
+              parent="spa_base.spa_menu_reporting" action="mis_instance_area_pl_action" sequence="41"/>
+    <menuitem id="spa_menu_report_area_analytic" name="Apuntes analíticos por área"
+              parent="spa_base.spa_menu_reporting" action="spa_report_area_analytic_server_action" sequence="42"/>
+
+    <!-- Spa > CRM (marketing): uso de los planes para detectar socios en riesgo de baja -->
+    <menuitem id="spa_menu_crm_plan_usage" name="Uso de los planes" parent="spa_crm.spa_menu_crm"
+              action="spa_report_plan_usage_action" sequence="50" groups="spa_base.group_spa_marketing"/>
+</odoo>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_report_area_move_view_list" model="ir.ui.view">
+        <field name="name">spa.report.area.move.list</field>
+        <field name="model">spa.report.area.move</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="date"/>
+                <field name="area_id"/>
+                <field name="section"/>
+                <field name="account_id"/>
+                <field name="name" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="product_id" optional="hide"/>
+                <field name="journal_id" optional="hide"/>
+                <field name="move_id" optional="show"/>
+                <field name="debit" sum="Total" optional="hide"/>
+                <field name="credit" sum="Total" optional="hide"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_report_area_move_view_pivot" model="ir.ui.view">
+        <field name="name">spa.report.area.move.pivot</field>
+        <field name="model">spa.report.area.move</field>
+        <field name="arch" type="xml">
+            <pivot string="Rentabilidad por área" sample="1">
+                <field name="area_id" type="row"/>
+                <field name="section" type="col"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="spa_report_area_move_view_graph" model="ir.ui.view">
+        <field name="name">spa.report.area.move.graph</field>
+        <field name="model">spa.report.area.move</field>
+        <field name="arch" type="xml">
+            <graph string="Resultado por área" type="bar" sample="1">
+                <field name="area_id"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="spa_report_area_move_view_search" model="ir.ui.view">
+        <field name="name">spa.report.area.move.search</field>
+        <field name="model">spa.report.area.move</field>
+        <field name="arch" type="xml">
+            <search string="Resultado por área">
+                <field name="area_id"/>
+                <field name="account_id"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="journal_id"/>
+                <filter name="filter_date" string="Fecha" date="date" default_period="year"/>
+                <separator/>
+                <filter name="filter_pl" string="Estado de resultados"
+                        domain="[('section', '!=', 'other')]"/>
+                <filter name="filter_income" string="Ingresos"
+                        domain="[('section', 'in', ('income', 'other_income'))]"/>
+                <filter name="filter_costs" string="Costos y gastos"
+                        domain="[('section', 'in', ('direct_cost', 'selling', 'admin', 'other_expense'))]"/>
+                <group>
+                    <filter name="group_area" string="Área" context="{'group_by': 'area_id'}"/>
+                    <filter name="group_section" string="Sección" context="{'group_by': 'section'}"/>
+                    <filter name="group_account" string="Cuenta" context="{'group_by': 'account_id'}"/>
+                    <filter name="group_month" string="Mes" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_report_area_move_action" model="ir.actions.act_window">
+        <field name="name">Rentabilidad por área</field>
+        <field name="res_model">spa.report.area.move</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="spa_report_area_move_view_search"/>
+        <field name="context">{'search_default_filter_date': 1, 'search_default_filter_pl': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">Aún no hay apuntes con área</p>
+            <p>Resultado de cada área del negocio (plan analítico «Áreas del negocio»): ingresos en positivo,
+               costos y gastos en negativo, ya prorrateados por los modelos de reparto. El total de cada fila es
+               el resultado del área. Lo facturado sin área (por ejemplo, las membresías) no aparece aquí:
+               véalo en la columna «Sin área asignada» del estado de resultados por área.</p>
+        </field>
+    </record>
+
+    <record id="spa_report_area_analytic_server_action" model="ir.actions.server">
+        <field name="name">Apuntes analíticos por área</field>
+        <field name="model_id" ref="model_spa_report_area_move"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_analytic_lines()</field>
+    </record>
+</odoo>

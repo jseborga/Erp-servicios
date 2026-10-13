@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_siat_cancel_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n_bo.siat.cancel.wizard.form</field>
+        <field name="model">l10n_bo.siat.cancel.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Anular en SIAT">
+                <field name="uses_provider" invisible="1"/>
+                <field name="simulated" invisible="1"/>
+                <div class="alert alert-info" role="alert" invisible="uses_provider">
+                    Esta factura se registró desde el <b>Portal Web del SIN</b>: primero anúlela allí con el mismo motivo
+                    y luego confirme aquí. Odoo registrará la anulación y creará la nota de crédito contable (reversión).
+                </div>
+                <div class="alert alert-info" role="alert" invisible="not uses_provider">
+                    Se solicitará la anulación al proveedor SIAT y, al ser aceptada, se creará la nota de crédito
+                    contable (reversión).
+                    <span invisible="not simulated"><b>Simulador: la anulación NO se comunica al SIN.</b></span>
+                </div>
+                <group>
+                    <group>
+                        <field name="move_id"/>
+                        <field name="siat_number"/>
+                        <field name="cuf"/>
+                        <field name="deadline" invisible="not deadline"/>
+                    </group>
+                    <group>
+                        <field name="reason_id" options="{'no_create': True}" required="1"/>
+                        <field name="note"/>
+                        <field name="manual_confirmed" invisible="uses_provider"/>
+                    </group>
+                </group>
+                <p class="text-muted">
+                    Si la factura ya fue pagada, el pago queda como saldo a favor del cliente para aplicarlo a la nueva factura.
+                    Pasado el plazo de anulación corresponde una nota de crédito-débito o el trámite ante el SIN (consulte con el contador).
+                </p>
+                <footer>
+                    <button name="action_confirm" type="object" string="Anular" class="btn-primary" data-hotkey="q"
+                            confirm="¿Anular la factura en el SIAT y revertirla en contabilidad?"/>
+                    <button special="cancel" string="Cancelar" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
