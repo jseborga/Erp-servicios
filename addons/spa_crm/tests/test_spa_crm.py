@@ -337,3 +337,22 @@ class TestSpaCrm(SpaCommon):
         self.Membership._cron_spa_retention()
         self.assertEqual(self._retention_leads(expiring).spa_risk_reason, 'expiring')
         self.assertFalse(self._retention_leads(invoiced))
+
+    def test_freeze_is_not_a_recovery(self):
+        """Congelar extiende el vencimiento, pero el socio no renovó: la oportunidad sigue «En riesgo»."""
+        self.plan_basic.freeze_max_days = 30
+        client = self._partner('Rosa Freeze', '70077788')
+        membership = self._membership(self.plan_basic, partner=client)
+        membership._spa_open_retention('expiring')
+        lead = self._retention_leads(membership)
+        self.assertEqual(lead.stage_id, self._stage('at_risk'))
+        start = self.today + timedelta(days=1)
+        membership._spa_freeze(start, start + timedelta(days=9), 'Viaje')
+        self.assertGreater(membership.date_end, lead.spa_risk_date_end)
+        lead._spa_check_recovered()
+        self.assertEqual(lead.won_status, 'pending')
+        self.assertEqual(lead.stage_id, self._stage('at_risk'))
+        # Renueva de verdad (un período más): recuperado.
+        membership.action_activate()
+        lead._spa_check_recovered()
+        self.assertEqual(lead.stage_id, self._stage('recovered'))

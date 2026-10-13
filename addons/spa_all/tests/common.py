@@ -122,9 +122,10 @@ class SpaE2EMixin:
 
         # ---------------- 1. Configuración del dueño ----------------
         Journal = env['account.journal'].with_user(cls.owner)
-        cls.bank_journal = Journal.create({'name': 'Banco Unión – QR y transferencias', 'code': 'BQR',
+        # Códigos únicos: la base puede tener ya diarios BQR/CREC (datos reales o de demostración).
+        cls.bank_journal = Journal.create({'name': 'Banco Unión – QR y transferencias (prueba)', 'code': 'TBQR',
                                            'type': 'bank', 'company_id': cls.company.id})
-        cls.cash_journal = Journal.create({'name': 'Caja recepción', 'code': 'CREC', 'type': 'cash',
+        cls.cash_journal = Journal.create({'name': 'Caja recepción (prueba)', 'code': 'TCRE', 'type': 'cash',
                                            'company_id': cls.company.id})
         cls.company.with_user(cls.owner).write({
             'spa_payment_qr': base64.b64encode(PNG_1PX),

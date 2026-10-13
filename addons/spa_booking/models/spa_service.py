@@ -117,6 +117,18 @@ class SpaService(models.Model):
                     # Motivo concreto (tope semanal, saldo del mes, horario del plan…) para recepción;
                     # la web del socio lo muestra una sola vez arriba de las franjas.
                     detail = error.args[0]
+            waitlist = code in ('full', 'no_staff')
+            if waitlist and membership:
+                # Solo se ofrece la lista de espera si el socio podría reservar esa franja al liberarse
+                # (no tope semanal agotado, saldo, horario del plan ni congelamiento).
+                if membership._spa_frozen_on(local_start.date()):
+                    waitlist = False
+                else:
+                    try:
+                        membership._spa_check_access(self, start, stop, guests=guests)
+                    except UserError as error:
+                        waitlist = False
+                        detail = error.args[0]
             slots.append({
                 'start': start,
                 'stop': stop,
@@ -129,6 +141,6 @@ class SpaService(models.Model):
                 'detail': detail or reason,
                 'code': code,
                 # Franja llena (o sin personal): se puede pedir la lista de espera (spa.booking.waitlist._spa_join).
-                'waitlist': code in ('full', 'no_staff'),
+                'waitlist': waitlist,
             })
         return slots

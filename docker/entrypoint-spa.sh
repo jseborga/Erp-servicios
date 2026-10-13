@@ -20,7 +20,7 @@ set -euo pipefail
 : "${ODOO_COUNTRY:=BO}"
 : "${ODOO_INIT_LOGIN:=admin}"
 : "${ODOO_INIT_PASSWORD:=}"
-: "${ODOO_INIT_MODULES:=l10n_bo_spa,account_financial_report,account_tax_balance,mis_builder,account_asset_management,account_fiscal_year}"
+: "${ODOO_INIT_MODULES:=spa_all}"
 : "${ODOO_UPDATE_MODULES:=}"
 : "${ODOO_WORKERS:=0}"
 : "${ODOO_MAX_CRON_THREADS:=1}"
@@ -96,11 +96,18 @@ if [ "$ODOO_INIT" = "true" ]; then
             --language "$ODOO_LANG" --country "$ODOO_COUNTRY" \
             --username "$ODOO_INIT_LOGIN" --password "$ODOO_INIT_PASSWORD"
     fi
-    spa_state="$(psql_q "$ODOO_DB" "SELECT state FROM ir_module_module WHERE name = 'l10n_bo_spa'")"
-    if [ "$spa_state" != "installed" ] && [ -n "$modules_csv" ]; then
-        log "instalando módulos: ${modules_csv}"
-        # shellcheck disable=SC2086
-        "$ODOO_BIN" module install -c "$ODOO_RC" -d "$ODOO_DB" ${modules_csv//,/ }
+    # Instala solo los módulos de la lista que aún no están instalados (primera vez o módulos nuevos).
+    missing=()
+    IFS=',' read -r -a wanted <<< "$modules_csv"
+    for module in "${wanted[@]}"; do
+        [ -n "$module" ] || continue
+        case "$module" in *[!a-z0-9_]*) fail "nombre de módulo inválido en ODOO_INIT_MODULES: $module" ;; esac
+        state="$(psql_q "$ODOO_DB" "SELECT state FROM ir_module_module WHERE name = '${module}'")"
+        [ "$state" = "installed" ] || missing+=("$module")
+    done
+    if [ "${#missing[@]}" -gt 0 ]; then
+        log "instalando módulos: ${missing[*]}"
+        "$ODOO_BIN" module install -c "$ODOO_RC" -d "$ODOO_DB" "${missing[@]}"
     fi
 fi
 

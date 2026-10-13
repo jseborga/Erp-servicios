@@ -16,33 +16,37 @@ Módulos Odoo **Community 19.0** (Python 3.10+ / PostgreSQL / OWL) para un spa/p
 8. **Idioma:** código y nombres técnicos en inglés; etiquetas y traducciones `es_BO`/`es_419`.
 9. **Nunca** diseñar mecanismos para ocultar operaciones a la contabilidad (cuentas bancarias no registradas, ventas sin registro). Toda operación se registra; las no deducibles van a su cuenta.
 
-## Estructura prevista
+## Estructura (implementada)
 ```
 addons/
-  spa_base/              # espacios, servicios, configuración general
-  spa_booking/           # motor de reservas y aforo
-  spa_membership/        # planes, derechos, saldos, invitados, políticas
-  spa_access/            # check-in/out con QR, control de aforo en vivo
-  spa_billing/           # cobro de membresías, mora, ofertas de pago
-  spa_crm/               # fuentes, embudo, cortesías → leads
-  spa_portal/            # web del socio (website + portal)
-  spa_pos/               # POS: socio en comanda, cargo a cuenta, descuentos por plan
-  spa_messaging/         # capa de mensajería intercambiable (wa.me / API)
-  spa_reports/           # tableros y métricas
-  l10n_bo_spa/           # cuentas adicionales, impuestos RC-IVA, analítica por área
-  l10n_bo_purchase/      # registro de compras SIAT: tipo doc, CUF, unicidad
-  l10n_bo_petty_cash/    # fondo fijo: rendición y reposición
-  l10n_bo_siat_edi/      # conector a proveedor de facturación SIAT (por API)
+  l10n_bo_spa/           # plan de cuentas sobre l10n_bo, retenciones, correcciones, analítica por área
+  l10n_bo_purchase/      # compras SIAT: tipo de documento, CUF/dosificación, unicidad, QR, Libro de Compras
+  l10n_bo_petty_cash/    # fondo fijo imprest: vales, rendición, reposición
+  l10n_bo_siat_edi/      # facturación de ventas: Portal Web, proveedor por API (solo simulador), Libro de Ventas
+  spa_base/              # espacios, servicios, personal, roles, utilidades (spa.tools.local_today)
+  spa_membership/        # planes, derechos, saldos, invitados, políticas, congelamiento
+  spa_booking/           # reservas, aforo, lista de espera, no-show
+  spa_access/            # check-in/out con QR, aforo en vivo, pase diario
+  spa_messaging/         # mensajería intercambiable (wa.me / API de Meta)
+  spa_billing/           # cobros, pagos por validar, cobranza, cuotas, cambio de plan, devengo
+  spa_portal/            # web pública y portal del socio
+  spa_crm/               # fuentes, Captación y Retención, cortesías, riesgo de baja
+  spa_pos/               # restaurante y cafetería: descuento del plan, cuenta del socio
+  spa_reports/           # tablero y reportes, estado de resultados por área (MIS)
+  spa_rental/            # alquiler de ambientes y clases recurrentes
+  spa_all/               # instala todo, cruza roles, pruebas de punta a punta y recorridos en navegador
+  spa_demo/              # datos de demostración (nunca en producción)
 third_party/oca/         # módulos OCA fijados por commit (no editar a mano: scripts/update_oca.sh)
 docker/                  # entrypoint de la imagen
-mvp/                     # maqueta HTML
-docs/                    # especificaciones
+mvp/                     # maqueta HTML inicial
+docs/                    # especificaciones, estado (docs/12), vacíos (docs/13), despliegue (docs/14), guía por rol (docs/15)
 ```
-
-`l10n_bo_spa` ya está implementado (plan de cuentas). Los demás módulos `spa_*` y `l10n_bo_*` están por construir.
 
 ## Entorno de desarrollo
 - `docker compose -f docker-compose.yml -f docker-compose.ports.yml up -d --build` (ver `docs/14`).
 - Imagen base `odoo:19.0`, **nunca** `latest` (apunta a Odoo 20). PostgreSQL 16 (Odoo 19 exige ≥ 13).
-- Pruebas: `odoo -c /etc/odoo/odoo.conf -d spa -u <módulo> --test-tags /<módulo> --stop-after-init`.
-- Los módulos que dependan del plan de cuentas usan `self.env['account.chart.template'].ref('<xmlid>')` para obtener cuentas por compañía (p. ej. `ref('l10n_bo_spa_2151')`).
+- Pruebas de un módulo: `odoo -c /etc/odoo/odoo.conf -d <base_de_prueba> -u <módulo> --test-tags /<módulo> --stop-after-init`. Suite completa: `docs/14` § Pruebas. **Siempre sobre una base nueva**, nunca sobre producción ni sobre la demostración (hay conteos globales).
+- Recorridos en navegador: definir `ODOO_BROWSER_BIN` con la ruta de Chrome/Chromium; sin ella se omiten.
+- Los módulos que dependan del plan de cuentas usan `self.env['account.chart.template'].ref('<xmlid>')` para obtener cuentas por compañía (p. ej. `ref('l10n_bo_spa_1115')`).
+- En una base nueva los `post_init_hook` corren **antes** de cargar el plan contable: encadenar con `registry._auto_install_template` (ver `l10n_bo_spa/__init__.py`, `spa_pos/__init__.py`) o usar `@template('bo', ...)`.
+- Fechas de negocio con `self.env['spa.tools'].local_today()` (zona de la compañía), no `fields.Date.today()` (UTC).

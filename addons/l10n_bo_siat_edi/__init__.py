@@ -17,3 +17,14 @@ def _l10n_bo_siat_edi_post_init(env):
     """)
     for company in env['res.company'].search([('chart_template', '=', 'bo')]):
         env['l10n_bo.siat.provider']._l10n_bo_create_demo(company)
+
+    # Base nueva: el plan 'bo' se carga después de instalar los módulos (registry._auto_install_template,
+    # ejecutado en ir.module.module._register_hook). Se encadena la creación del simulador después de esa carga.
+    previous = getattr(env.registry, '_auto_install_template', None)
+    if previous:
+        def _load_chart_then_simulator(env):
+            previous(env)
+            for company in env['res.company'].search([('chart_template', '=', 'bo')]):
+                env['l10n_bo.siat.provider']._l10n_bo_create_demo(company)
+
+        env.registry._auto_install_template = _load_chart_then_simulator

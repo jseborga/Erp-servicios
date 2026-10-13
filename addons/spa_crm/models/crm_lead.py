@@ -1,5 +1,6 @@
 # Part of ERP Servicios Spa. License LGPL-3.
 import logging
+from datetime import timedelta
 
 from odoo import api, fields, models
 from odoo.fields import Domain
@@ -143,7 +144,9 @@ class CrmLead(models.Model):
     @api.model
     def _spa_source(self, code):
         """Fuente de los datos del módulo (``utm_source_<code>``) o vacía si se borró."""
-        return self.env.ref(f'spa_crm.utm_source_{code}', raise_if_not_found=False) or self.env['utm.source']
+        # Facebook reutiliza la fuente estándar de Odoo (utm.utm_source_facebook).
+        xmlid = 'utm.utm_source_facebook' if code == 'facebook' else f'spa_crm.utm_source_{code}'
+        return self.env.ref(xmlid, raise_if_not_found=False) or self.env['utm.source']
 
     @api.model
     def _spa_find_open_leads(self, team, partner=None, phone=None, email=None, limit=1):
@@ -264,9 +267,19 @@ class CrmLead(models.Model):
         """Gana (Recuperado) las oportunidades de retención cuyo socio ya renovó."""
         for lead in self.sudo().filtered(lambda l: l.spa_pipeline == 'retention' and l.won_status == 'pending'
                                          and l.partner_id):
+            since = lead.create_date.date() if lead.create_date else False
+
+            def effective_end(membership, since=since):
+                # Congelar extiende el vencimiento sin que el socio renueve: se descuentan los días
+                # congelados registrados desde que se abrió la oportunidad.
+                freezes = membership.sudo().freeze_ids.filtered(
+                    lambda f: f.state == 'active' and (not since or f.create_date.date() >= since)) \
+                    if 'freeze_ids' in membership._fields else []
+                return membership.date_end - timedelta(days=sum(f.days for f in freezes))
+
             renewed = lead.partner_id.spa_membership_ids.filtered(
                 lambda m: m.state == 'active' and m.date_end
-                and (not lead.spa_risk_date_end or m.date_end > lead.spa_risk_date_end))
+                and (not lead.spa_risk_date_end or effective_end(m) > lead.spa_risk_date_end))
             if renewed:
                 lead._spa_win('recovered', renewed.sorted('date_end', reverse=True)[:1])
         return True

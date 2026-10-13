@@ -18,7 +18,7 @@ El script `docker/entrypoint-spa.sh`:
 1. Genera `/etc/odoo/odoo.conf` desde las variables de entorno: base única, `list_db = False` (gestor de bases deshabilitado), `proxy_mode = True`. El archivo se crea con permisos 600.
 2. Espera a PostgreSQL.
 3. Si la base `ODOO_DB` no existe, la crea con `odoo db init --language es_BO --country BO`, con el usuario y la contraseña de `ODOO_INIT_LOGIN` y `ODOO_INIT_PASSWORD`.
-4. Si `l10n_bo_spa` no está instalado, instala `ODOO_INIT_MODULES`. Así se carga el plan `bo` con las cuentas del spa, en español de Bolivia y en moneda BOB.
+4. Instala los módulos de `ODOO_INIT_MODULES` que aún no estén instalados (por defecto `spa_all`, que instala todo el sistema). Así se carga el plan `bo` con las cuentas del spa, en español de Bolivia y en moneda BOB. Si más adelante agrega un módulo a la lista, se instala en el siguiente arranque.
 5. En los arranques siguientes no hace nada de lo anterior; solo arranca Odoo.
 
 Probado el 11-oct-2026 con Odoo 19.0 y PostgreSQL 16: creación de la base, instalación de los módulos, segundo arranque sin reinstalar, actualización por `ODOO_UPDATE_MODULES`, inicio de sesión del administrador y gestor de bases bloqueado. **No se pudo probar `docker build`** en el entorno de trabajo, que no tiene acceso a Docker Hub. La primera construcción en su servidor es la prueba de la imagen.
@@ -35,7 +35,7 @@ Ver `.env.example`. Obligatorias: `DB_PASSWORD`, `ODOO_ADMIN_PASSWD` y, en la pr
 | `ODOO_INIT` | `true` | Crear e instalar si la base no existe |
 | `ODOO_INIT_LOGIN` / `ODOO_INIT_PASSWORD` | `admin` / — | Usuario administrador inicial |
 | `ODOO_LANG` / `ODOO_COUNTRY` | `es_BO` / `BO` | Idioma y país de la compañía |
-| `ODOO_INIT_MODULES` | `l10n_bo_spa` + OCA contables | Módulos de la primera instalación |
+| `ODOO_INIT_MODULES` | `spa_all` | Módulos a instalar si faltan. Demostración: `spa_all,spa_demo` (nunca en producción) |
 | `ODOO_UPDATE_MODULES` | vacío | Módulos a actualizar en el próximo arranque |
 | `ODOO_WORKERS` | `0` | 0 = modo hilos (simple). >0 requiere enrutar `/websocket` al puerto 8072 |
 
@@ -77,6 +77,35 @@ Odoo queda en `127.0.0.1:8069`. Póngalo detrás de un proxy con HTTPS (Nginx, C
 3. Al terminar, deje `ODOO_UPDATE_MODULES` vacío y redespliegue de nuevo, para que no se actualice en cada arranque.
 
 Actualizar `l10n_bo_spa` no vuelve a cargar el plan contable. Si una versión nueva agrega cuentas o impuestos, recárguelo en Contabilidad → Configuración → Ajustes → Localización fiscal → botón **Recargar** (método `reload_template` de Odoo 19). Odoo agrega lo nuevo sin borrar lo existente.
+
+## Servidor de demostración
+
+Para presentar el sistema o capacitar al personal, use un servidor (o una base) aparte con
+`ODOO_INIT_MODULES=spa_all,spa_demo`. Se crea «Spa Demo Bolivia» con seis semanas de operación
+(socios en todos los estados, reservas, cobros, CRM, ventas del restaurante, compras, fondo fijo,
+eventos y clases) usando los procesos reales, y usuarios por rol con clave `demo`:
+`gerente.demo`, `recepcion.demo`, `caja.demo`, `terapeuta.demo`, `instructor.demo`, `marketing.demo`,
+`compras.demo`, `contador.demo`, `custodio.demo`, `mesero.demo`; socios del portal `ana.demo`,
+`bruno.demo`, `carla.demo`. La facturación queda con el **simulador SIAT** (documentos «SIMULADO»).
+Instálelo con el servidor sin usuarios conectados (la carga ajusta el reloj del proceso). Tarda
+unos 4 minutos en un servidor de 2 CPU.
+
+## Pruebas
+
+Las pruebas automáticas asumen una base **nueva**: créela aparte, nunca sobre producción.
+
+```bash
+# Dentro del contenedor odoo
+odoo db -c /etc/odoo/odoo.conf init prueba --language es_BO --country BO --username admin --password admin
+odoo module install -c /etc/odoo/odoo.conf -d prueba spa_all
+odoo -c /etc/odoo/odoo.conf -d prueba --db-filter=prueba --http-port=8070 --stop-after-init \
+  -u l10n_bo_spa,spa_base,spa_membership,spa_booking,spa_access,spa_messaging,spa_billing,spa_portal,spa_crm,spa_pos,l10n_bo_purchase,l10n_bo_petty_cash,l10n_bo_siat_edi,spa_reports,spa_rental,spa_all \
+  --test-tags /l10n_bo_spa,/spa_base,/spa_membership,/spa_booking,/spa_access,/spa_messaging,/spa_billing,/spa_portal,/spa_crm,/spa_pos,/l10n_bo_purchase,/l10n_bo_petty_cash,/l10n_bo_siat_edi,/spa_reports,/spa_rental,/spa_all
+```
+
+Resultado esperado: `0 failed, 0 error(s) of 315 tests`. Los recorridos en navegador (`spa_ui`) se
+ejecutan si hay Chrome/Chromium: indique su ruta con la variable `ODOO_BROWSER_BIN`; si no, se omiten.
+Las pruebas de la demostración (`spa_demo`) se ejecutan sobre una base con la demostración instalada.
 
 ## Copias de seguridad
 

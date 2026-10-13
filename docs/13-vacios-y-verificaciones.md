@@ -2,48 +2,58 @@
 
 Registro honesto de qué está verificado y qué no. **Actualizar este archivo al resolver cada punto.**
 
-## ✅ Verificado (11-oct-2026)
+## ✅ Verificado (al 13-oct-2026)
 | Hecho | Cómo se verificó |
 |---|---|
-| `membership`, `appointment`, `website_appointment`, `sale_subscription`, `whatsapp`, `account_accountant`, `account_reports`, `hr_payroll`, `pos_preparation_display` **no** existen en Odoo CE 19 | Listado de `addons/` en rama `19.0` de `github.com/odoo/odoo` |
-| `l10n_bo`, `pos_restaurant`, `pos_self_order`, `hr_expense`, `crm`, `website_sale`, `loyalty`, `event`, `resource`, `calendar`, `purchase`, `stock`, `mrp`, `payment_custom`, `auth_totp` **sí** existen en CE 19 | Mismo listado |
-| `l10n_bo` v2.0: 127 cuentas, códigos de 6 dígitos, retenciones 8 %/15,5 % en grossing-up | Lectura de los CSV y prueba de instalación |
-| **`l10n_bo` 19: grossing-up con signos invertidos e IVA de compras calculado sin incluir** | Facturas de prueba en Odoo 19 (ver `docs/09` §4). Corregido en `l10n_bo_spa` |
-| OCA 19.0 tiene `membership`, `contract`, `subscription_oca`, `resource_booking`, `account_financial_report`, `mis_builder`, `account_asset_management`, `account_fiscal_year` | Listado de ramas 19.0 |
-| `account_financial_report`, `account_tax_balance`, `mis_builder`, `account_asset_management`, `account_fiscal_year` se instalan junto a `l10n_bo_spa` sin errores | Instalación real en Odoo 19 + PostgreSQL 16 |
-| Odoo 19: Python 3.10 a 3.14, PostgreSQL ≥ 13 | `odoo/release.py` (`MIN_PY_VERSION`, `MAX_PY_VERSION`, `MIN_PG_VERSION`) |
-| Imagen oficial `odoo:19.0` existe; `odoo:latest` = Odoo 20 | `docker-library/official-images/library/odoo` |
-| `l10n_bo_spa`: 9 pruebas automáticas, 0 fallos | `--test-tags /l10n_bo_spa` |
-| Script de arranque: crea la base en es_BO/BO, instala módulos una sola vez, actualiza módulos, bloquea el gestor de bases | Ejecución real del script contra Odoo 19 local |
+| Los 17 módulos propios + 8 OCA se instalan juntos en una base nueva (es_BO, BO, BOB) mediante el script de arranque de Docker | Ejecución real del script `docker/entrypoint-spa.sh` contra Odoo 19.0 + PostgreSQL 16 |
+| 315 pruebas automáticas en verde, incluidas: un mes de negocio de punta a punta con usuarios por rol, 19 regresiones de defectos corregidos y recorridos en navegador (Chromium) | `--test-tags` de los 16 módulos sobre esa base |
+| 817 pantallas recorridas en navegador por 10 roles + web del socio (celular y escritorio): sin errores de consola, sin peticiones fallidas, sin textos en inglés propios, sin desborde horizontal en celular | Playwright + Chromium, capturas revisadas |
+| Datos de demostración consistentes: todos los asientos cuadran, balance de comprobación en cero, saldos usados ≤ otorgados | Pruebas de `spa_demo` y script de verificación |
+| `membership`, `appointment`, `sale_subscription`, `whatsapp`, `account_accountant`, `account_reports`, `hr_payroll`, `pos_preparation_display` **no** existen en Odoo CE 19 | Listado de `addons/` en la rama `19.0` |
+| `l10n_bo` 19: grossing-up con signos invertidos, IVA de compras calculado sin incluir, diferencias de caja a ajuste por inflación | Facturas de prueba; corregido en `l10n_bo_spa` (`docs/09` §4) |
+| Redondeo por línea necesario con precios IVA incluido (si no, el POS deja Bs 0,01 abiertos) | Pruebas de `spa_pos`; aplicado en `l10n_bo_spa` |
+| Ley 843 art. 4 inc. b: en servicios el hecho imponible es al terminar la prestación o al percibir el precio (lo primero); la factura se emite en ese momento | Texto de la ley (lexivox.org). El sistema emite la factura al cobrar o al prestar el servicio |
 | SIN: servicio eventual de persona no registrada → RC-IVA 13 % + IT 3 % | *Retenciones – Preguntas frecuentes*, impuestos.gob.bo |
-| No existe repo `OCA/l10n-bolivia` | `git ls-remote` sin resultado |
+| QR de facturas en línea: enlace `…/consulta/QR?nit=&cuf=&numero=&t=` | Página oficial del SIN (siatinfo) |
+| Estructura del CUF (NIT, fecha-hora, sucursal, modalidad, tipo, sector, número, punto de venta, dígito verificador, hex + código de control) | Biblioteca abierta go-siat; el codificador reproduce un CUF piloto real |
+| Odoo 19: Python 3.10–3.14, PostgreSQL ≥ 13; imagen `odoo:19.0` (`latest` = Odoo 20) | `odoo/release.py`; `docker-library/official-images` |
+| Dependencias Python (freezegun, qrcode, renderpm, xlsxwriter, xlrd) incluidas en el paquete oficial de Odoo 19 | `debian/control` de Odoo 19 |
 
 ## ⚠️ Por verificar — técnico
-1. **`docker build` de la imagen**: no se pudo ejecutar en el entorno de trabajo (sin acceso a Docker Hub). El primer despliegue en el servidor es la prueba.
-2. Calidad y completitud de la migración a 19.0 de `resource_booking`, `contract`, `subscription_oca` y `membership` OCA.
-3. Pantalla de cocina: `pos_preparation_display` no está en CE 19; verificar alternativa (impresora de cocina u OCA).
-4. Etiquetas del reporte tributario (`tax_tags`) para las retenciones nuevas de `l10n_bo_spa`: no se asignaron. El reporte tributario de Odoo es de Enterprise; en CE usar `account_tax_balance` y los saldos de 213700/213800/213910.
-5. Formato exacto del QR de facturas SIAT en línea (probar con facturas reales).
-6. Si el SIN ofrece un servicio automatizable para verificar facturas de compra desde un sistema externo.
-7. Existencia en OCA 19.0 de nómina y aprobación multinivel de compras.
+1. **`docker build` de la imagen** en el servidor: el entorno de desarrollo no tenía acceso a Docker Hub. El flujo de arranque sí se probó con el mismo script.
+2. **Facturación SIAT por API**: solo existe el simulador («SIMULADO», nunca válido). Programar el conector del proveedor elegido; emitir desde el proceso programado (no al validar) para no perder el CUF si la transacción falla.
+3. **WhatsApp API oficial (Meta)**: código listo, nunca probado contra Meta.
+4. **Pruebas automáticas**: asumen una base nueva. Sobre una base con datos reales o de demostración, algunas fallan por conteos globales: ejecútelas en una base de prueba.
+5. Formato del QR de facturas computarizadas antiguas (fuente secundaria con un ejemplo).
+6. Pantalla de cocina: CE 19 no la trae; se usa impresión de comandas.
+7. Revisión en un navegador real de la pantalla del POS con el distintivo del socio (se probó la llamada al servidor y una captura del piso y la pantalla de pago).
 
 ## ⚠️ Por verificar — fiscal / legal (contador boliviano)
 1. Cuándo aplica cada retención de servicios: 15,5 % (IUE + IT, profesiones u oficios) o 16 % (RC-IVA + IT, servicios eventuales).
-2. Deducibilidad de retenciones asumidas (grossing-up). Fuente secundaria cita jurisprudencia del TSJ.
-3. Casos en que se permite **vender sin factura** y cómo se registran (IT, ingresos).
-4. Devengo de IVA e IT en membresías cobradas por adelantado.
-5. Campos y formato vigentes del **Registro/Libro de Compras** en el SIAT.
-6. Aportes sociales del empleador y planilla.
-7. Ajuste por inflación / reexpresión de estados financieros.
-8. Porcentajes reales de reparto analítico (los de `l10n_bo_spa` son ilustrativos).
-9. Separar IVA de compras en 114100 (cambio respecto a `l10n_bo`, que usa 213500 para ambos).
+2. Deducibilidad de retenciones asumidas (grossing-up).
+3. Casos en que se permite **vender sin factura** (el sistema lo restringe a un grupo autorizado, con tope y motivo, y registra IVA e IT igual).
+4. Planes en cuotas: la factura completa se emite con el primer pago. ¿Corresponde facturar solo lo cobrado?
+5. Alquileres: anticipo parcial emite la factura completa; ¿la penalidad por daños lleva IVA e IT?
+6. Consumidor final sin datos: «S/N», número 0 (fuente secundaria). Tipos de documento del comprador 2, 3 y 4 sin confirmar.
+7. Motivos de anulación (códigos 1–4) y plazo (día 9 del mes siguiente, citado en una RND de julio de 2026).
+8. Formato vigente del Registro de Compras y Ventas (RCV); catálogos de tipo de compra.
+9. Reembolso parcial de un plan prepagado: hoy reduce proporcionalmente el devengo pendiente.
+10. Aportes sociales del empleador y planilla (CE no tiene nómina).
+11. Ajuste por inflación / reexpresión de estados financieros.
+12. Porcentajes reales de reparto analítico (gastos compartidos y membresías por área): los incluidos son ejemplos.
+13. IVA de compras en 114100 (cambio respecto a `l10n_bo`, que usa 213500 para ambos).
 
-## ⚠️ Por decidir — negocio / proveedores
-1. Proveedor de facturación SIAT (certificación, costo por factura, contingencias, API).
-2. Proveedor de QR con notificación de pago.
-3. WhatsApp: número para API oficial y proveedor (Meta directo u otro). Evolution API: confirmar riesgos antes de cualquier uso productivo.
-4. Comprar o replicar la validación de CUF de `l10n_bo_siat_inbound` (licencia propietaria de Odoo).
-5. Servidor: tamaño definitivo (ver `docs/14`).
+## ⚠️ Decisiones abiertas (negocio)
+1. Proveedor de facturación SIAT por API (costo, contingencias).
+2. Proveedor o banco con QR que notifique el pago (hoy caja valida el comprobante).
+3. Número y proveedor para la API oficial de WhatsApp.
+4. Si el Gerente debe ser administrador completo de Odoo (hoy no: gestiona el spa, compras y fondos, pero no los Ajustes técnicos).
+5. Reservas futuras de un socio suspendido: hoy se bloquea el ingreso, no se cancelan las reservas.
+6. Lista de espera: retiene el cupo pero no al terapeuta.
+
+## No construido (por ahora)
+- Códigos promocionales en la web, «café diario incluido», marca de sobre-aforo al bajar el aforo, grupos específicos de mesero/cocina, límite de aprobación de compras por usuario.
 
 ## ❌ Descartado por diseño
 - Cuentas bancarias o cajas no registradas en la contabilidad para compras sin factura: es contabilidad paralela y defraudación tributaria. Se reemplaza por retenciones o gastos no deducibles registrados.
+- Facturas por renovaciones impagas: nunca se emiten (cobro pendiente en borrador hasta el pago).

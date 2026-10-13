@@ -39,7 +39,7 @@ services:
       ODOO_INIT_PASSWORD: ${ODOO_INIT_PASSWORD:-}
       ODOO_LANG: ${ODOO_LANG:-es_BO}
       ODOO_COUNTRY: ${ODOO_COUNTRY:-BO}
-      ODOO_INIT_MODULES: ${ODOO_INIT_MODULES:-l10n_bo_spa,account_financial_report,account_tax_balance,mis_builder,account_asset_management,account_fiscal_year}
+      ODOO_INIT_MODULES: ${ODOO_INIT_MODULES:-spa_all}
       ODOO_UPDATE_MODULES: ${ODOO_UPDATE_MODULES:-}
       ODOO_WORKERS: ${ODOO_WORKERS:-0}
       ODOO_PROXY_MODE: ${ODOO_PROXY_MODE:-True}
