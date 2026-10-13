@@ -48,6 +48,14 @@ class SpaSpace(models.Model):
 class SpaService(models.Model):
     _inherit = 'spa.service'
 
+    def _spa_slot_bookable(self):
+        """True si el servicio se reserva por franja individual (portal y reserva rápida).
+
+        Otros módulos lo extienden (p. ej. spa_rental: las clases grupales se inscriben, no se reservan).
+        """
+        self.ensure_one()
+        return self.space_id.access_mode == 'slot'
+
     def _free_employee(self, start_utc, stop_utc, exclude_booking=None, preferred=None):
         """Primer profesional con turno y sin otra reserva en el intervalo."""
         self.ensure_one()

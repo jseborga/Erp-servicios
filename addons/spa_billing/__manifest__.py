@@ -27,7 +27,7 @@ Cobros del spa
     'author': 'ERP Servicios Spa',
     'website': 'https://github.com/jseborga/erp-servicios',
     'category': 'Services/Spa',
-    'depends': ['spa_booking', 'spa_messaging', 'account', 'analytic'],
+    'depends': ['spa_booking', 'spa_access', 'spa_messaging', 'account', 'analytic'],
     'data': [
         'security/ir.model.access.csv',
         'security/spa_billing_security.xml',
@@ -38,6 +38,7 @@ Cobros del spa
         'views/spa_membership_views.xml',
         'views/spa_plan_views.xml',
         'views/spa_booking_views.xml',
+        'views/spa_access_log_views.xml',
         'views/spa_deferral_views.xml',
         'views/spa_dunning_views.xml',
         'wizard/spa_plan_change_views.xml',

@@ -452,7 +452,8 @@ class TestBillingFlows(SpaCommon):
                          {str(self.area_pool.id): 60, str(self.area_wet.id): 40})
         self.assertEqual(self.plan_vip.analytic_distribution,
                          {str(self.area_pool.id): 35, str(self.area_wet.id): 25, str(self.area_spa.id): 40})
-        # El dueño (gerente + contabilidad) edita el reparto en la ficha del plan; el gerente solo no lo ve.
+        # El dueño (gerente + contabilidad) edita el reparto en la ficha del plan; recepción no lo ve.
+        # (Con spa_all el gerente también es contador del spa y sí lo ve.)
         owner = new_test_user(self.env, login='bill_owner', name='Dueño (cobros)',
                               groups='base.group_user,spa_base.group_spa_manager,account.group_account_manager,'
                                      'account.group_account_user')
@@ -462,7 +463,7 @@ class TestBillingFlows(SpaCommon):
             return self.plan_basic.with_user(user).get_views([(False, 'form')])['views']['form']['arch']
 
         self.assertIn('widget="analytic_distribution"', arch(owner))
-        self.assertNotIn('widget="analytic_distribution"', arch(self.manager))
+        self.assertNotIn('widget="analytic_distribution"', arch(self.reception))
         _membership, invoice = self._member(self.plan_basic)
         product_line = invoice.invoice_line_ids
         self.assertEqual(product_line.analytic_distribution, self.plan_basic.analytic_distribution)
@@ -552,3 +553,34 @@ class TestBillingFlows(SpaCommon):
         membership.with_user(self.reception).action_cancel_plan_change()
         self.assertFalse(membership.spa_next_plan_id)
         self.assertAlmostEqual(membership._open_period_invoice().amount_total, 1490.0)
+
+    def test_day_pass_is_invoiced_and_paid(self):
+        """Pase diario (sin membresía): ocupa aforo, se factura al ingresar y caja valida el pago."""
+        sauna = self.env.ref('spa_base.space_sauna')
+        visitor = self.env['res.partner'].create({'name': 'Visitante sin plan', 'phone': '+591 71234567'})
+        local_now = datetime.combine(self.today, time(15, 0))
+        with freeze_time(self.env['spa.tools'].to_utc(local_now)):
+            wizard = self.env['spa.checkin.wizard'].with_user(self.reception).create({
+                'space_id': sauna.id, 'partner_id': visitor.id, 'guests': 1})
+            wizard._onchange_day_pass()
+            self.assertTrue(wizard.day_pass)
+            action = wizard.action_check_in()
+        log = self.env['spa.access.log'].search([('partner_id', '=', visitor.id)])
+        self.assertTrue(log.day_pass)
+        self.assertEqual(log.people, 2)
+        invoice = log.invoice_id
+        self.assertEqual(invoice.state, 'posted')
+        self.assertEqual(invoice.invoice_line_ids.quantity, 2)
+        product = sauna._free_mode_service().product_id
+        self.assertAlmostEqual(invoice.amount_total, 2 * product.lst_price, places=2)
+        self.assertEqual(invoice.invoice_line_ids.analytic_distribution,
+                         {str(sauna.analytic_account_id.id): 100})
+        self.assertIn('pase diario', action['params']['message'])
+        payment_action = action['params']['next']
+        self.assertEqual(payment_action['res_model'], 'spa.payment.request')
+        self.assertEqual(payment_action['context']['default_invoice_id'], invoice.id)
+        request = self.Request.with_user(self.reception).create({
+            'partner_id': visitor.id, 'invoice_id': invoice.id, 'amount': invoice.amount_residual,
+            'method': 'cash'})
+        request.with_user(self.cashier).action_validate()
+        self.assertEqual(invoice.payment_state, 'paid')

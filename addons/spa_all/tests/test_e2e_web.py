@@ -78,7 +78,7 @@ class TestSpaE2EWeb(SpaE2EMixin, HttpCase):
         self.assertEqual(len(membership), 1)
         self.assertEqual(membership.state, 'draft')
         invoice = membership.invoice_ids
-        self.assertRecordValues(invoice, [{'state': 'posted', 'spa_invoice_kind': 'membership',
+        self.assertRecordValues(invoice, [{'state': 'draft', 'spa_invoice_kind': 'membership',
                                            'amount_total': 890.0, 'invoice_date': DAY0}])
         self._assert_redirect(response, '/my/spa/pay/%s' % invoice.id)
         response = self.url_open('/my/spa/pay/%s' % invoice.id)

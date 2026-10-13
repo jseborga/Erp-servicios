@@ -9,3 +9,4 @@ from . import spa_membership  # noqa: F401
 from . import spa_payment_request  # noqa: F401
 from . import spa_deferral  # noqa: F401
 from . import spa_booking  # noqa: F401
+from . import spa_access_log  # noqa: F401

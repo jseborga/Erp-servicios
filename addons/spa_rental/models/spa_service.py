@@ -10,6 +10,10 @@ class SpaService(models.Model):
         help='Se dicta en horarios fijos con instructor (Clases → Horarios). Los socios se inscriben a una '
              'sesión; no se reserva por franja.')
 
+    def _spa_slot_bookable(self):
+        """Las clases grupales se inscriben por sesión (Clases → Sesiones), no se reservan por franja."""
+        return super()._spa_slot_bookable() and not self.spa_is_class
+
     def _free_employee(self, start_utc, stop_utc, exclude_booking=None, preferred=None, **kwargs):
         """Excluye al personal que dicta una clase en ese horario (no se cruza con masajes)."""
         busy = self.env['spa.class.session'].sudo().search([

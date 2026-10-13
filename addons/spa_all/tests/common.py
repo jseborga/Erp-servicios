@@ -168,8 +168,9 @@ class SpaE2EMixin:
     # ------------------------------------------------------------------
     @classmethod
     def _partner(cls, name, phone, email=None):
-        # Contacto creado con superusuario: recepción no puede crear contactos (ver test_bug_reception_*).
-        return cls.env['res.partner'].create({'name': name, 'phone': phone, 'email': email})
+        # Recepción da de alta al socio (crea su contacto), como en el mostrador.
+        return cls.env['res.partner'].with_user(cls.reception).create(
+            {'name': name, 'phone': phone, 'email': email}).sudo()
 
     @classmethod
     def _portal_member(cls, login, name, phone=None):
@@ -183,18 +184,16 @@ class SpaE2EMixin:
 
     @classmethod
     def _enroll(cls, partner, plan, months=1, offer=None, amount=None, method='cash'):
-        """Alta presencial: recepción crea la membresía; caja factura, registra el pago y lo valida.
+        """Alta presencial: recepción crea la membresía, genera el cobro y registra el pago; caja lo valida.
 
-        Devuelve la membresía (entorno superusuario, para verificar). Recepción no puede facturar
-        ni registrar el pago desde la membresía (lee ``account.move``): ver
-        ``test_bug_reception_cannot_invoice_or_register_payment``.
+        Devuelve la membresía (entorno superusuario, para verificar).
         """
         cls.env.invalidate_all()
         membership = cls.env['spa.membership'].with_user(cls.reception).create({
             'partner_id': partner.id, 'plan_id': plan.id, 'period_id': cls._period(plan, months).id})
         cls.env.invalidate_all()
-        membership.with_user(cls.cashier).action_create_invoice(offer=offer)
-        request = cls._register_payment(membership, amount=amount, method=method)
+        membership.with_user(cls.reception).action_create_invoice(offer=offer)
+        request = cls._register_payment(membership, amount=amount, method=method, user=cls.reception)
         cls.env.invalidate_all()
         request.with_user(cls.cashier).action_validate()
         return membership.sudo()
@@ -227,10 +226,7 @@ class SpaE2EMixin:
             'guest_ids': [Command.create(dict(guest)) for guest in guests],
         })
         if confirm:
-            # Servicios con personal: recepción no puede buscar empleados por especialidad
-            # (hr.employee.public no tiene spa_skill_ids), se confirma con sudo como lo hace la web.
-            # Ver test_bug_reception_cannot_book_massage.
-            (booking.sudo() if service.requires_staff else booking).action_confirm()
+            booking.action_confirm()
         return booking.sudo()
 
     def _check_in(self, space, membership=None, token=None, user=None, guests=0):

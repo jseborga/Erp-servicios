@@ -18,6 +18,8 @@ compras y actúa como contador del spa: fondos fijos, Libro de Compras). Al inst
   ``spa_messaging``, ``spa_billing``.
 * Cara al cliente y ventas: ``spa_portal`` (web del socio), ``spa_crm`` (captación y retención),
   ``spa_pos`` (restaurante y cafetería).
+* Facturación SIAT y gestión: ``l10n_bo_siat_edi`` (Portal Web / proveedor, venta sin factura,
+  Libro de Ventas), ``spa_reports`` (tablero y reportes), ``spa_rental`` (alquiler de ambientes y clases).
 * Reportes contables OCA: ``account_financial_report``, ``account_tax_balance``, ``mis_builder``,
   ``account_asset_management``, ``account_fiscal_year``.
 
@@ -42,6 +44,9 @@ hora de La Paz).
         'spa_pos',
         'l10n_bo_purchase',
         'l10n_bo_petty_cash',
+        'l10n_bo_siat_edi',
+        'spa_reports',
+        'spa_rental',
         'account_financial_report',
         'account_tax_balance',
         'mis_builder',

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_access_log_view_list_billing" model="ir.ui.view">
+        <field name="name">spa.access.log.list.billing</field>
+        <field name="model">spa.access.log</field>
+        <field name="inherit_id" ref="spa_access.spa_access_log_view_list"/>
+        <field name="arch" type="xml">
+            <field name="day_pass" position="after">
+                <field name="invoice_id" optional="show" groups="account.group_account_invoice,account.group_account_readonly"/>
+            </field>
+        </field>
+    </record>
+</odoo>

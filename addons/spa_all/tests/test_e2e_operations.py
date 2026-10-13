@@ -193,7 +193,7 @@ class TestSpaE2EOperations(SpaE2EMixin, TransactionCase):
             self._book(self.bruno, massage2, WED, 10, payment_mode='single')
         single = self._book(self.bruno, massage2, WED, 11, payment_mode='single')
         self.assertEqual(single.state, 'confirmed')
-        self.assertRecordValues(single.invoice_id, [{'state': 'posted', 'spa_invoice_kind': 'single',
+        self.assertRecordValues(single.invoice_id, [{'state': 'draft', 'spa_invoice_kind': 'single',
                                                      'amount_total': 280.0}])
         self.assertEqual(single.invoice_id.invoice_line_ids.analytic_distribution, {str(self.area_spa.id): 100})
         # Tope de frecuencia del plan Premium: 1 masaje por semana.
@@ -430,8 +430,8 @@ class TestSpaE2EOperations(SpaE2EMixin, TransactionCase):
         membership, invoice, first = self._annual_installments(self.carla)
         self.assertEqual(invoice.amount_total, 9070.0)
         self.assertEqual(len(invoice.line_ids.filtered(lambda l: l.account_id.account_type == 'asset_receivable')), 3)
-        # Tres cuotas «iguales»: la primera es 33,33 % (no 1/3) del total; ver test_bug_installments_unequal.
-        self.assertAlmostEqual(first, 9070.0 / 3, delta=1.0)
+        # Tres cuotas iguales al centavo: 3.023,33 + 3.023,33 + 3.023,34.
+        self.assertAlmostEqual(first, 3023.33, places=2)
         self.assertEqual(membership.state, 'active')
         self.assertEqual(membership.date_start, DAY0)
         self.assertEqual(membership.date_end, date(2028, 3, 1))
@@ -497,7 +497,7 @@ class TestSpaE2EOperations(SpaE2EMixin, TransactionCase):
             self.Membership._cron_membership_daily()
             self.Membership._cron_billing_daily()
         renewal = membership._open_period_invoice()
-        self.assertRecordValues(renewal, [{'spa_invoice_kind': 'renewal', 'state': 'posted', 'amount_total': 890.0}])
+        self.assertRecordValues(renewal, [{'spa_invoice_kind': 'renewal', 'state': 'draft', 'amount_total': 890.0}])
         self.assertEqual(len(self._messages(self.dario, 'renewal_notice')), 1)
         # Vence sin pago: gracia (sigue con acceso) y oportunidad de retención.
         with self._at(date(2027, 4, 2), 6, 5):
@@ -880,7 +880,7 @@ class TestSpaE2EOperations(SpaE2EMixin, TransactionCase):
         other = self.env['spa.booking'].with_user(self.reception).create({
             'partner_id': self.ana.id, 'payment_mode': 'single', 'service_id': self.massage.id,
             'employee_id': employee2.id, 'start': self._dt(THU, 15)})
-        other.sudo().action_confirm()  # ver test_bug_reception_cannot_book_massage
+        other.action_confirm()
         self.assertEqual(other.employee_id, employee2)
         visible = self.env['spa.booking'].with_user(self.therapist).search([])
         self.assertTrue(visible)

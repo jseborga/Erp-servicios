@@ -1,9 +1,8 @@
 # Part of ERP Servicios Spa. License LGPL-3.
-"""Defectos encontrados en las pruebas de punta a punta.
+"""Pruebas de regresión de los 19 defectos encontrados por la prueba de punta a punta.
 
-Cada ``test_bug_*`` verifica el comportamiento CORRECTO esperado y por eso FALLA hasta que se
-corrija el módulo indicado. El escenario de negocio (test_e2e_operations / test_e2e_web) rodea
-estos defectos para seguir en verde. Ver el informe de QA para la corrección propuesta.
+Cada ``test_fixed_*`` verifica el comportamiento correcto de un defecto ya corregido (permisos
+por rol, aforo, ingresos, devengo, cuotas, reglas multiempresa…). Deben seguir en verde.
 """
 import json
 from datetime import timedelta
@@ -19,7 +18,7 @@ WED = DAY0 + timedelta(days=1)
 
 @tagged('post_install', '-at_install', 'spa', 'spa_e2e')
 @freeze_time(START)
-class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
+class TestSpaE2ERegressions(SpaE2EMixin, TransactionCase):
 
     @classmethod
     def setUpClass(cls):
@@ -40,7 +39,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_billing: vistas de membresía ilegibles para recepción
     # ------------------------------------------------------------------
-    def test_bug_reception_cannot_open_membership_views(self):
+    def test_fixed_reception_cannot_open_membership_views(self):
         """Recepción, marketing y caja no pueden abrir la lista/ficha de membresías.
 
         spa_billing/models/spa_membership.py:13-17 agrega ``invoice_ids`` (account.move),
@@ -59,7 +58,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_base / spa_booking: reservas con personal desde recepción
     # ------------------------------------------------------------------
-    def test_bug_reception_cannot_book_massage(self):
+    def test_fixed_reception_cannot_book_massage(self):
         """Recepción no puede buscar franjas ni confirmar un masaje.
 
         spa_base/models/spa_service.py:45 ``_qualified_employees`` busca ``hr.employee`` con el
@@ -84,7 +83,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_billing: recepción no factura ni registra pagos
     # ------------------------------------------------------------------
-    def test_bug_reception_cannot_invoice_or_register_payment(self):
+    def test_fixed_reception_cannot_invoice_or_register_payment(self):
         """«Facturar período» y «Registrar pago» fallan para recepción (docs/10: registra pagos por validar).
 
         spa_billing/models/spa_membership.py:48 ``_open_period_invoice`` lee ``self.invoice_ids``
@@ -98,14 +97,14 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
             'period_id': self._period(self.plan_premium, 1).id})
         self.env.invalidate_all()
         invoice = membership.with_user(self.reception).action_create_invoice()
-        self.assertEqual(invoice.sudo().state, 'posted')
+        self.assertEqual(invoice.sudo().state, 'draft')
         request = self._register_payment(membership, user=self.reception)
         self.assertEqual(request.sudo().amount, 890.0)
 
     # ------------------------------------------------------------------
     # spa_base: recepción no puede dar de alta el contacto del socio
     # ------------------------------------------------------------------
-    def test_bug_reception_cannot_create_member_contact(self):
+    def test_fixed_reception_cannot_create_member_contact(self):
         """docs/10: Recepción hace el «alta de socios». El grupo no implica
         ``base.group_partner_manager`` (spa_base/security/spa_security.xml:17-23), así que no puede
         crear el contacto de un socio nuevo que llega a recepción."""
@@ -116,7 +115,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_membership: el terapeuta no abre su propia sesión
     # ------------------------------------------------------------------
-    def test_bug_therapist_cannot_open_own_booking(self):
+    def test_fixed_therapist_cannot_open_own_booking(self):
         """La ficha de reserva muestra ``guest_ids`` (spa_booking/views/spa_booking_views.xml:79) y el
         terapeuta no tiene permiso de lectura sobre spa.guest
         (spa_membership/security/ir.model.access.csv: solo recepción y gerente)."""
@@ -128,7 +127,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_access: socio suspendido ingresa con una reserva anterior
     # ------------------------------------------------------------------
-    def test_bug_suspended_member_checks_in_with_prior_booking(self):
+    def test_fixed_suspended_member_checks_in_with_prior_booking(self):
         """docs/04: suspendida = «sin reservas nuevas ni check-in». spa_access/models/spa_access_log.py:87-97
         (espacios por franja) solo busca una reserva confirmada y no valida el estado de la membresía;
         la suspensión tampoco pone las reservas futuras «en espera de pago»."""
@@ -143,7 +142,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_booking / spa_crm: aforo de espacios por franja con ingresos sin reserva
     # ------------------------------------------------------------------
-    def test_bug_courtesy_walkin_ignored_by_booking_capacity(self):
+    def test_fixed_courtesy_walkin_ignored_by_booking_capacity(self):
         """Un pase de cortesía canjeado en un espacio por franja (piscina) ocupa un lugar
         (spa_crm/models/spa_courtesy_pass.py:313 lo cuenta), pero ``spa.space._seats_taken``
         (spa_booking/models/spa_service.py:12-21) solo suma reservas: las reservas siguientes
@@ -162,7 +161,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_access: ingreso a un espacio libre cerrado
     # ------------------------------------------------------------------
-    def test_bug_free_space_checkin_when_closed(self):
+    def test_fixed_free_space_checkin_when_closed(self):
         """El sauna abre 10:00-20:00, pero spa_access/models/spa_access_log.py:103-121 (modo libre) no
         valida el horario ni los cierres programados (``spa.space._within_hours``/``_is_open_on``)."""
         membership = self._enroll(self.ana, self.plan_premium)
@@ -172,7 +171,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_access: invitado registrado en la web se cuenta dos veces al ingresar
     # ------------------------------------------------------------------
-    def test_bug_preregistered_guest_counted_twice_at_checkin(self):
+    def test_fixed_preregistered_guest_counted_twice_at_checkin(self):
         """El socio registra a su invitado en la web (/my/spa/guests, free pass) y luego ingresa con él
         al sauna. spa_access/models/spa_access_log.py:122-126 crea OTRO ``spa.guest`` («Invitado 1 de …»)
         sin vincular el ya registrado: consume un segundo free pass o cobra la tarifa de invitado."""
@@ -191,7 +190,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_billing: cuotas desiguales
     # ------------------------------------------------------------------
-    def test_bug_installments_unequal(self):
+    def test_fixed_installments_unequal(self):
         """«Anual en 3 cuotas sin recargo» de Bs 9.070: spa_billing/models/spa_payment_offer.py:63 redondea
         el porcentaje a 2 decimales (33,33 %), así que las cuotas son 3.023,03 / 3.023,03 / 3.023,94 en
         lugar de 3.023,33 / 3.023,33 / 3.023,34."""
@@ -209,7 +208,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # Roles (docs/10)
     # ------------------------------------------------------------------
-    def test_bug_cashier_can_post_manual_journal_entry(self):
+    def test_fixed_cashier_can_post_manual_journal_entry(self):
         """docs/10: Cajero «No puede: Asientos manuales». ``group_spa_cashier`` implica
         ``account.group_account_invoice`` (spa_billing/security/spa_billing_security.xml:4), que en Odoo
         permite crear y publicar asientos manuales: la caja puede, por ejemplo, sacar efectivo a un gasto."""
@@ -224,7 +223,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
                     Command.create({'account_id': cash_account.id, 'credit': 500.0, 'name': 'Faltante'})]})
             move.action_post()
 
-    def test_bug_reception_has_no_crm_access(self):
+    def test_fixed_reception_has_no_crm_access(self):
         """docs/10: Recepción implica «CRM usuario» y gestiona leads (paso por recepción). El grupo de
         recepción no da acceso a crm.lead (solo marketing implica sales_team, spa_crm/security)."""
         lead = self.env['crm.lead'].with_user(self.reception).create({
@@ -235,7 +234,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_billing: devengo de una membresía cancelada y reembolsada
     # ------------------------------------------------------------------
-    def test_bug_deferral_continues_after_cancellation(self):
+    def test_fixed_deferral_continues_after_cancellation(self):
         """Plan anual pagado, el socio desiste en marzo: el gerente cancela la membresía y el contador
         emite la nota de crédito. spa_billing/models/spa_deferral.py:56-59 sigue contabilizando cada mes
         las cuotas «programadas» (Debe 215100 / Haber 410110) porque ni ``spa.membership.action_cancel``
@@ -258,7 +257,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_billing / spa_booking: reserva suelta cancelada con factura abierta
     # ------------------------------------------------------------------
-    def test_bug_cancelled_single_booking_keeps_open_invoice(self):
+    def test_fixed_cancelled_single_booking_keeps_open_invoice(self):
         """Un visitante reserva la piscina con pago suelto: se publica la factura (spa_billing
         ``_create_single_invoice``). Cancela con anticipación y ``spa.booking.action_cancel``
         (spa_booking/models/spa_booking.py:201) no toca la factura: queda una cuenta por cobrar y un
@@ -266,7 +265,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
         visitor = self._partner('Visitante', '+591 70000150')
         booking = self._book(visitor, self.pool, WED, 9, payment_mode='single')
         invoice = booking.invoice_id
-        self.assertEqual(invoice.state, 'posted')
+        self.assertEqual(invoice.state, 'draft')
         booking.with_user(self.reception).action_cancel()
         self.assertEqual(booking.state, 'cancelled')
         self.assertTrue(invoice.state == 'cancel' or invoice.payment_state == 'reversed',
@@ -275,7 +274,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # spa_crm: pase de cortesía duplica el contacto por el formato del celular
     # ------------------------------------------------------------------
-    def test_bug_courtesy_duplicates_contact_by_phone_format(self):
+    def test_fixed_courtesy_duplicates_contact_by_phone_format(self):
         """Ana es socia (celular «+591 70000101»). Marketing le emite una cortesía para un evento y
         escribe «70000101». spa_crm/models/spa_courtesy_pass.py:155-156 busca el contacto por
         igualdad exacta del texto: crea un contacto duplicado y un prospecto de Captación para una
@@ -290,7 +289,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
     # ------------------------------------------------------------------
     # Multiempresa (CLAUDE.md regla 5)
     # ------------------------------------------------------------------
-    def test_bug_multicompany_rules_missing(self):
+    def test_fixed_multicompany_rules_missing(self):
         """Modelos propios con ``company_id`` y sin ``ir.rule`` multiempresa: ``spa.message`` (WhatsApp con
         celular y texto: datos personales), ``spa.payment.offer``, ``spa.cancel.policy``,
         ``spa.entitlement`` y ``spa.deferral.line``. La recepción de otra empresa los ve."""
@@ -310,7 +309,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
                  for model in ('spa.message', 'spa.payment.offer', 'spa.cancel.policy', 'spa.entitlement')}
         self.assertEqual(leaks, dict.fromkeys(leaks, 0))
 
-    def test_bug_manager_cannot_create_petty_cash_fund(self):
+    def test_fixed_manager_cannot_create_petty_cash_fund(self):
         """docs/08 (Fondo fijo): la creación del fondo y el cambio de monto los hace el Gerente.
         l10n_bo_petty_cash solo da acceso al contador (security/ir.model.access.csv) y
         ``_check_accountant`` (models/l10n_bo_petty_cash_fund.py) exige el grupo Contador:
@@ -321,7 +320,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
         fund.action_open()
         self.assertEqual(fund.sudo().state, 'open')
 
-    def test_bug_manager_cannot_approve_purchase(self):
+    def test_fixed_manager_cannot_approve_purchase(self):
         """docs/08: «> Bs 1.000 aprueba Gerente» con la doble validación estándar de Compras.
         ``group_spa_manager`` no implica ``purchase.group_purchase_manager``: ``button_approve`` del
         gerente no hace nada (sin error) y la orden queda «Por aprobar»."""
@@ -339,7 +338,7 @@ class TestSpaE2EBugs(SpaE2EMixin, TransactionCase):
 
 @tagged('post_install', '-at_install', 'spa', 'spa_e2e')
 @freeze_time(START)
-class TestSpaE2EWebBugs(SpaE2EMixin, HttpCase):
+class TestSpaE2EWebRegressions(SpaE2EMixin, HttpCase):
 
     @classmethod
     def setUpClass(cls):
@@ -358,7 +357,7 @@ class TestSpaE2EWebBugs(SpaE2EMixin, HttpCase):
         self.assertTrue(lead_id, response.text[:300])
         return self.env['crm.lead'].browse(lead_id)
 
-    def test_bug_web_contact_form_lead_not_in_acquisition(self):
+    def test_fixed_web_contact_form_lead_not_in_acquisition(self):
         """docs/06: «Formulario web → Lead en Interesado con fuente UTM». Un visitante que llega desde un
         anuncio de Instagram (cookie UTM ``odoo_utm_source``) y deja sus datos en «Contáctenos»:
         spa_crm/models/crm_lead.py ``create`` decide el embudo con ``vals.get('source_id')`` ANTES de que

@@ -524,7 +524,7 @@ class SpaPortal(CustomerPortal):
         if values['blocked']:
             return values
         plan = membership.plan_id
-        lines = plan.line_ids.filtered(lambda l: l.service_id.active and l.service_id.space_id.access_mode == 'slot'
+        lines = plan.line_ids.filtered(lambda l: l.service_id.active and l.service_id._spa_slot_bookable()
                                        and l.service_id.space_id.state == 'active')
         free_lines = plan.line_ids.filtered(lambda l: l.service_id.active and l.service_id.space_id.access_mode == 'free')
         services = lines.service_id
