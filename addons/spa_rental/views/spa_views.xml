@@ -32,6 +32,18 @@
         </field>
     </record>
 
+    <!-- Reserva rápida: las clases grupales se inscriben por horario, no por franja -->
+    <record id="spa_booking_slot_wizard_view_form_rental" model="ir.ui.view">
+        <field name="name">spa.booking.slot.wizard.form.rental</field>
+        <field name="model">spa.booking.slot.wizard</field>
+        <field name="inherit_id" ref="spa_booking.spa_booking_slot_wizard_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='service_id']" position="attributes">
+                <attribute name="domain">[('space_id.access_mode', '=', 'slot'), ('spa_is_class', '=', False)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Aforo en vivo: eventos y clases en curso -->
     <record id="spa_space_view_kanban_live_rental" model="ir.ui.view">
         <field name="name">spa.space.kanban.live.rental</field>
