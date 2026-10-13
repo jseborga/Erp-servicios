@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Marketing trabaja todo el CRM (todos los prospectos); el gerente además lo configura. -->
+    <!-- docs/10: Recepción = «CRM usuario» (sus prospectos y los sin asignar, p. ej. «Pasó por recepción»).
+         Marketing = «CRM gerente»: todos los prospectos, fuentes, embudos y etapas. -->
+    <record id="spa_base.group_spa_reception" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+    </record>
     <record id="spa_base.group_spa_marketing" model="res.groups">
-        <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman_all_leads'))]"/>
+        <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman_all_leads')), (4, ref('sales_team.group_sale_manager'))]"/>
     </record>
     <record id="spa_base.group_spa_manager" model="res.groups">
         <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_manager'))]"/>

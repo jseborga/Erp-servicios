@@ -37,6 +37,7 @@
                         <group string="Reglas del plan">
                             <field name="cancel_policy_id"/>
                             <field name="grace_days"/>
+                            <field name="freeze_max_days"/>
                             <field name="guest_quota"/>
                             <field name="guest_fee_product_id"/>
                         </group>

@@ -10,7 +10,7 @@ class SpaAccessLog(models.Model):
                                        index='btree_not_null', ondelete='restrict')
 
     @api.model
-    def do_check_in(self, space, token=None, partner=None, guests=0):
+    def do_check_in(self, space, token=None, partner=None, guests=0, day_pass=False):
         """El mismo lector de QR de recepción acepta credenciales de socio y pases de cortesía."""
         if token:
             clean = token.strip()
@@ -22,4 +22,4 @@ class SpaAccessLog(models.Model):
                         raise UserError(self.env._('El pase de cortesía es personal: registre a cada '
                                                    'acompañante con su propio pase o entrada.'))
                     return courtesy._redeem(space, method='qr')
-        return super().do_check_in(space, token=token, partner=partner, guests=guests)
+        return super().do_check_in(space, token=token, partner=partner, guests=guests, day_pass=day_pass)

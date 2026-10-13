@@ -2,6 +2,7 @@
 from datetime import timedelta
 
 from odoo import api, fields, models
+from odoo.tools import format_amount
 
 from .crm_lead import RISK_LEVEL
 
@@ -31,6 +32,84 @@ class SpaMembership(models.Model):
             'domain': [('spa_membership_id', '=', self.id)],
             'context': {'active_test': False, 'create': False},
         }
+
+    # ------------------------------------------------------------------
+    # Alta sin pagar → prospecto en «Propuesta»
+    # ------------------------------------------------------------------
+    @api.model_create_multi
+    def create(self, vals_list):
+        memberships = super().create(vals_list)
+        memberships._spa_crm_after_signup()
+        return memberships
+
+    @api.model
+    def _spa_crm_signup_origin(self):
+        """'web' si el alta la hace el propio socio en la web, 'internal' si la registra el personal.
+
+        Señal: la clave de contexto ``spa_portal_signup`` (la puede pasar el controlador de la
+        web) o, si no viene, el usuario que crea la membresía no es interno (socio del portal;
+        la web crea con ``sudo()`` pero conserva el usuario). El personal (recepción, caja) y
+        los procesos automáticos son usuarios internos.
+        """
+        if self.env.context.get('spa_portal_signup') or not self.env.user._is_internal():
+            return 'web'
+        return 'internal'
+
+    def _spa_crm_after_signup(self):
+        """Membresía en borrador de alguien que aún no es socio: su prospecto pasa a «Propuesta».
+
+        * Alta web (abandonada hasta que pague): crea o avanza el prospecto de Captación (fuente
+          «Web» si es nuevo), lo vincula a la membresía y programa el seguimiento.
+        * Alta del personal: solo avanza un prospecto abierto (lo habitual es que pague en el
+          momento); con el ajuste «Prospecto también para altas de recepción» también lo crea
+          (fuente «Recepción»).
+        Al activarse la membresía el prospecto se gana (``_spa_crm_after_activation``).
+        """
+        Lead = self.env['crm.lead'].sudo()
+        origin = self._spa_crm_signup_origin()
+        params = self.env['ir.config_parameter'].sudo()
+        create_internal = str(params.get_param('spa_crm.signup_lead_reception') or '').lower() in ('1', 'true')
+        try:
+            followup_days = int(params.get_param('spa_crm.followup_days', 0) or 0)
+        except (TypeError, ValueError):
+            followup_days = 0
+        today = self.env['spa.tools'].local_today()
+        for membership in self.sudo().filtered(lambda m: m.state == 'draft'):
+            partner = membership.partner_id
+            if partner._spa_has_live_membership(exclude=membership):
+                continue
+            team = Lead._spa_team('acquisition', membership.company_id)
+            existing = Lead._spa_find_open_leads(team, partner)
+            if origin == 'internal' and not existing and not create_internal:
+                continue
+            if origin == 'web':
+                source = Lead._spa_source('web')
+                name = self.env._('Alta web: %(partner)s (%(plan)s)', partner=partner.name,
+                                  plan=membership.plan_id.name)
+                how = self.env._('alta web')
+            else:
+                source = Lead._spa_source('reception')
+                name = self.env._('Alta: %(partner)s (%(plan)s)', partner=partner.name, plan=membership.plan_id.name)
+                how = self.env._('alta en recepción')
+            lead = Lead._spa_upsert_acquisition(
+                partner, membership.company_id, source=source, stage_code='proposal', lead=existing or None,
+                name=name, note=self.env._(
+                    'Inició el %(how)s del plan %(plan)s (%(period)s, %(price)s): pendiente de pago.',
+                    how=how, plan=membership.plan_id.name, period=membership.period_id.name,
+                    price=format_amount(self.env, membership.price, membership.currency_id)))
+            if not lead or lead.spa_pipeline != 'acquisition':
+                continue
+            vals = {}
+            if not lead.spa_membership_id:
+                vals['spa_membership_id'] = membership.id
+            if not lead.expected_revenue and membership.period_id.price:
+                vals['expected_revenue'] = membership.period_id.price
+            if vals:
+                lead.write(vals)
+            if origin == 'web' and followup_days:
+                lead._spa_schedule_activity(self.env._('Alta web sin pagar: ayudar a completar el pago'),
+                                            deadline=today + timedelta(days=followup_days))
+        return True
 
     # ------------------------------------------------------------------
     # Captación ganada y socio recuperado

@@ -47,5 +47,10 @@
             <field name="name">Pase de cortesía</field>
             <field name="body">Hola {nombre}, tienes un pase de cortesía en {empresa} válido hasta el {vence} para: {servicios}. Presenta este código en recepción: {codigo}.</field>
         </record>
+        <record id="tpl_waitlist_available" model="spa.message.template">
+            <field name="code">waitlist_available</field>
+            <field name="name">Lista de espera: se liberó un cupo</field>
+            <field name="body">Hola {nombre}, se liberó un cupo de {servicio} el {fecha} a las {hora}. Lo guardamos para ti durante {minutos} minutos: resérvalo en la web o respóndenos para confirmarlo. Después pasa a la siguiente persona de la lista.</field>
+        </record>
     </data>
 </odoo>

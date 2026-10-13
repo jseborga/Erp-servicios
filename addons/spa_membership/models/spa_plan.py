@@ -31,6 +31,10 @@ class SpaPlan(models.Model):
                                        check_company=True, tracking=True)
     grace_days = fields.Integer('Días de gracia', default=5, tracking=True,
                                 help='Días después del vencimiento en que el socio conserva el acceso.')
+    freeze_max_days = fields.Integer('Días de congelamiento por año', default=0, tracking=True,
+                                     help='Máximo de días por año calendario que el socio puede congelar su '
+                                          'membresía (viaje, salud). El vencimiento se corre esos días. '
+                                          '0 = el plan no permite congelar.')
     pricelist_id = fields.Many2one('product.pricelist', string='Lista de precios del socio',
                                    help='Descuentos del plan en restaurante, cafetería y tienda. '
                                         'Se asigna al socio mientras la membresía esté vigente.')

@@ -4,4 +4,6 @@
               action="spa_booking_slot_wizard_action" sequence="5" groups="spa_base.group_spa_reception"/>
     <menuitem id="spa_menu_booking" name="Agenda" parent="spa_base.spa_menu_operations"
               action="spa_booking_action" sequence="10"/>
+    <menuitem id="spa_menu_booking_waitlist" name="Lista de espera" parent="spa_base.spa_menu_operations"
+              action="spa_booking_waitlist_action" sequence="12" groups="spa_base.group_spa_reception"/>
 </odoo>

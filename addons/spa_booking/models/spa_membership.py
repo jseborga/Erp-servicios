@@ -1,4 +1,6 @@
 # Part of ERP Servicios Spa. License LGPL-3.
+from datetime import timedelta
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
@@ -51,6 +53,21 @@ class SpaMembership(models.Model):
             'domain': [('membership_id', '=', self.id)],
             'context': {'default_partner_id': self.partner_id.id, 'default_membership_id': self.id},
         }
+
+    def _spa_freeze_check(self, date_from, date_to):
+        """No se congela con reservas pendientes en esas fechas: primero se cancelan."""
+        res = super()._spa_freeze_check(date_from, date_to)
+        tools = self.env['spa.tools']
+        bookings = self.env['spa.booking'].sudo().search([
+            ('membership_id', '=', self.id), ('state', 'in', ('confirmed', 'checked_in')),
+            ('start', '>=', tools.local_combine(date_from, 0.0)),
+            ('start', '<', tools.local_combine(date_to + timedelta(days=1), 0.0)),
+        ], order='start')
+        if bookings:
+            raise UserError(self.env._(
+                'Cancele primero las reservas que caen dentro del congelamiento: %s.',
+                ', '.join(bookings.mapped('display_name'))))
+        return res
 
     def action_new_booking(self):
         self.ensure_one()

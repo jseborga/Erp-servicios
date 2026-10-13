@@ -170,4 +170,8 @@
             <field name="value">7</field>
         </record>
     </data>
+
+    <!-- Formulario «Contáctenos» del sitio (website_crm, si está instalado): equipo por defecto Captación
+         cuando el sitio no tiene uno elegido. Se revisa en cada actualización (no pisa la elección del administrador). -->
+    <function model="crm.lead" name="_spa_setup_website_team"/>
 </odoo>

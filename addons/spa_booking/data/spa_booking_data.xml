@@ -17,7 +17,20 @@
         <field name="interval_type">minutes</field>
     </record>
 
+    <record id="ir_cron_spa_booking_waitlist" model="ir.cron">
+        <field name="name">Spa: lista de espera (avisos y vencimientos)</field>
+        <field name="model_id" ref="model_spa_booking_waitlist"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_waitlist()</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+    </record>
+
     <data noupdate="1">
+        <record id="param_waitlist_priority_minutes" model="ir.config_parameter">
+            <field name="key">spa_booking.waitlist_priority_minutes</field>
+            <field name="value">30</field>
+        </record>
         <record id="param_no_show_grace" model="ir.config_parameter">
             <field name="key">spa.no_show_grace_minutes</field>
             <field name="value">15</field>

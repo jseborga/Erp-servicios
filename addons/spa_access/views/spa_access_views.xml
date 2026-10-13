@@ -10,6 +10,8 @@
                 <field name="space_id"/>
                 <field name="people" sum="Personas"/>
                 <field name="membership_id" optional="show"/>
+                <field name="day_pass" optional="show"/>
+                <field name="service_id" optional="hide"/>
                 <field name="booking_id" optional="hide"/>
                 <field name="method" optional="show"/>
                 <field name="check_out"/>
@@ -27,6 +29,7 @@
                 <field name="partner_id"/>
                 <field name="space_id"/>
                 <filter name="inside" string="Dentro ahora" domain="[('state', '=', 'open')]"/>
+                <filter name="day_pass" string="Pases diarios" domain="[('day_pass', '=', True)]"/>
                 <group>
                     <filter name="group_space" string="Espacio" context="{'group_by': 'space_id'}"/>
                     <filter name="group_day" string="Día" context="{'group_by': 'check_in:day'}"/>

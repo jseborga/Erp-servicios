@@ -21,6 +21,8 @@ class TestSpaCrm(SpaCommon):
         cls.team_acq = cls.env.ref('spa_crm.team_acquisition')
         cls.team_ret = cls.env.ref('spa_crm.team_retention')
         cls.sauna_space = cls.env.ref('spa_base.space_sauna')
+        # Las pruebas corren a cualquier hora: el sauna atiende todo el día (el horario se prueba aparte).
+        cls.sauna_space.write({'open_hour': 0.0, 'close_hour': 24.0})
         cls.icp = cls.env['ir.config_parameter'].sudo()
         for key, value in {
             'spa_crm.guest_welcome': 'True',

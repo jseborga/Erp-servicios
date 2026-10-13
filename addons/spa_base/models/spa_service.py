@@ -39,10 +39,19 @@ class SpaService(models.Model):
                 raise ValidationError(self.env._('Duración y cupos de %s deben ser mayores que cero.', service.name))
 
     def _qualified_employees(self):
+        """Personal con la especialidad del servicio.
+
+        La búsqueda se hace con ``sudo``: sin permisos de Empleados (recepción, web del socio)
+        Odoo redirige ``hr.employee`` a ``hr.employee.public``, que no tiene ``spa_skill_ids``.
+        Los empleados se devuelven en el entorno de quien llama, para poder asignarlos a una
+        reserva sin propagar el ``sudo``.
+        """
         self.ensure_one()
+        Employee = self.env['hr.employee']
         if not self.requires_staff:
-            return self.env['hr.employee']
-        return self.env['hr.employee'].search([
+            return Employee
+        employees = Employee.sudo().search([
             ('spa_skill_ids', 'in', self.skill_id.ids),
             ('company_id', '=', self.company_id.id),
         ])
+        return Employee.browse(employees.ids)

@@ -7,10 +7,16 @@
             <form string="Registrar ingreso">
                 <group>
                     <field name="space_id" options="{'no_create': True}"/>
+                    <field name="access_mode" invisible="1"/>
                     <field name="token" placeholder="Escanee la credencial del socio" default_focus="1"/>
-                    <field name="partner_id" options="{'no_create': True}"/>
+                    <field name="partner_id" placeholder="Socio o visitante (puede crear el contacto)"/>
                     <field name="guests"/>
+                    <field name="day_pass" invisible="access_mode != 'free'"/>
                 </group>
+                <div class="alert alert-info" role="status" invisible="not day_pass">
+                    Pase diario: se registra el ingreso sin membresía y se cobra la entrada suelta
+                    por cada persona (titular e invitados).
+                </div>
                 <footer>
                     <button name="action_check_in" type="object" string="Registrar ingreso" class="btn-primary"/>
                     <button special="cancel" string="Cerrar"/>

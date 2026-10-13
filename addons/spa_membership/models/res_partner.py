@@ -24,6 +24,13 @@ class ResPartner(models.Model):
             partner.spa_member_state = partner.spa_membership_id.state
             partner.spa_membership_count = len(memberships)
 
+    def _spa_has_live_membership(self, exclude=None):
+        """True si es socio: tiene una membresía activa, en gracia o suspendida (no cuenta ``exclude``)."""
+        self.ensure_one()
+        exclude = exclude or self.env['spa.membership']
+        return bool(self.sudo().spa_membership_ids.filtered(
+            lambda m: m.state in ('active', 'grace', 'suspended') and m.id not in exclude.ids))
+
     def action_view_spa_memberships(self):
         self.ensure_one()
         return {

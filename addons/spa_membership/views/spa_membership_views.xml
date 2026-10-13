@@ -29,6 +29,8 @@
                             invisible="state not in ('active', 'grace')" groups="spa_base.group_spa_manager"/>
                     <button name="action_open_adjust_wizard" type="object" string="Ajustar saldo"
                             invisible="state not in ('active', 'grace')" groups="spa_base.group_spa_manager"/>
+                    <button name="action_open_freeze_wizard" type="object" string="Congelar"
+                            invisible="state != 'active' or freeze_max_days &lt;= 0" groups="spa_base.group_spa_manager"/>
                     <button name="action_cancel" type="object" string="Cancelar membresía"
                             invisible="state in ('cancelled', 'expired')" groups="spa_base.group_spa_manager"
                             confirm="¿Cancelar esta membresía? El socio pierde el acceso."/>
@@ -36,6 +38,7 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box"/>
+                    <widget name="web_ribbon" title="Congelada" bg_color="text-bg-info" invisible="not frozen_until"/>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
@@ -52,6 +55,8 @@
                             <field name="date_start" readonly="1"/>
                             <field name="date_end" readonly="1"/>
                             <field name="grace_until" invisible="state != 'grace'"/>
+                            <field name="frozen_until" invisible="not frozen_until"/>
+                            <field name="freeze_max_days" invisible="1"/>
                             <field name="guests_this_month"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id" invisible="1"/>
@@ -92,6 +97,22 @@
                                     <field name="service_id"/>
                                     <field name="charge_type"/>
                                     <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Congelamientos" name="freezes" invisible="not freeze_ids">
+                            <field name="freeze_ids" readonly="1">
+                                <list decoration-muted="state == 'cancelled'">
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                    <field name="days" sum="Días"/>
+                                    <field name="reason"/>
+                                    <field name="date_end_before"/>
+                                    <field name="user_id"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'active'"/>
+                                    <button name="action_cancel" type="object" string="Anular" class="btn-link"
+                                            invisible="state != 'active'" groups="spa_base.group_spa_manager"
+                                            confirm="¿Anular el congelamiento? El vencimiento vuelve a la fecha anterior."/>
                                 </list>
                             </field>
                         </page>

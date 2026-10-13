@@ -16,6 +16,7 @@
         'views/spa_guest_views.xml',
         'views/res_partner_views.xml',
         'wizard/spa_consumption_adjust_views.xml',
+        'wizard/spa_membership_freeze_wizard_views.xml',
         'views/spa_membership_menus.xml',
     ],
     'installable': True,

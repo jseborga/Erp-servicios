@@ -135,7 +135,9 @@ class SpaBooking(models.Model):
 
         # Serializa confirmaciones concurrentes sobre el mismo espacio.
         space._lock_for_booking()
-        taken = space._seats_taken(self.start, self.stop, exclude_booking=self)
+        # El cupo que la lista de espera guarda para esta persona es suyo.
+        taken = space.with_context(spa_waitlist_partner_id=self.partner_id.id)._seats_taken(
+            self.start, self.stop, exclude_booking=self)
         if taken + self.seats > space.capacity:
             raise UserError(self.env._('No hay cupo en %(space)s: quedan %(free)s de %(cap)s.',
                                        space=space.name, free=max(space.capacity - taken, 0), cap=space.capacity))
@@ -157,6 +159,7 @@ class SpaBooking(models.Model):
             for guest in self.guest_ids.filtered(lambda g: not g.membership_id):
                 guest.membership_id = self.membership_id
         self.state = 'confirmed'
+        self.env['spa.booking.waitlist']._spa_mark_booked(self)
         self._after_confirm()
 
     def _after_confirm(self):
@@ -219,6 +222,8 @@ class SpaBooking(models.Model):
             else:
                 booking.state = 'cancelled'
                 booking._refund_session()
+        # Se liberaron cupos: avisar a la lista de espera (en orden de llegada).
+        self.env['spa.booking.waitlist']._spa_on_seats_freed(self)
         return True
 
     def _charge_penalty(self, product, kind):

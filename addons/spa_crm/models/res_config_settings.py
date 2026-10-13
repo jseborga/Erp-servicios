@@ -28,6 +28,11 @@ class ResConfigSettings(models.TransientModel):
     spa_crm_retention_expiry_days = fields.Integer(
         'Por vencer: días antes del vencimiento', config_parameter='spa_crm.retention_expiry_days',
         help='Socios que vencen dentro de estos días sin una factura de renovación abierta. 0 = no evaluar.')
+    spa_crm_signup_lead_reception = fields.Boolean(
+        'Prospecto también para altas de recepción sin pagar', config_parameter='spa_crm.signup_lead_reception',
+        help='Las altas web sin pagar siempre crean (o avanzan) el prospecto en «Propuesta». Active esta opción '
+             'para hacer lo mismo con las membresías en borrador que registra el personal; si no, solo se '
+             'avanza el prospecto que ya exista.')
     spa_crm_activity_type_id = fields.Many2one(
         'mail.activity.type', string='Tipo de actividad de seguimiento', config_parameter='spa_crm.activity_type_id',
         domain="[('res_model', 'in', (False, 'crm.lead'))]",

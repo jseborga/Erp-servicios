@@ -153,7 +153,8 @@ class SpaCourtesyPass(models.Model):
         for courtesy in self:
             partner = courtesy.partner_id.sudo()
             if not partner and courtesy.phone:
-                partner = Partner.search([('phone', '=', courtesy.phone)], limit=1)
+                # Mismo celular escrito distinto («70000101» y «+591 70000101»): últimos 8 dígitos.
+                partner = Partner._spa_find_by_phone(courtesy.phone)
             if not partner and courtesy.email:
                 partner = Partner.search([('email', '=ilike', courtesy.email)], limit=1)
             if not partner:
@@ -176,8 +177,7 @@ class SpaCourtesyPass(models.Model):
         self.ensure_one()
         self._spa_ensure_partner()
         partner = self.partner_id.sudo()
-        live = partner.spa_membership_ids.filtered(lambda m: m.state in ('active', 'grace', 'suspended'))
-        if not live:
+        if not partner._spa_has_live_membership():
             lead = self.env['crm.lead']._spa_upsert_acquisition(
                 partner, self.company_id, source=self.source_id, stage_code='visit',
                 name=self.env._('Cortesía: %s', self.guest_name), referred_by=self.referrer_partner_id or None,
@@ -295,8 +295,8 @@ class SpaCourtesyPass(models.Model):
             raise UserError(self.env._('El pase %(name)s no incluye %(space)s. Incluye: %(services)s.',
                                        name=self.name, space=space.name,
                                        services=', '.join(self.service_ids.mapped('name'))))
-        if space.state != 'active':
-            raise UserError(self.env._('%s no está operativo.', space.name))
+        # Estado, horario de atención, días y cierres programados del espacio.
+        space._check_open_now(now)
         self._spa_ensure_partner()
         person = self.partner_id
         Log = self.env['spa.access.log']
@@ -309,9 +309,9 @@ class SpaCourtesyPass(models.Model):
         if space.access_mode == 'free':
             taken = space.occupancy
         else:
+            # Reservas + personas dentro sin reserva (spa_access extiende _seats_taken).
             stop = now + timedelta(hours=service.duration)
-            walk_ins = Log.search([('space_id', '=', space.id), ('state', '=', 'open'), ('booking_id', '=', False)])
-            taken = space._seats_taken(now, stop) + sum(walk_ins.mapped('people'))
+            taken = space._seats_taken(now, stop)
         if taken + 1 > space.capacity:
             raise UserError(self.env._('%(space)s está lleno (%(n)s de %(cap)s). Espere a que se libere un cupo.',
                                        space=space.name, n=taken, cap=space.capacity))
@@ -319,6 +319,7 @@ class SpaCourtesyPass(models.Model):
         log = Log.create({
             'partner_id': person.id,
             'space_id': space.id,
+            'service_id': service.id,
             'people': 1,
             'method': method,
             'courtesy_ref': self.name,
