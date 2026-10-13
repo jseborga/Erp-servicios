@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Espacio: producto de alquiler por hora -->
+    <record id="spa_space_view_form_rental" model="ir.ui.view">
+        <field name="name">spa.space.form.rental</field>
+        <field name="model">spa.space</field>
+        <field name="inherit_id" ref="spa_base.spa_space_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='analytic_account_id']" position="after">
+                <field name="spa_rental_product_id" options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_rentals" type="object" class="oe_stat_button" icon="fa-glass"
+                            groups="spa_base.group_spa_reception">
+                        <span>Alquileres</span>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Servicio: clase grupal -->
+    <record id="spa_service_view_form_rental" model="ir.ui.view">
+        <field name="name">spa.service.form.rental</field>
+        <field name="model">spa.service</field>
+        <field name="inherit_id" ref="spa_base.spa_service_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='guest_allowed']" position="after">
+                <field name="spa_is_class"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Aforo en vivo: eventos y clases en curso -->
+    <record id="spa_space_view_kanban_live_rental" model="ir.ui.view">
+        <field name="name">spa.space.kanban.live.rental</field>
+        <field name="model">spa.space</field>
+        <field name="inherit_id" ref="spa_access.spa_space_view_kanban_live"/>
+        <field name="arch" type="xml">
+            <xpath expr="//footer" position="before">
+                <div class="small text-warning mt-1" invisible="not spa_reserved_label">
+                    <i class="fa fa-lock me-1" title="Reservado"/>
+                    <field name="spa_reserved_now"/> reservados: <field name="spa_reserved_label"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Historial de ingresos: clase -->
+    <record id="spa_access_log_view_list_rental" model="ir.ui.view">
+        <field name="name">spa.access.log.list.rental</field>
+        <field name="model">spa.access.log</field>
+        <field name="inherit_id" ref="spa_access.spa_access_log_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='booking_id']" position="after">
+                <field name="class_session_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Oportunidad: alquileres vinculados -->
+    <record id="crm_lead_view_form_spa_rental" model="ir.ui.view">
+        <field name="name">crm.lead.form.spa.rental</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_spa_view_rentals" type="object" class="oe_stat_button" icon="fa-glass"
+                        groups="spa_base.group_spa_reception">
+                    <field name="spa_rental_count" widget="statinfo" string="Eventos"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

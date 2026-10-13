@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Datos iniciales EDITABLES (precios ilustrativos). noupdate: las actualizaciones del
+         módulo no pisan lo que el administrador cambie. -->
+    <data noupdate="1">
+        <!-- Mensajes de WhatsApp -->
+        <record id="tpl_rental_confirmed" model="spa.message.template">
+            <field name="code">rental_confirmed</field>
+            <field name="name">Alquiler / evento confirmado</field>
+            <field name="body">Hola {nombre}, confirmamos tu evento «{evento}» en {espacio} el {fecha} de {hora} a {hora_fin} (reserva {numero}). Total: {monto}. Garantía: {garantia}, que se devuelve después del evento. ¡Gracias por elegirnos!</field>
+        </record>
+        <record id="tpl_rental_reminder" model="spa.message.template">
+            <field name="code">rental_reminder</field>
+            <field name="name">Recordatorio de evento</field>
+            <field name="body">Hola {nombre}, te recordamos tu evento «{evento}» en {espacio} el {fecha} de {hora} a {hora_fin}. Si necesitas algo para el montaje, respóndenos por aquí.</field>
+        </record>
+        <record id="tpl_class_cancelled" model="spa.message.template">
+            <field name="code">class_cancelled</field>
+            <field name="name">Clase cancelada</field>
+            <field name="body">Hola {nombre}, lamentamos avisarte que la clase {clase} del {fecha} a las {hora} se canceló: {motivo}. {devolucion} Disculpa las molestias.</field>
+        </record>
+
+        <!-- Productos -->
+        <record id="product_pool_rental_hour" model="product.product">
+            <field name="name">Alquiler de piscina por hora</field>
+            <field name="type">service</field>
+            <field name="list_price">600.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_rental"/>
+        </record>
+        <record id="product_rental_damage" model="product.product">
+            <field name="name">Reposición por daños en evento</field>
+            <field name="type">service</field>
+            <field name="list_price">0.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_rental"/>
+        </record>
+        <record id="product_class_swim" model="product.product">
+            <field name="name">Clase de natación (sesión)</field>
+            <field name="type">service</field>
+            <field name="list_price">80.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_class"/>
+        </record>
+        <record id="product_class_swim_package" model="product.product">
+            <field name="name">Paquete 12 clases de natación</field>
+            <field name="type">service</field>
+            <field name="list_price">840.0</field>
+            <field name="categ_id" ref="l10n_bo_spa.categ_class"/>
+        </record>
+
+        <record id="spa_base.space_pool" model="spa.space">
+            <field name="spa_rental_product_id" ref="product_pool_rental_hour"/>
+        </record>
+
+        <!-- Servicio de clase -->
+        <record id="service_class_swim" model="spa.service">
+            <field name="name">Clase de natación</field>
+            <field name="sequence">50</field>
+            <field name="space_id" ref="spa_base.space_pool"/>
+            <field name="product_id" ref="product_class_swim"/>
+            <field name="duration">1.0</field>
+            <field name="requires_staff" eval="True"/>
+            <field name="skill_id" ref="spa_base.skill_instructor"/>
+            <field name="guest_allowed" eval="False"/>
+            <field name="spa_is_class" eval="True"/>
+            <field name="description">Clases grupales con instructor certificado. Cupo limitado.</field>
+        </record>
+
+        <!-- Instructor (renombrar) con su turno -->
+        <record id="calendar_spa_instructor" model="resource.calendar">
+            <field name="name">Turno instructores 14:00-21:00 (lunes a sábado)</field>
+            <field name="tz">America/La_Paz</field>
+            <field name="attendance_ids" eval="[(5, 0, 0)] + [
+                (0, 0, {'name': d[1], 'dayofweek': d[0], 'hour_from': 14.0, 'hour_to': 21.0, 'day_period': 'afternoon'})
+                for d in [('0', 'Lunes'), ('1', 'Martes'), ('2', 'Miércoles'), ('3', 'Jueves'),
+                          ('4', 'Viernes'), ('5', 'Sábado')]]"/>
+        </record>
+        <record id="employee_swim_instructor" model="hr.employee">
+            <field name="name">Instructor de natación 1 (renombrar)</field>
+            <field name="job_title">Instructor de natación</field>
+            <field name="resource_calendar_id" ref="calendar_spa_instructor"/>
+            <field name="spa_skill_ids" eval="[(4, ref('spa_base.skill_instructor'))]"/>
+        </record>
+
+        <!-- Horario de ejemplo (inactivo: actívelo al asignar al instructor real) -->
+        <record id="class_template_swim" model="spa.class.template">
+            <field name="name">Natación – lunes, miércoles y viernes 18:00</field>
+            <field name="service_id" ref="service_class_swim"/>
+            <field name="instructor_id" ref="employee_swim_instructor"/>
+            <field name="mon" eval="True"/>
+            <field name="wed" eval="True"/>
+            <field name="fri" eval="True"/>
+            <field name="start_hour">18.0</field>
+            <field name="duration">1.0</field>
+            <field name="capacity">8</field>
+            <field name="session_product_id" ref="product_class_swim"/>
+            <field name="package_product_id" ref="product_class_swim_package"/>
+            <field name="package_sessions">12</field>
+            <field name="description">Ejemplo editable. Al activarlo se generan las sesiones de las próximas semanas y cada una reserva 8 cupos de la piscina.</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- Embudo del CRM para eventos -->
+        <record id="crm_team_events" model="crm.team" forcecreate="False">
+            <field name="name">Eventos y alquileres</field>
+            <field name="sequence">7</field>
+            <field name="company_id" eval="False"/>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="use_opportunities" eval="True"/>
+        </record>
+        <record id="crm_stage_event_inquiry" model="crm.stage">
+            <field name="name">Consulta</field>
+            <field name="sequence">210</field>
+            <field name="team_ids" eval="[(6, 0, [ref('crm_team_events')])]"/>
+            <field name="requirements">Pidió información o disponibilidad para un evento.</field>
+        </record>
+        <record id="crm_stage_event_quote" model="crm.stage">
+            <field name="name">Cotización enviada</field>
+            <field name="sequence">220</field>
+            <field name="team_ids" eval="[(6, 0, [ref('crm_team_events')])]"/>
+            <field name="requirements">Se registró la cotización del alquiler (se mueve sola).</field>
+        </record>
+        <record id="crm_stage_event_won" model="crm.stage">
+            <field name="name">Evento confirmado</field>
+            <field name="sequence">230</field>
+            <field name="is_won" eval="True"/>
+            <field name="team_ids" eval="[(6, 0, [ref('crm_team_events')])]"/>
+            <field name="requirements">El gerente confirmó el alquiler (se marca solo).</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_rental_payment_wizard_view_form" model="ir.ui.view">
+        <field name="name">spa.rental.payment.wizard.form</field>
+        <field name="model">spa.rental.payment.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="alert alert-info" role="status" invisible="kind != 'invoice'">
+                    Al registrar el cobro se valida la factura con la fecha de hoy (hecho imponible: percepción del precio).
+                </div>
+                <div class="alert alert-info" role="status" invisible="kind != 'deposit'">
+                    La garantía no se factura: se registra en la cuenta de garantías recibidas y se devuelve o aplica a
+                    daños después del evento.
+                </div>
+                <group>
+                    <group>
+                        <field name="kind" invisible="1"/>
+                        <field name="partner_id" readonly="1"/>
+                        <field name="rental_id" readonly="1" invisible="not rental_id"/>
+                        <field name="enrollment_id" readonly="1" invisible="not enrollment_id"/>
+                        <field name="invoice_id" readonly="1" invisible="kind != 'invoice'"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="amount"/>
+                        <field name="method" widget="radio"/>
+                        <field name="reference" invisible="method == 'cash'"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Registrar cobro" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancelar" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

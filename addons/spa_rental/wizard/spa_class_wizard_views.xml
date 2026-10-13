@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_class_session_cancel_wizard_view_form" model="ir.ui.view">
+        <field name="name">spa.class.session.cancel.wizard.form</field>
+        <field name="model">spa.class.session.cancel.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <p>Se avisa a los alumnos por WhatsApp con el motivo y se les devuelve la sesión: al saldo del plan
+                   (socios), se anula el cobro pendiente o se prepara la nota de crédito si ya pagaron.</p>
+                <group>
+                    <field name="session_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="reason" placeholder="Ej. El instructor está enfermo"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Cancelar sesión" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Volver" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_class_package_wizard_view_form" model="ir.ui.view">
+        <field name="name">spa.class.package.wizard.form</field>
+        <field name="model">spa.class.package.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="template_id" readonly="1"/>
+                        <field name="partner_id"/>
+                        <field name="payment_mode" widget="radio"/>
+                        <field name="membership_id" invisible="payment_mode != 'membership'"
+                               required="payment_mode == 'membership'" options="{'no_create': True}"/>
+                        <field name="channel"/>
+                    </group>
+                    <group>
+                        <field name="sessions"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="can_edit_price" invisible="1"/>
+                        <field name="price" invisible="payment_mode != 'invoice'" readonly="not can_edit_price" force_save="1"/>
+                    </group>
+                </group>
+                <div class="text-muted small">
+                    Inscribe al alumno en las próximas sesiones programadas del horario. Con pago, se crea una factura
+                    en borrador que se valida al cobrar o al terminar el paquete.
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Inscribir" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancelar" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

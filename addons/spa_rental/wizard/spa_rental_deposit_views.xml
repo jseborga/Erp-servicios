@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_rental_deposit_wizard_view_form" model="ir.ui.view">
+        <field name="name">spa.rental.deposit.wizard.form</field>
+        <field name="model">spa.rental.deposit.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="rental_id" readonly="1"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="deposit_balance"/>
+                        <field name="operation" widget="radio"/>
+                    </group>
+                    <group>
+                        <field name="amount"/>
+                        <field name="method" widget="radio" invisible="operation != 'refund'" required="operation == 'refund'"/>
+                        <field name="product_id" invisible="operation != 'apply'" options="{'no_create': True}"/>
+                        <field name="description" invisible="operation != 'apply'" required="operation == 'apply'"
+                               placeholder="Ej. Reposición de 2 reposeras rotas"/>
+                    </group>
+                </group>
+                <div class="text-muted small" invisible="operation != 'apply'">
+                    Se emite una factura por los daños (ya cobrada con la garantía) y se descuenta de la garantía en custodia.
+                    El saldo restante se devuelve con «Devolver al cliente».
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirmar" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancelar" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
