@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_spa_crm" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.spa.crm</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="spa_base.res_config_settings_view_form_spa"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='spa_base']" position="inside">
+                <block title="CRM: cortesías e invitados" name="spa_crm_courtesy">
+                    <setting string="Límite de cortesías" help="Pases que cada usuario puede emitir por mes (0 = sin límite). Los gerentes no tienen límite.">
+                        <field name="spa_crm_courtesy_monthly_limit"/>
+                    </setting>
+                    <setting string="Vigencia de la cortesía" help="Días de validez que se proponen al emitir un pase.">
+                        <field name="spa_crm_courtesy_validity_days"/>
+                    </setting>
+                    <setting help="Al registrar un invitado, genera el WhatsApp «Bienvenida a invitados» (plantilla editable en Mensajería).">
+                        <field name="spa_crm_guest_welcome"/>
+                    </setting>
+                    <setting string="Seguimiento tras la visita" help="Días después de la visita (invitado o cortesía) para la llamada de seguimiento. 0 = no programar.">
+                        <field name="spa_crm_followup_days"/>
+                        <div class="mt-2">
+                            <label for="spa_crm_activity_type_id" class="me-2"/>
+                            <field name="spa_crm_activity_type_id" options="{'no_create': True}"/>
+                        </div>
+                    </setting>
+                </block>
+                <block title="CRM: retención de socios" name="spa_crm_retention">
+                    <setting string="Uso bajo" help="Pasa a «En riesgo» quien usó menos de este % de su saldo del mes, a partir del día indicado. 0 % = no evaluar.">
+                        <div><label for="spa_crm_retention_low_usage_pct" class="me-2"/><field name="spa_crm_retention_low_usage_pct" class="oe_inline"/></div>
+                        <div><label for="spa_crm_retention_low_usage_day" class="me-2"/><field name="spa_crm_retention_low_usage_day" class="oe_inline"/></div>
+                    </setting>
+                    <setting string="Próximos a vencer" help="Días antes del vencimiento sin factura de renovación abierta. 0 = no evaluar. La mora y la suspensión siempre se evalúan.">
+                        <field name="spa_crm_retention_expiry_days"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pos_payment_method_view_form_spa" model="ir.ui.view">
+        <field name="name">pos.payment.method.form.spa</field>
+        <field name="model">pos.payment.method</field>
+        <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_form"/>
+        <field name="arch" type="xml">
+            <field name="split_transactions" position="before">
+                <field name="spa_member_account" invisible="journal_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="pos_payment_method_view_tree_spa" model="ir.ui.view">
+        <field name="name">pos.payment.method.list.spa</field>
+        <field name="model">pos.payment.method</field>
+        <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="split_transactions" position="after">
+                <field name="spa_member_account" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

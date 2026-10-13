@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- App Spa -->
+    <menuitem id="spa_menu_courtesy_redeem" name="Canjear cortesía" parent="spa_base.spa_menu_operations"
+              action="spa_courtesy_redeem_wizard_action" sequence="3" groups="spa_base.group_spa_reception"/>
+    <menuitem id="spa_menu_crm" name="CRM" parent="spa_base.spa_menu_root" sequence="30"
+              groups="spa_base.group_spa_reception"/>
+    <menuitem id="spa_menu_courtesy_pass" name="Pases de cortesía" parent="spa_menu_crm"
+              action="spa_courtesy_pass_action" sequence="10"/>
+    <menuitem id="spa_menu_acquisition" name="Captación" parent="spa_menu_crm"
+              action="crm_lead_action_spa_acquisition" sequence="20" groups="spa_base.group_spa_marketing"/>
+    <menuitem id="spa_menu_retention" name="Retención" parent="spa_menu_crm"
+              action="crm_lead_action_spa_retention" sequence="30" groups="spa_base.group_spa_marketing"/>
+    <menuitem id="spa_menu_conversion" name="Conversión por fuente" parent="spa_menu_crm"
+              action="crm_lead_action_spa_conversion" sequence="40" groups="spa_base.group_spa_marketing"/>
+    <menuitem id="spa_menu_lead_source" name="Fuentes de prospectos" parent="spa_base.spa_menu_config"
+              action="utm_source_action_spa" sequence="40"/>
+
+    <!-- App CRM -->
+    <menuitem id="crm_menu_spa_acquisition" name="Captación (spa)" parent="crm.crm_menu_sales"
+              action="crm_lead_action_spa_acquisition" sequence="2"/>
+    <menuitem id="crm_menu_spa_retention" name="Retención (spa)" parent="crm.crm_menu_sales"
+              action="crm_lead_action_spa_retention" sequence="3"/>
+    <menuitem id="crm_menu_courtesy_pass" name="Pases de cortesía" parent="crm.crm_menu_sales"
+              action="spa_courtesy_pass_action" sequence="4" groups="spa_base.group_spa_reception"/>
+    <menuitem id="crm_menu_spa_conversion" name="Conversión por fuente" parent="crm.crm_menu_report"
+              action="crm_lead_action_spa_conversion" sequence="5"/>
+    <menuitem id="crm_menu_lead_source" name="Fuentes de prospectos" parent="crm.crm_menu_config"
+              action="utm_source_action_spa" sequence="20" groups="sales_team.group_sale_manager"/>
+</odoo>

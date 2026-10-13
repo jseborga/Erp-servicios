@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_plan_view_form_pos" model="ir.ui.view">
+        <field name="name">spa.plan.form.pos</field>
+        <field name="model">spa.plan</field>
+        <field name="inherit_id" ref="spa_membership.spa_plan_view_form"/>
+        <field name="arch" type="xml">
+            <field name="pricelist_id" position="after">
+                <field name="pos_credit_limit"/>
+            </field>
+        </field>
+    </record>
+</odoo>

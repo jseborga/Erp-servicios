@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==============================================================
+         /my/spa: estado, credencial QR, saldos, reservas, invitados y pagos
+         ============================================================== -->
+    <template id="spa_my_home" name="Spa: mi membresía">
+        <t t-call="portal.portal_layout">
+            <t t-set="additional_title">Mi membresía</t>
+            <div class="o_spa_portal">
+                <t t-call="spa_portal.spa_member_nav"/>
+                <t t-call="spa_portal.spa_alerts"/>
+
+                <div t-if="not membership" class="card text-center shadow-sm">
+                    <div class="card-body py-5">
+                        <i class="fa fa-id-card-o fa-3x text-muted mb-3" aria-hidden="true"/>
+                        <h1 class="h4">Aún no eres socio</h1>
+                        <p class="text-muted">Elige un plan, paga en línea y recibe tu credencial QR para ingresar.</p>
+                        <a href="/spa" class="btn btn-primary">Ver planes</a>
+                    </div>
+                </div>
+
+                <t t-else="">
+                    <t t-set="has_access" t-value="membership.state in ('active', 'grace')"/>
+                    <div class="row g-3 mb-4">
+                        <!-- Membresía y credencial -->
+                        <div class="col-12 col-lg-5">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <div>
+                                            <h1 class="h4 mb-0" t-out="membership.plan_id.name"/>
+                                            <small class="text-muted" t-out="membership.name"/>
+                                        </div>
+                                        <span t-attf-class="badge rounded-pill text-bg-#{state_badge}" t-out="state_label"/>
+                                    </div>
+                                    <p t-if="membership.date_end" class="small mt-2 mb-0">
+                                        Vigente del <t t-out="fmt_date(membership.date_start)"/>
+                                        al <strong t-out="fmt_date(membership.date_end)"/>
+                                        <t t-if="membership.state == 'grace' and membership.grace_until">
+                                            · <span class="text-warning-emphasis">en gracia hasta el <t t-out="fmt_date(membership.grace_until)"/></span>
+                                        </t>
+                                    </p>
+                                    <div t-if="show_qr" class="text-center mt-3">
+                                        <img t-att-src="qr_url" class="o_spa_qr border rounded p-2 bg-white" alt="Credencial QR del socio"/>
+                                        <p class="small text-muted mt-2 mb-0">Muestra este código en recepción para ingresar.</p>
+                                    </div>
+                                    <div t-elif="membership.state == 'draft'" class="alert alert-warning mt-3 mb-0" role="status">
+                                        Tu credencial QR se activa cuando caja confirme tu pago.
+                                        <div t-if="amount_due" class="mt-2">
+                                            <a href="/my/spa/pay" class="btn btn-primary btn-sm">Pagar <t t-out="money(amount_due)"/></a>
+                                        </div>
+                                    </div>
+                                    <div t-elif="membership.state == 'suspended'" class="alert alert-danger mt-3 mb-0" role="status">
+                                        Tu membresía está suspendida por saldo pendiente. Paga para volver a ingresar y reservar.
+                                        <div t-if="amount_due" class="mt-2">
+                                            <a href="/my/spa/pay" class="btn btn-primary btn-sm">Pagar <t t-out="money(amount_due)"/></a>
+                                        </div>
+                                    </div>
+                                    <div t-if="has_access" class="d-flex gap-2 mt-3">
+                                        <a href="/my/spa/book" class="btn btn-primary flex-fill"><i class="fa fa-calendar me-1" aria-hidden="true"/>Reservar</a>
+                                        <a href="/my/spa/guests" class="btn btn-outline-primary flex-fill"><i class="fa fa-user-plus me-1" aria-hidden="true"/>Invitados</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Saldos del mes e invitados -->
+                        <div class="col-12 col-lg-7">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h2 class="h5">Tus saldos · <span class="text-muted text-capitalize" t-out="month_label"/></h2>
+                                    <p t-if="not balances" class="text-muted mb-0">Tus saldos aparecen cuando tu membresía esté activa.</p>
+                                    <div t-foreach="balances" t-as="balance" class="mb-3">
+                                        <div class="d-flex justify-content-between gap-2">
+                                            <strong t-out="balance['service'].name"/>
+                                            <span class="text-nowrap" t-out="balance['label']"/>
+                                        </div>
+                                        <div class="progress o_spa_progress my-1" role="progressbar"
+                                             t-att-aria-label="balance['service'].name" t-att-aria-valuenow="balance['pct']"
+                                             aria-valuemin="0" aria-valuemax="100">
+                                            <div t-attf-class="progress-bar #{'bg-success' if balance['unlimited'] or balance['pct'] &gt; 25 else 'bg-warning'}"
+                                                 t-attf-style="width: #{balance['pct']}%"/>
+                                        </div>
+                                        <small class="text-muted" t-out="balance['rule']"/>
+                                    </div>
+                                    <div t-if="guest_quota" class="border-top pt-3">
+                                        <div class="d-flex justify-content-between gap-2">
+                                            <strong>Invitados (free pass)</strong>
+                                            <span class="text-nowrap"><t t-out="guest_used"/> de <t t-out="guest_quota"/> usados</span>
+                                        </div>
+                                        <div class="progress o_spa_progress my-1" role="progressbar" aria-label="Free pass disponibles"
+                                             t-att-aria-valuenow="guest_pct" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar bg-info" t-attf-style="width: #{guest_pct}%"/>
+                                        </div>
+                                        <a t-if="has_access" href="/my/spa/guests" class="small">Registrar un invitado</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Próximas reservas -->
+                    <section class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h2 class="h5 mb-0">Próximas reservas</h2>
+                            <a t-if="has_access" href="/my/spa/book" class="btn btn-sm btn-outline-primary">Nueva reserva</a>
+                        </div>
+                        <p t-if="not bookings" class="text-muted">No tienes reservas próximas.</p>
+                        <ul t-else="" class="list-group shadow-sm">
+                            <li t-foreach="bookings" t-as="item" class="list-group-item">
+                                <t t-set="booking" t-value="item['record']"/>
+                                <div class="d-flex justify-content-between align-items-start gap-2">
+                                    <div>
+                                        <strong t-out="booking.service_id.name"/>
+                                        <div class="small text-muted">
+                                            <i class="fa fa-clock-o me-1" aria-hidden="true"/><t t-out="fmt_dt(booking.start)"/>
+                                            <t t-if="item['guests']"> · <t t-out="item['guests']"/> invitado(s)</t>
+                                            <t t-if="booking.employee_id"> · <t t-out="booking.employee_id.name"/></t>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge text-bg-light border" t-field="booking.state"/>
+                                        <button t-if="item['can_cancel']" type="button" class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="collapse" t-attf-data-bs-target="#spa_cancel_#{booking.id}"
+                                                aria-expanded="false" t-attf-aria-controls="spa_cancel_#{booking.id}">Cancelar</button>
+                                    </div>
+                                </div>
+                                <div t-if="item['can_cancel']" class="collapse" t-attf-id="spa_cancel_#{booking.id}">
+                                    <form t-attf-action="/my/spa/booking/#{booking.id}/cancel" method="post"
+                                          t-attf-class="alert #{'alert-warning' if item['late'] else 'alert-light border'} mt-2 mb-0 d-flex flex-wrap align-items-center gap-2">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <span class="flex-grow-1 small" t-out="item['consequence']"/>
+                                        <button type="submit" class="btn btn-sm btn-danger">Sí, cancelar</button>
+                                    </form>
+                                </div>
+                            </li>
+                        </ul>
+                        <p t-if="policy_text" class="small text-muted mt-2 mb-0" t-out="policy_text"/>
+                    </section>
+
+                    <!-- Pagos -->
+                    <section class="mb-4">
+                        <h2 class="h5">Pagos</h2>
+                        <div t-if="open_invoices" class="card shadow-sm mb-3">
+                            <div class="card-body">
+                                <p class="mb-2">Saldo pendiente: <strong class="fs-5" t-out="money(amount_due)"/></p>
+                                <ul class="list-group list-group-flush">
+                                    <li t-foreach="open_invoices" t-as="open_invoice"
+                                        class="list-group-item px-0 d-flex justify-content-between align-items-center gap-2">
+                                        <div>
+                                            <span t-out="open_invoice.name"/>
+                                            <small class="d-block text-muted">
+                                                <span t-field="open_invoice.spa_invoice_kind"/>
+                                                <t t-if="open_invoice.invoice_date_due"> · vence el <t t-out="fmt_date(open_invoice.invoice_date_due)"/></t>
+                                            </small>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <strong class="text-nowrap" t-out="money(open_invoice.amount_residual, open_invoice.currency_id)"/>
+                                            <a t-attf-href="/my/spa/pay/#{open_invoice.id}" class="btn btn-sm btn-primary">Pagar</a>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p t-else="" class="text-muted">No tienes pagos pendientes.</p>
+                        <t t-if="payment_requests">
+                            <h3 class="h6 text-muted">Pagos informados</h3>
+                            <t t-call="spa_portal.spa_payment_request_list">
+                                <t t-set="requests" t-value="payment_requests"/>
+                            </t>
+                        </t>
+                    </section>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- Lista de pagos informados (portada y página de pago) -->
+    <template id="spa_payment_request_list" name="Spa: pagos informados">
+        <t t-set="request_badges" t-value="{'pending': 'warning', 'validated': 'success', 'rejected': 'danger'}"/>
+        <ul class="list-group shadow-sm">
+            <li t-foreach="requests" t-as="pay_request" class="list-group-item d-flex justify-content-between align-items-start gap-2">
+                <div>
+                    <strong t-out="money(pay_request.amount, pay_request.currency_id)"/>
+                    <small class="d-block text-muted">
+                        <t t-out="pay_request.name"/> · <span t-field="pay_request.method"/>
+                        · <t t-out="fmt_dt(pay_request.create_date)"/>
+                        <t t-if="pay_request.reference"> · Ref. <t t-out="pay_request.reference"/></t>
+                    </small>
+                    <small t-if="pay_request.state == 'rejected' and pay_request.reject_reason" class="d-block text-danger">
+                        Motivo: <t t-out="pay_request.reject_reason"/>
+                    </small>
+                </div>
+                <span t-attf-class="badge rounded-pill text-bg-#{request_badges.get(pay_request.state, 'secondary')}"
+                      t-field="pay_request.state"/>
+            </li>
+        </ul>
+    </template>
+
+    <!-- ==============================================================
+         /my/spa/book: reservar una franja (días en chips, aforo e invitados)
+         ============================================================== -->
+    <template id="spa_my_book" name="Spa: reservar">
+        <t t-call="portal.portal_layout">
+            <t t-set="additional_title">Reservar</t>
+            <div class="o_spa_portal">
+                <t t-call="spa_portal.spa_member_nav"/>
+                <t t-call="spa_portal.spa_alerts"/>
+                <h1 class="h4 mb-3">Reservar</h1>
+
+                <t t-if="blocked" t-call="spa_portal.spa_blocked"/>
+                <div t-elif="not services" class="alert alert-info" role="status">
+                    Tu plan no incluye servicios con reserva previa.
+                </div>
+                <t t-else="">
+                    <!-- Servicio -->
+                    <div t-if="len(services) &gt; 1" class="o_spa_chips mb-3" role="group" aria-label="Servicio">
+                        <a t-foreach="services" t-as="srv" t-att-href="book_url(service_id=srv.id, guests=0)"
+                           t-attf-class="btn btn-sm rounded-pill #{'btn-primary' if srv == service else 'btn-outline-primary'}"
+                           t-att-aria-current="'true' if srv == service else None" t-out="srv.name"/>
+                    </div>
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body py-2">
+                            <strong t-out="service.name"/>
+                            <span class="text-muted small">· <t t-out="'%g' % (service.duration * 60)"/> min</span>
+                            <div class="small" t-out="balance"/>
+                            <div t-if="service.description" class="small text-muted" t-out="service.description"/>
+                        </div>
+                    </div>
+
+                    <!-- Día -->
+                    <div class="o_spa_chips mb-2" role="group" aria-label="Día">
+                        <t t-foreach="days" t-as="d">
+                            <a t-att-href="book_url(day=d['value'])"
+                               t-attf-class="btn o_spa_day #{'btn-primary' if d['value'] == day_value else ('btn-outline-primary' if d['open'] else 'btn-outline-secondary opacity-50')}"
+                               t-att-aria-current="'date' if d['value'] == day_value else None">
+                                <span class="d-block o_spa_day_name" t-out="d['weekday']"/>
+                                <span class="d-block o_spa_day_number" t-out="d['number']"/>
+                                <span t-if="not d['open']" class="visually-hidden">Cerrado</span>
+                            </a>
+                        </t>
+                    </div>
+                    <h2 class="h6 text-capitalize mb-3" t-out="day_label"/>
+
+                    <!-- Invitados -->
+                    <div t-if="len(guest_choices) &gt; 1" class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                        <span class="small text-muted">¿Vienes con invitados?</span>
+                        <a t-foreach="guest_choices" t-as="n" t-att-href="book_url(guests=n)"
+                           t-attf-class="btn btn-sm rounded-pill #{'btn-primary' if n == guests else 'btn-outline-primary'}">
+                            <t t-if="n == 0">Solo yo</t>
+                            <t t-else="">+<t t-out="n"/></t>
+                        </a>
+                    </div>
+
+                    <form action="/my/spa/book/confirm" method="post" class="o_spa_book_form">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="service_id" t-att-value="service.id"/>
+                        <input type="hidden" name="day" t-att-value="day_value"/>
+                        <input type="hidden" name="guests" t-attf-value="#{guests}"/>
+
+                        <div t-if="access_hint" class="alert alert-info small" role="status">
+                            <i class="fa fa-info-circle me-1" aria-hidden="true"/><t t-out="access_hint"/>
+                        </div>
+                        <p t-if="not slots" class="alert alert-light border">
+                            <t t-out="service.space_id.name"/> no atiende este día. Elige otra fecha.
+                        </p>
+                        <fieldset t-else="" class="mb-3">
+                            <legend class="visually-hidden">Horario</legend>
+                            <div class="row g-2">
+                                <div t-foreach="slots" t-as="slot" class="col-6 col-md-4 col-xl-3">
+                                    <input type="radio" class="btn-check" name="start" t-att-value="slot['value']"
+                                           t-attf-id="spa_slot_#{slot_index}" autocomplete="off" required="required"
+                                           t-att-disabled="None if slot['available'] else 'disabled'"
+                                           t-att-checked="'checked' if slot['available'] and form.get('start') == slot['value'] else None"/>
+                                    <label t-attf-for="spa_slot_#{slot_index}" class="btn btn-outline-primary w-100 text-start o_spa_slot">
+                                        <span class="d-block fw-semibold" t-out="slot['label']"/>
+                                        <small class="d-block" t-out="slot['caption']"/>
+                                        <span class="progress mt-1" role="presentation">
+                                            <span t-attf-class="progress-bar #{'bg-danger' if slot['pct'] &gt;= 80 else 'bg-success'}"
+                                                  t-attf-style="width: #{slot['pct']}%"/>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset t-if="guest_rows" class="mb-3">
+                            <legend class="fs-6 fw-semibold">Tus invitados</legend>
+                            <div t-foreach="guest_rows" t-as="index" class="row g-2 mb-2">
+                                <div class="col-12 col-md-7">
+                                    <label t-attf-for="guest_name_#{index}" class="form-label small mb-1">Nombre del invitado <t t-out="index + 1"/></label>
+                                    <input type="text" class="form-control" t-attf-id="guest_name_#{index}" t-attf-name="guest_name_#{index}"
+                                           t-att-value="form.get('guest_name_%s' % index)" maxlength="100" required="required"
+                                           autocomplete="off"/>
+                                </div>
+                                <div class="col-12 col-md-5">
+                                    <label t-attf-for="guest_phone_#{index}" class="form-label small mb-1">Celular (opcional)</label>
+                                    <input type="tel" class="form-control" t-attf-id="guest_phone_#{index}" t-attf-name="guest_phone_#{index}"
+                                           t-att-value="form.get('guest_phone_%s' % index)" inputmode="tel" placeholder="+591 7xxxxxxx"/>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                Cada invitado usa un free pass del mes; si ya no te quedan, se carga la tarifa de invitado a tu cuenta.
+                            </p>
+                        </fieldset>
+
+                        <div class="d-grid d-md-block">
+                            <button type="submit" class="btn btn-primary btn-lg"
+                                    t-att-disabled="None if any_available else 'disabled'">Confirmar reserva</button>
+                        </div>
+                        <p t-if="slots and not any_available" class="small text-muted mt-2">
+                            No quedan horarios disponibles este día. Prueba con otra fecha.
+                        </p>
+                    </form>
+                    <p t-if="policy_text" class="small text-muted mt-3 mb-0" t-out="policy_text"/>
+                </t>
+
+                <div t-if="not blocked and free_spaces" class="card mt-4">
+                    <div class="card-body">
+                        <h2 class="h6">Sin reserva: acceso libre</h2>
+                        <ul class="list-unstyled small mb-2">
+                            <li t-foreach="free_spaces" t-as="free">
+                                <i class="fa fa-check text-success me-1" aria-hidden="true"/>
+                                <strong t-out="free['service'].name"/>: muestra tu QR en recepción
+                                (aforo <t t-out="free['space'].capacity"/> personas).
+                            </li>
+                        </ul>
+                        <a href="/my/spa/guests" class="small">Registrar un invitado para estos espacios</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ==============================================================
+         /my/spa/guests: invitados en espacios de acceso libre
+         ============================================================== -->
+    <template id="spa_my_guests" name="Spa: invitados">
+        <t t-call="portal.portal_layout">
+            <t t-set="additional_title">Invitados</t>
+            <div class="o_spa_portal">
+                <t t-call="spa_portal.spa_member_nav"/>
+                <t t-call="spa_portal.spa_alerts"/>
+                <h1 class="h4 mb-3">Invitados</h1>
+
+                <t t-if="blocked" t-call="spa_portal.spa_blocked"/>
+                <t t-else="">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-lg-5">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h2 class="h6">Free pass del mes</h2>
+                                    <t t-if="guest_quota">
+                                        <p class="mb-1"><strong t-out="guest_used"/> de <t t-out="guest_quota"/> usados ·
+                                            te quedan <strong t-out="guest_left"/></p>
+                                        <div class="progress o_spa_progress mb-2" role="progressbar" aria-label="Free pass usados"
+                                             t-att-aria-valuenow="guest_used" aria-valuemin="0" t-att-aria-valuemax="guest_quota">
+                                            <div class="progress-bar bg-info" t-attf-style="width: #{int(round(100.0 * guest_used / guest_quota)) if guest_quota else 0}%"/>
+                                        </div>
+                                    </t>
+                                    <p t-else="" class="mb-2 text-muted">Tu plan no incluye free pass para invitados.</p>
+                                    <div t-if="next_charge == 'fee'" class="alert alert-warning small mb-0" role="status">
+                                        <t t-if="fee_amount">El próximo invitado tiene una tarifa de
+                                            <strong t-out="money(fee_amount)"/>, que se carga a tu cuenta.</t>
+                                        <t t-else="">Ya no te quedan free pass este mes.</t>
+                                    </div>
+                                    <div t-if="slot_lines" class="small text-muted mt-2">
+                                        Para servicios con reserva
+                                        (<t t-out="', '.join(slot_lines.mapped('service_id.name'))"/>)
+                                        agrega a tus invitados al <a href="/my/spa/book">reservar</a>.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-7">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h2 class="h6">Registrar invitado</h2>
+                                    <p t-if="not guest_lines" class="text-muted mb-0">
+                                        Tu plan no incluye invitados en espacios de acceso libre.
+                                    </p>
+                                    <p t-elif="not days" class="text-muted mb-0">
+                                        No hay fechas disponibles dentro de la vigencia de tu membresía.
+                                    </p>
+                                    <form t-else="" action="/my/spa/guests/register" method="post">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <div class="mb-2">
+                                            <label for="spa_guest_name" class="form-label small mb-1">Nombre completo</label>
+                                            <input id="spa_guest_name" type="text" name="name" class="form-control" maxlength="100"
+                                                   t-att-value="form.get('name')" required="required" autocomplete="off"/>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label for="spa_guest_phone" class="form-label small mb-1">Celular (opcional)</label>
+                                            <input id="spa_guest_phone" type="tel" name="phone" class="form-control" inputmode="tel"
+                                                   t-att-value="form.get('phone')" placeholder="+591 7xxxxxxx"/>
+                                        </div>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-12 col-md-6">
+                                                <label for="spa_guest_date" class="form-label small mb-1">Fecha de visita</label>
+                                                <select id="spa_guest_date" name="date" class="form-select" required="required">
+                                                    <option t-foreach="days" t-as="d" t-att-value="d['value']"
+                                                            t-att-selected="'selected' if d['value'] == form.get('date') else None"
+                                                            class="text-capitalize" t-out="d['label']"/>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <label for="spa_guest_service" class="form-label small mb-1">Espacio</label>
+                                                <select id="spa_guest_service" name="service_id" class="form-select" required="required">
+                                                    <option t-foreach="guest_lines" t-as="line" t-att-value="line.service_id.id"
+                                                            t-att-selected="'selected' if str(line.service_id.id) == str(form.get('service_id')) else None"
+                                                            t-out="line.service_id.name"/>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="d-grid d-md-block">
+                                            <button type="submit" class="btn btn-primary">Registrar invitado</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <section t-if="guests">
+                        <h2 class="h6 text-muted">Tus invitados recientes</h2>
+                        <ul class="list-group shadow-sm">
+                            <li t-foreach="guests" t-as="guest" class="list-group-item d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <strong t-out="guest.name"/>
+                                    <small class="d-block text-muted">
+                                        <t t-out="fmt_date(guest.date)"/>
+                                        <t t-if="guest.service_id"> · <t t-out="guest.service_id.name"/></t>
+                                        <t t-if="guest.charge_type"> · <span t-field="guest.charge_type"/></t>
+                                    </small>
+                                </div>
+                                <span class="badge rounded-pill text-bg-light border" t-field="guest.state"/>
+                            </li>
+                        </ul>
+                    </section>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <!-- ==============================================================
+         /my/spa/pay/<id>: QR de la empresa, datos bancarios y comprobante
+         ============================================================== -->
+    <template id="spa_my_pay" name="Spa: pagar">
+        <t t-call="portal.portal_layout">
+            <t t-set="additional_title">Pagar</t>
+            <div class="o_spa_portal">
+                <t t-call="spa_portal.spa_member_nav"/>
+                <t t-call="spa_portal.spa_alerts"/>
+                <div class="mb-3">
+                    <h1 class="h4 mb-0">Pagar</h1>
+                    <small class="text-muted">
+                        <t t-out="invoice.name"/>
+                        <t t-if="invoice.spa_membership_id"> · Membresía <t t-out="invoice.spa_membership_id.plan_id.name"/></t>
+                    </small>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-lg-5">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <p class="text-muted small mb-1">Saldo pendiente</p>
+                                <p class="fs-2 fw-bold mb-1" t-out="money(amount_due, currency)"/>
+                                <div t-if="installment" class="alert alert-info small py-2 mb-2" role="status">
+                                    Próxima cuota: <strong t-out="money(next_amount, currency)"/>
+                                    <t t-if="next_due_date"> · vence el <t t-out="fmt_date(next_due_date)"/></t>
+                                </div>
+                                <p t-elif="invoice.invoice_date_due and payable" class="small text-muted mb-2">
+                                    Vence el <t t-out="fmt_date(invoice.invoice_date_due)"/>
+                                </p>
+                                <div t-if="not payable" class="alert alert-success small mb-2" role="status">
+                                    Esta factura no tiene saldo pendiente.
+                                </div>
+                                <ul class="list-unstyled small mb-0">
+                                    <li t-foreach="invoice.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="inv_line"
+                                        class="d-flex justify-content-between gap-2">
+                                        <span t-out="inv_line.name"/>
+                                        <span class="text-nowrap" t-out="money(inv_line.price_total, currency)"/>
+                                    </li>
+                                </ul>
+                                <a t-att-href="invoice.access_url" class="small d-inline-block mt-2">Ver factura</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div t-if="payable" class="col-12 col-lg-7">
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body">
+                                <h2 class="h6"><span class="badge rounded-pill text-bg-primary me-1">1</span>Paga con QR o transferencia</h2>
+                                <div t-if="has_qr" class="text-center my-3">
+                                    <img t-att-src="qr_url" class="o_spa_qr border rounded p-2 bg-white" alt="QR de pago"/>
+                                    <p class="small text-muted mt-2 mb-0">Escanéalo desde la app de tu banco.</p>
+                                </div>
+                                <p t-if="bank_text" class="mb-2">
+                                    <span class="small text-muted d-block">Transferencia o depósito</span>
+                                    <span t-out="bank_text"/>
+                                </p>
+                                <p class="mb-2">
+                                    <span class="small text-muted d-block">Referencia del pago</span>
+                                    <code class="fs-6 user-select-all" t-out="payment_ref"/>
+                                </p>
+                                <p t-if="instructions" class="small text-muted mb-0 o_spa_pre" t-out="instructions"/>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h2 class="h6"><span class="badge rounded-pill text-bg-primary me-1">2</span>Envía tu comprobante</h2>
+                                <div t-if="pending and not show_form" class="alert alert-info mb-0" role="status">
+                                    Tienes <t t-out="len(pending)"/> pago(s) por validar por
+                                    <strong t-out="money(sum(pending.mapped('amount')), currency)"/>.
+                                    Caja lo revisará y te avisaremos.
+                                    <div class="mt-2">
+                                        <a t-attf-href="/my/spa/pay/#{invoice.id}?more=1" class="alert-link">Informar otro pago</a>
+                                    </div>
+                                </div>
+                                <form t-if="show_form" t-attf-action="/my/spa/pay/#{invoice.id}/submit" method="post"
+                                      enctype="multipart/form-data" class="o_spa_pay_form">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <fieldset class="mb-3">
+                                        <legend class="form-label fs-6 mb-1">¿Cómo pagaste?</legend>
+                                        <t t-set="current_method" t-value="form.get('method') or 'qr'"/>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <t t-foreach="methods" t-as="method">
+                                                <input type="radio" class="btn-check" name="method" t-att-value="method[0]"
+                                                       t-attf-id="spa_method_#{method[0]}" autocomplete="off" required="required"
+                                                       t-att-checked="'checked' if method[0] == current_method else None"/>
+                                                <label class="btn btn-outline-primary" t-attf-for="spa_method_#{method[0]}" t-out="method[1]"/>
+                                            </t>
+                                        </div>
+                                    </fieldset>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-12 col-md-5">
+                                            <label for="spa_pay_amount" class="form-label small mb-1">Monto pagado (<t t-out="currency.symbol"/>)</label>
+                                            <input id="spa_pay_amount" type="text" name="amount" class="form-control" inputmode="decimal"
+                                                   t-att-value="form.get('amount') or ('%.2f' % next_amount)" required="required"/>
+                                        </div>
+                                        <div class="col-12 col-md-7">
+                                            <label for="spa_pay_reference" class="form-label small mb-1">Nº de transacción (opcional)</label>
+                                            <input id="spa_pay_reference" type="text" name="reference" class="form-control" maxlength="100"
+                                                   t-att-value="form.get('reference')" autocomplete="off"/>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="spa_pay_receipt" class="form-label small mb-1">Comprobante (foto, captura o PDF)</label>
+                                        <input id="spa_pay_receipt" type="file" name="receipt" class="form-control"
+                                               accept="image/*,application/pdf"/>
+                                        <div class="form-text">Máximo <t t-out="max_mb"/> MB. Si no tienes el archivo, escribe el número de transacción.</div>
+                                    </div>
+                                    <div class="d-grid d-md-block">
+                                        <button type="submit" class="btn btn-primary btn-lg">Enviar comprobante</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section t-if="requests">
+                    <h2 class="h6 text-muted">Pagos informados para esta factura</h2>
+                    <t t-call="spa_portal.spa_payment_request_list"/>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>

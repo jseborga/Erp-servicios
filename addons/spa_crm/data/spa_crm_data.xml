@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_spa_courtesy_pass" model="ir.sequence">
+        <field name="name">Pases de cortesía del spa</field>
+        <field name="code">spa.courtesy.pass</field>
+        <field name="prefix">CORT/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="ir_cron_spa_courtesy_expire" model="ir.cron">
+        <field name="name">Spa CRM: vencer pases de cortesía</field>
+        <field name="model_id" ref="model_spa_courtesy_pass"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire_passes()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now().replace(hour=10, minute=15, second=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+
+    <record id="ir_cron_spa_retention" model="ir.cron">
+        <field name="name">Spa CRM: socios en riesgo, recuperados y ex-socios</field>
+        <field name="model_id" ref="spa_membership.model_spa_membership"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_spa_retention()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now().replace(hour=11, minute=0, second=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+
+    <!-- Datos iniciales EDITABLES: embudos, etapas, fuentes y parámetros -->
+    <data noupdate="1">
+        <!-- Embudos (equipos de venta) -->
+        <record id="team_acquisition" model="crm.team" forcecreate="False">
+            <field name="name">Captación</field>
+            <field name="sequence">5</field>
+            <field name="company_id" eval="False"/>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="use_opportunities" eval="True"/>
+            <field name="spa_pipeline">acquisition</field>
+        </record>
+        <record id="team_retention" model="crm.team" forcecreate="False">
+            <field name="name">Retención</field>
+            <field name="sequence">6</field>
+            <field name="company_id" eval="False"/>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="use_opportunities" eval="True"/>
+            <field name="spa_pipeline">retention</field>
+        </record>
+
+        <!-- Etapas de Captación -->
+        <record id="stage_interested" model="crm.stage" forcecreate="False">
+            <field name="name">Interesado</field>
+            <field name="sequence">10</field>
+            <field name="spa_stage_code">interested</field>
+            <field name="team_ids" eval="[(6, 0, [ref('team_acquisition')])]"/>
+            <field name="requirements">Consultó o dejó sus datos (redes, web, WhatsApp, recepción).</field>
+        </record>
+        <record id="stage_visit" model="crm.stage" forcecreate="False">
+            <field name="name">Visita de prueba / cortesía</field>
+            <field name="sequence">20</field>
+            <field name="spa_stage_code">visit</field>
+            <field name="team_ids" eval="[(6, 0, [ref('team_acquisition')])]"/>
+            <field name="requirements">Vino como invitado de un socio o recibió un pase de cortesía.</field>
+        </record>
+        <record id="stage_proposal" model="crm.stage" forcecreate="False">
+            <field name="name">Propuesta</field>
+            <field name="sequence">30</field>
+            <field name="spa_stage_code">proposal</field>
+            <field name="team_ids" eval="[(6, 0, [ref('team_acquisition')])]"/>
+            <field name="requirements">Se le envió el plan y el precio.</field>
+        </record>
+        <record id="stage_member" model="crm.stage" forcecreate="False">
+            <field name="name">Socio activo</field>
+            <field name="sequence">40</field>
+            <field name="is_won" eval="True"/>
+            <field name="spa_stage_code">member</field>
+            <field name="team_ids" eval="[(6, 0, [ref('team_acquisition')])]"/>
+            <field name="requirements">Compró una membresía (se marca solo al activarla).</field>
+        </record>
+
+        <!-- Etapas de Retención -->
+        <record id="stage_at_risk" model="crm.stage" forcecreate="False">
+            <field name="name">En riesgo</field>
+            <field name="sequence">110</field>
+            <field name="spa_stage_code">at_risk</field>
+            <field name="team_ids" eval="[(6, 0, [ref('team_retention')])]"/>
+            <field name="requirements">Mora, suspensión, uso bajo o vencimiento próximo sin renovar.</field>
+        </record>
+        <record id="stage_recovered" model="crm.stage" forcecreate="False">
+            <field name="name">Recuperado</field>
+            <field name="sequence">120</field>
+            <field name="is_won" eval="True"/>
+            <field name="spa_stage_code">recovered</field>
+            <field name="team_ids" eval="[(6, 0, [ref('team_retention')])]"/>
+            <field name="requirements">Renovó su membresía (se marca solo al renovar).</field>
+        </record>
+        <record id="stage_ex_member" model="crm.stage" forcecreate="False">
+            <field name="name">Ex-socio</field>
+            <field name="sequence">130</field>
+            <field name="spa_stage_code">ex_member</field>
+            <field name="team_ids" eval="[(6, 0, [ref('team_retention')])]"/>
+            <field name="requirements">La membresía venció sin renovarse. Recuperable con campañas.</field>
+        </record>
+
+        <!-- Fuentes de prospectos (se agregan más desde Configuración › Fuentes de prospectos) -->
+        <record id="utm_source_instagram" model="utm.source" forcecreate="False">
+            <field name="name">Instagram</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm.utm_source_facebook" model="utm.source">
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm_source_tiktok" model="utm.source" forcecreate="False">
+            <field name="name">TikTok</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm_source_whatsapp" model="utm.source" forcecreate="False">
+            <field name="name">WhatsApp</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm_source_web" model="utm.source" forcecreate="False">
+            <field name="name">Web</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm_source_member_referral" model="utm.source" forcecreate="False">
+            <field name="name">Referido de socio</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm_source_member_guest" model="utm.source" forcecreate="False">
+            <field name="name">Invitado de socio</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm_source_courtesy" model="utm.source" forcecreate="False">
+            <field name="name">Cortesía</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm_source_event" model="utm.source" forcecreate="False">
+            <field name="name">Evento</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+        <record id="utm_source_reception" model="utm.source" forcecreate="False">
+            <field name="name">Recepción</field>
+            <field name="spa_team_id" ref="team_acquisition"/>
+        </record>
+
+        <!-- Parámetros iniciales (Spa › Configuración › Ajustes › CRM y cortesías) -->
+        <record id="param_courtesy_validity_days" model="ir.config_parameter" forcecreate="False">
+            <field name="key">spa_crm.courtesy_validity_days</field>
+            <field name="value">15</field>
+        </record>
+        <record id="param_guest_welcome" model="ir.config_parameter" forcecreate="False">
+            <field name="key">spa_crm.guest_welcome</field>
+            <field name="value">True</field>
+        </record>
+        <record id="param_followup_days" model="ir.config_parameter" forcecreate="False">
+            <field name="key">spa_crm.followup_days</field>
+            <field name="value">1</field>
+        </record>
+        <record id="param_retention_low_usage_pct" model="ir.config_parameter" forcecreate="False">
+            <field name="key">spa_crm.retention_low_usage_pct</field>
+            <field name="value">25</field>
+        </record>
+        <record id="param_retention_low_usage_day" model="ir.config_parameter" forcecreate="False">
+            <field name="key">spa_crm.retention_low_usage_day</field>
+            <field name="value">15</field>
+        </record>
+        <record id="param_retention_expiry_days" model="ir.config_parameter" forcecreate="False">
+            <field name="key">spa_crm.retention_expiry_days</field>
+            <field name="value">7</field>
+        </record>
+    </data>
+</odoo>

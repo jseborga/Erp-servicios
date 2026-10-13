@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_l10n_bo_purchase_book"
+              name="Libro de Compras (SIN)"
+              parent="account.account_reports_taxes_and_fiscal_menu"
+              action="l10n_bo_purchase_book_action"
+              groups="account.group_account_invoice,account.group_account_readonly"
+              sequence="40"/>
+</odoo>

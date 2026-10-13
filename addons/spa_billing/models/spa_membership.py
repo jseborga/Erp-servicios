@@ -72,7 +72,7 @@ class SpaMembership(models.Model):
         vals = {
             'move_type': 'out_invoice',
             'partner_id': self.partner_id.id,
-            'invoice_date': fields.Date.context_today(self),
+            'invoice_date': self.env['spa.tools'].local_today(),
             'invoice_origin': self.name,
             'spa_membership_id': self.id,
             'spa_invoice_kind': kind,
@@ -141,7 +141,7 @@ class SpaMembership(models.Model):
             invoice = Move.create({
                 'move_type': 'out_invoice',
                 'partner_id': self.partner_id.id,
-                'invoice_date': fields.Date.context_today(self),
+                'invoice_date': self.env['spa.tools'].local_today(),
                 'invoice_origin': self.env._('Cargos %s', self.name),
                 'spa_membership_id': self.id,
                 'spa_invoice_kind': 'charges',
@@ -158,7 +158,8 @@ class SpaMembership(models.Model):
         """Programa el paso mensual de ingresos diferidos a ingresos (planes de más de un mes)."""
         self.ensure_one()
         months = self.period_id.months
-        if months <= 1 or self.deferral_line_ids.filtered(lambda d: d.invoice_id == invoice):
+        # sudo: caja valida pagos sin permisos sobre el devengo (spa.deferral.line).
+        if months <= 1 or self.sudo().deferral_line_ids.filtered(lambda d: d.invoice_id == invoice):
             return
         prepaid_categ = self.env.ref('l10n_bo_spa.categ_membership_prepaid', raise_if_not_found=False)
         deferred_account = prepaid_categ.with_company(self.company_id).property_account_income_categ_id \

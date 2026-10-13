@@ -7,6 +7,10 @@
             <field name="key">spa.timezone</field>
             <field name="value">America/La_Paz</field>
         </record>
+        <!-- Zona horaria del administrador: fechas de facturas y reportes en hora de Bolivia. -->
+        <record id="base.user_admin" model="res.users">
+            <field name="tz">America/La_Paz</field>
+        </record>
 
         <!-- Turno del personal del spa: todos los días 09:00-18:00 -->
         <record id="calendar_spa_staff" model="resource.calendar">

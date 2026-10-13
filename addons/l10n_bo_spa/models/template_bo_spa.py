@@ -149,6 +149,9 @@ class AccountChartTemplate(models.AbstractModel):
             self.env.company.id: {
                 'default_cash_difference_income_account_id': 'l10n_bo_spa_43041',
                 'default_cash_difference_expense_account_id': 'l10n_bo_spa_5607',
+                # Precios con IVA incluido: redondear por línea evita diferencias de Bs 0,01
+                # entre el ticket (POS) y la factura (p. ej. Bs 13,50 facturado como 13,51).
+                'tax_calculation_rounding_method': 'round_per_line',
             },
         }
 
@@ -159,6 +162,7 @@ class AccountChartTemplate(models.AbstractModel):
         res = super()._post_load_data(template_code, company, template_data)
         if template_code == 'bo':
             company = company or self.env.company
+            company.tax_calculation_rounding_method = 'round_per_line'
             self._l10n_bo_spa_setup_cash_difference(company)
             self._l10n_bo_spa_setup_purchase_vat(company)
             self._l10n_bo_spa_setup_analytic(company)

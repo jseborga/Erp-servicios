@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_petty_cash_voucher_view_list" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.voucher.list</field>
+        <field name="model">l10n_bo.petty.cash.voucher</field>
+        <field name="arch" type="xml">
+            <list string="Comprobantes de fondo fijo" decoration-muted="state == 'cancel'" decoration-info="state == 'draft'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="fund_id"/>
+                <field name="partner_id" optional="show"/>
+                <field name="supplier_name" optional="hide"/>
+                <field name="description"/>
+                <field name="l10n_bo_doc_type" optional="show"/>
+                <field name="l10n_bo_invoice_number" optional="hide"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="amount" sum="Total"/>
+                <field name="amount_paid" sum="Total"/>
+                <field name="report_id" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-warning="state == 'reported'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_voucher_view_kanban" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.voucher.kanban</field>
+        <field name="model">l10n_bo.petty.cash.voucher</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="description" class="fw-bold"/>
+                            <field name="amount" widget="monetary"/>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted">
+                            <span><field name="date"/> · <field name="name"/></span>
+                            <field name="state" widget="label_selection"
+                                   options="{'classes': {'draft': 'info', 'reported': 'warning', 'posted': 'success', 'cancel': 'default'}}"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_voucher_view_form" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.voucher.form</field>
+        <field name="model">l10n_bo.petty.cash.voucher</field>
+        <field name="arch" type="xml">
+            <form string="Comprobante de fondo fijo">
+                <header>
+                    <button name="action_l10n_bo_open_qr_wizard" type="object" string="Leer QR" icon="fa-qrcode"
+                            invisible="state != 'draft'"/>
+                    <button name="action_cancel" type="object" string="Anular" invisible="state != 'draft'"/>
+                    <button name="action_draft" type="object" string="Reactivar" invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,reported,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Gasto">
+                            <field name="fund_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state not in ('draft', 'reported')"/>
+                            <field name="description" placeholder="p. ej. Detergente para lavandería"
+                                   readonly="state not in ('draft', 'reported')"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount" readonly="state not in ('draft', 'reported')"/>
+                            <field name="amount_paid" invisible="amount_paid == amount"/>
+                            <field name="product_id" options="{'no_create': True}" readonly="state not in ('draft', 'reported')"/>
+                            <field name="account_id" options="{'no_create': True}" readonly="state not in ('draft', 'reported')"
+                                   invisible="l10n_bo_doc_type == 'none' and l10n_bo_withholding_mode == 'no_withholding'"/>
+                            <field name="analytic_distribution" widget="analytic_distribution"
+                                   groups="analytic.group_analytic_accounting"
+                                   readonly="state not in ('draft', 'reported')"/>
+                            <field name="receipt" filename="receipt_filename" readonly="state not in ('draft', 'reported')"/>
+                            <field name="receipt_filename" invisible="1"/>
+                        </group>
+                        <group string="Proveedor y documento fiscal">
+                            <field name="partner_id" readonly="state not in ('draft', 'reported')"/>
+                            <field name="supplier_name" invisible="partner_id"
+                                   required="not partner_id and state == 'draft'"
+                                   readonly="state not in ('draft', 'reported')"/>
+                            <field name="l10n_bo_doc_type" required="1" readonly="state not in ('draft', 'reported')"/>
+                            <field name="l10n_bo_supplier_nit" required="l10n_bo_has_invoice" readonly="state not in ('draft', 'reported')"/>
+                            <field name="l10n_bo_invoice_number" invisible="not l10n_bo_has_invoice"
+                                   required="l10n_bo_has_invoice" readonly="state not in ('draft', 'reported')"/>
+                            <field name="l10n_bo_cuf" invisible="l10n_bo_doc_type != 'siat_online'"
+                                   required="l10n_bo_doc_type == 'siat_online'" readonly="state not in ('draft', 'reported')"/>
+                            <field name="l10n_bo_auth_number" invisible="l10n_bo_doc_type not in ('dosificacion', 'manual')"
+                                   required="l10n_bo_doc_type in ('dosificacion', 'manual')" readonly="state not in ('draft', 'reported')"/>
+                            <field name="l10n_bo_control_code" invisible="l10n_bo_doc_type != 'dosificacion'"
+                                   required="l10n_bo_doc_type == 'dosificacion'" placeholder="7B-F3-48-A8"
+                                   readonly="state not in ('draft', 'reported')"/>
+                            <field name="l10n_bo_purchase_type" invisible="not l10n_bo_has_invoice"
+                                   groups="l10n_bo_purchase.group_spa_accountant"/>
+                            <field name="l10n_bo_withholding_mode" invisible="l10n_bo_doc_type != 'none'"
+                                   required="l10n_bo_doc_type == 'none'" readonly="state not in ('draft', 'reported')"/>
+                            <field name="l10n_bo_purchase_kind"
+                                   invisible="l10n_bo_doc_type != 'none' or l10n_bo_withholding_mode not in ('supplier_bears', 'company_bears')"
+                                   required="l10n_bo_doc_type == 'none' and l10n_bo_withholding_mode in ('supplier_bears', 'company_bears')"
+                                   readonly="state not in ('draft', 'reported')"/>
+                            <field name="tax_ids" widget="many2many_tags" groups="l10n_bo_purchase.group_spa_accountant"
+                                   readonly="state != 'reported'"/>
+                            <field name="l10n_bo_has_invoice" invisible="1"/>
+                        </group>
+                    </group>
+                    <group invisible="not report_id and not move_id">
+                        <group>
+                            <field name="report_id"/>
+                            <field name="move_id" groups="l10n_bo_purchase.group_spa_accountant"/>
+                            <field name="payment_id" groups="l10n_bo_purchase.group_spa_accountant"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Notas"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_voucher_view_search" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.voucher.search</field>
+        <field name="model">l10n_bo.petty.cash.voucher</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="partner_id"/>
+                <field name="l10n_bo_supplier_nit"/>
+                <field name="l10n_bo_invoice_number"/>
+                <field name="fund_id"/>
+                <filter name="pending" string="Por rendir" domain="[('state', 'in', ('draft', 'reported'))]"/>
+                <filter name="posted" string="Contabilizados" domain="[('state', '=', 'posted')]"/>
+                <filter name="filter_date" string="Fecha" date="date"/>
+                <group>
+                    <filter name="group_fund" string="Fondo" context="{'group_by': 'fund_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_voucher_action" model="ir.actions.act_window">
+        <field name="name">Comprobantes de gasto</field>
+        <field name="res_model">l10n_bo.petty.cash.voucher</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Registre un gasto del fondo fijo</p>
+            <p>Tome una foto del comprobante, lea el QR de la factura y anote el importe. No se generan asientos hasta que el contador apruebe la rendición.</p>
+        </field>
+    </record>
+</odoo>

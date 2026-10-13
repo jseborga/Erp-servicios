@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_bo_purchase_book_invoice,l10n_bo.purchase.book invoice,model_l10n_bo_purchase_book,account.group_account_invoice,1,0,0,0
+access_l10n_bo_purchase_book_readonly,l10n_bo.purchase.book readonly,model_l10n_bo_purchase_book,account.group_account_readonly,1,0,0,0
+access_l10n_bo_qr_wizard_user,l10n_bo.qr.wizard user,model_l10n_bo_qr_wizard,base.group_user,1,1,1,1

@@ -1,4 +1,6 @@
 # Part of ERP Servicios Spa. License LGPL-3.
+import re
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
@@ -44,8 +46,12 @@ class SpaGuest(models.Model):
         Partner = self.env['res.partner'].sudo()
         for guest in self.filtered(lambda g: not g.partner_id):
             partner = Partner.browse()
-            if guest.phone:
-                partner = Partner.search([('phone', '=', guest.phone)], limit=1)
+            digits = re.sub(r'\D', '', guest.phone or '')
+            if len(digits) >= 7:
+                # Mismo número escrito distinto ("+591 700-11122" y "70011122"): compara los últimos 8 dígitos.
+                candidates = Partner.search([('phone', 'ilike', digits[-4:])])
+                partner = candidates.filtered(
+                    lambda p: re.sub(r'\D', '', p.phone or '')[-8:] == digits[-8:])[:1]
             if not partner and guest.email:
                 partner = Partner.search([('email', '=ilike', guest.email)], limit=1)
             if not partner:

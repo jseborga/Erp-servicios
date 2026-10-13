@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Consumo cargado a la cuenta de los socios (facturas del POS por cobrar) -->
+    <record id="action_spa_pos_member_invoices" model="ir.actions.act_window">
+        <field name="name">Cuentas de socios (consumo)</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="account.view_out_invoice_tree"/>
+        <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+        <field name="domain">[('spa_invoice_kind', '=', 'pos'), ('move_type', 'in', ('out_invoice', 'out_refund'))]</field>
+        <field name="context">{'default_move_type': 'out_invoice', 'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Ningún socio debe consumos del restaurante o la cafetería</p>
+            <p>Lo que el socio carga a su cuenta en el POS se factura aquí. El socio lo paga desde su web
+               (pago por validar) o en caja.</p>
+        </field>
+    </record>
+
+    <menuitem id="spa_menu_pos" name="Restaurante y cafetería" parent="spa_base.spa_menu_operations"
+              action="point_of_sale.action_pos_config_kanban" sequence="40"
+              groups="point_of_sale.group_pos_user"/>
+    <menuitem id="spa_menu_pos_member_invoices" name="Cuentas de socios (consumo)"
+              parent="spa_base.spa_menu_operations" action="action_spa_pos_member_invoices" sequence="41"
+              groups="spa_base.group_spa_cashier"/>
+</odoo>

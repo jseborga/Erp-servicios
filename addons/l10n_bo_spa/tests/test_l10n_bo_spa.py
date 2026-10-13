@@ -15,6 +15,10 @@ class TestL10nBoSpa(AccountTestInvoicingCommon):
         super().setUpClass()
         cls.ct = cls.env['account.chart.template']
         cls.supplier = cls.env['res.partner'].create({'name': 'Proveedor de prueba'})
+        # Estas pruebas validan el plan de cuentas, no los datos fiscales de la factura
+        # (l10n_bo_purchase los exige si está instalado).
+        if 'l10n_bo_purchase_check' in cls.env.company._fields:
+            cls.env.company.l10n_bo_purchase_check = False
 
     def _ref(self, xmlid):
         return self.ct.ref(xmlid)
@@ -52,6 +56,7 @@ class TestL10nBoSpa(AccountTestInvoicingCommon):
 
     def test_cash_difference_accounts(self):
         company = self.env.company
+        self.assertEqual(company.tax_calculation_rounding_method, 'round_per_line')
         self.assertEqual(company.default_cash_difference_income_account_id, self._ref('l10n_bo_spa_43041'))
         self.assertEqual(company.default_cash_difference_expense_account_id, self._ref('l10n_bo_spa_5607'))
 

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Datos iniciales EDITABLES: el administrador puede cambiarlos y las
+         actualizaciones del módulo no los pisan. -->
+    <data noupdate="1">
+        <!-- Registro libre de socios (B2C) desde la página de ingreso. -->
+        <function model="ir.config_parameter" name="set_param" eval="('auth_signup.invitation_scope', 'b2c')"/>
+        <!-- Con «website» instalado manda el ajuste del sitio (Cuenta de cliente). -->
+        <record id="website.default_website" model="website">
+            <field name="auth_signup_uninvited">b2c</field>
+        </record>
+
+        <record id="menu_spa_plans" model="website.menu">
+            <field name="name">Membresías</field>
+            <field name="url">/spa</field>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="sequence" type="int">30</field>
+        </record>
+    </data>
+</odoo>

@@ -72,7 +72,7 @@ class SpaPaymentRequest(models.Model):
                 active_model='account.move', active_ids=invoice.ids).create({
                     'journal_id': journal.id,
                     'amount': request.amount,
-                    'payment_date': fields.Date.context_today(request),
+                    'payment_date': self.env['spa.tools'].local_today(),
                     'communication': ' '.join(filter(None, [invoice.name, request.reference])),
                     'payment_difference_handling': 'open',
                 })

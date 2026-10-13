@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_courtesy_pass_view_list" model="ir.ui.view">
+        <field name="name">spa.courtesy.pass.list</field>
+        <field name="model">spa.courtesy.pass</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('expired', 'cancelled')" decoration-success="state == 'redeemed'">
+                <field name="name"/>
+                <field name="guest_name"/>
+                <field name="phone" optional="show"/>
+                <field name="service_ids" widget="many2many_tags" optional="show"/>
+                <field name="valid_from" optional="hide"/>
+                <field name="valid_to"/>
+                <field name="visits_used" string="Usadas"/>
+                <field name="visits"/>
+                <field name="issued_by_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="issue_date" optional="hide"/>
+                <field name="source_id" optional="hide"/>
+                <field name="lead_id" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'issued'"
+                       decoration-success="state == 'redeemed'" decoration-warning="state == 'expired'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_courtesy_pass_view_form" model="ir.ui.view">
+        <field name="name">spa.courtesy.pass.form</field>
+        <field name="model">spa.courtesy.pass</field>
+        <field name="arch" type="xml">
+            <form string="Pase de cortesía">
+                <header>
+                    <button name="action_open_redeem" type="object" string="Canjear" class="btn-primary"
+                            invisible="state != 'issued' or not id"/>
+                    <button name="action_send_whatsapp" type="object" string="Enviar por WhatsApp"
+                            invisible="state != 'issued' or not id"/>
+                    <button name="action_cancel" type="object" string="Anular"
+                            invisible="state != 'issued' or not id or visits_used"
+                            confirm="¿Anular este pase de cortesía?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="issued,redeemed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <widget name="web_ribbon" title="Vencido" bg_color="text-bg-warning" invisible="state != 'expired'"/>
+                    <widget name="web_ribbon" title="Anulado" bg_color="text-bg-danger" invisible="state != 'cancelled'"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Invitado">
+                            <field name="guest_name" readonly="id"/>
+                            <field name="phone" placeholder="Ej. 70012345" readonly="id"/>
+                            <field name="email" readonly="id"/>
+                            <field name="partner_id" readonly="id" options="{'no_create': True}"/>
+                            <field name="referrer_partner_id" readonly="id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Cortesía">
+                            <field name="service_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   readonly="state != 'issued'"/>
+                            <field name="valid_from" readonly="state != 'issued'"/>
+                            <field name="valid_to" readonly="state != 'issued'"/>
+                            <field name="visits" readonly="state != 'issued'"/>
+                            <field name="visits_left" invisible="not id"/>
+                            <field name="source_id" options="{'no_create': True}" readonly="id"/>
+                            <field name="reason" placeholder="Ej. Sorteo de aniversario"/>
+                        </group>
+                    </group>
+                    <group invisible="not id">
+                        <group string="Código para recepción">
+                            <field name="token" class="fs-3 fw-bold"/>
+                            <field name="qr_url" widget="image_url" options="{'size': [180, 180]}" nolabel="1" colspan="2"/>
+                        </group>
+                        <group string="Emisión">
+                            <field name="issued_by_id" widget="many2one_avatar_user"/>
+                            <field name="issue_date"/>
+                            <field name="lead_id"/>
+                            <field name="spa_message_state" widget="badge" decoration-success="spa_message_state == 'sent'" decoration-warning="spa_message_state == 'ready'" decoration-danger="spa_message_state == 'failed'"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ingresos" name="access" invisible="not id">
+                            <field name="access_log_ids" readonly="1">
+                                <list>
+                                    <field name="check_in"/>
+                                    <field name="space_id"/>
+                                    <field name="check_out"/>
+                                    <field name="user_id"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="note" placeholder="Notas internas..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_courtesy_pass_view_search" model="ir.ui.view">
+        <field name="name">spa.courtesy.pass.search</field>
+        <field name="model">spa.courtesy.pass</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="guest_name" filter_domain="['|', '|', '|', ('guest_name', 'ilike', self), ('name', 'ilike', self), ('phone', 'ilike', self), ('token', '=', self)]"/>
+                <field name="partner_id"/>
+                <field name="issued_by_id"/>
+                <field name="service_ids"/>
+                <filter name="issued" string="Vigentes" domain="[('state', '=', 'issued')]"/>
+                <filter name="redeemed" string="Canjeados" domain="[('state', '=', 'redeemed')]"/>
+                <filter name="expired" string="Vencidos" domain="[('state', '=', 'expired')]"/>
+                <separator/>
+                <filter name="mine" string="Emitidos por mí" domain="[('issued_by_id', '=', uid)]"/>
+                <filter name="issue_date" string="Fecha de emisión" date="issue_date"/>
+                <group>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                    <filter name="group_user" string="Emitido por" context="{'group_by': 'issued_by_id'}"/>
+                    <filter name="group_source" string="Fuente" context="{'group_by': 'source_id'}"/>
+                    <filter name="group_month" string="Mes de emisión" context="{'group_by': 'issue_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_courtesy_pass_view_pivot" model="ir.ui.view">
+        <field name="name">spa.courtesy.pass.pivot</field>
+        <field name="model">spa.courtesy.pass</field>
+        <field name="arch" type="xml">
+            <pivot string="Tasa de canje de cortesías">
+                <field name="issue_date" interval="month" type="row"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="spa_courtesy_pass_action" model="ir.actions.act_window">
+        <field name="name">Pases de cortesía</field>
+        <field name="res_model">spa.courtesy.pass</field>
+        <field name="view_mode">list,form,pivot</field>
+        <field name="context">{'search_default_issued': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Emita el primer pase de cortesía</p>
+            <p>El invitado recibe por WhatsApp un código con QR; recepción lo canjea al ingresar y la persona
+               queda como prospecto en el embudo de Captación.</p>
+        </field>
+    </record>
+</odoo>

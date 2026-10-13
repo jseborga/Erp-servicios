@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_l10n_bo_purchase" model="ir.ui.view">
+        <field name="name">res.config.settings.form.l10n_bo_purchase</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='account_vendor_bills']" position="after">
+                <block title="Compras Bolivia (SIN)" id="l10n_bo_purchase_settings" invisible="country_code != 'BO'">
+                    <setting id="l10n_bo_purchase_doc_defaults" company_dependent="1"
+                             help="Valores por defecto de los documentos fiscales de compra">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_bo_purchase_check" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_purchase_check"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_default_doc_type" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_default_doc_type"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_default_purchase_type" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_default_purchase_type"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_cuf_check" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_cuf_check"/>
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="l10n_bo_purchase_withholdings" company_dependent="1"
+                             help="Impuestos de retención para compras sin factura. Vacío = impuesto de l10n_bo / l10n_bo_spa.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_bo_ret_goods_tax_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_ret_goods_tax_id" domain="[('type_tax_use', '=', 'purchase')]"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_ret_services_tax_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_ret_services_tax_id" domain="[('type_tax_use', '=', 'purchase')]"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_ret_eventual_tax_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_ret_eventual_tax_id" domain="[('type_tax_use', '=', 'purchase')]"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_gu_goods_tax_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_gu_goods_tax_id" domain="[('type_tax_use', '=', 'purchase')]"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_gu_services_tax_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_gu_services_tax_id" domain="[('type_tax_use', '=', 'purchase')]"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_gu_eventual_tax_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_gu_eventual_tax_id" domain="[('type_tax_use', '=', 'purchase')]"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_bo_nodoc_account_id" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_bo_nodoc_account_id"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

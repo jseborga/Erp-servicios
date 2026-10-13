@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ficha del prospecto: datos del spa -->
+    <record id="crm_lead_view_form_spa" model="ir.ui.view">
+        <field name="name">crm.lead.form.spa</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/field[@name='stage_id']" position="before">
+                <button name="action_spa_issue_courtesy" type="object" string="Emitir cortesía"
+                        groups="spa_base.group_spa_reception"
+                        invisible="spa_pipeline != 'acquisition' or won_status != 'pending' or not active"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_spa_view_courtesy_passes" type="object" class="oe_stat_button" icon="fa-ticket"
+                        groups="spa_base.group_spa_reception" invisible="not courtesy_pass_count">
+                    <field name="courtesy_pass_count" widget="statinfo" string="Cortesías"/>
+                </button>
+                <button name="action_spa_view_guests" type="object" class="oe_stat_button" icon="fa-users"
+                        groups="spa_base.group_spa_reception" invisible="not spa_guest_count">
+                    <field name="spa_guest_count" widget="statinfo" string="Visitas de invitado"/>
+                </button>
+            </xpath>
+            <xpath expr="//notebook/page[@name='internal_notes']" position="after">
+                <page string="Spa" name="spa">
+                    <group>
+                        <group string="Origen">
+                            <field name="spa_pipeline"/>
+                            <field name="source_id"/>
+                            <field name="referred_by_partner_id" options="{'no_create': True}"/>
+                            <field name="spa_phone_key" groups="base.group_no_one"/>
+                        </group>
+                        <group string="Socio" groups="spa_base.group_spa_reception">
+                            <field name="spa_membership_id" options="{'no_create': True}"/>
+                            <field name="spa_member_state"/>
+                            <field name="spa_risk_reason" invisible="spa_pipeline != 'retention'"/>
+                            <field name="spa_risk_date_end" invisible="spa_pipeline != 'retention'"/>
+                            <field name="spa_days_to_convert" invisible="won_status != 'won'"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Búsqueda -->
+    <record id="crm_lead_view_search_spa" model="ir.ui.view">
+        <field name="name">crm.lead.search.spa</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='team_id']" position="after">
+                <field name="source_id"/>
+                <field name="referred_by_partner_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='open_opportunities']" position="after">
+                <separator/>
+                <filter name="spa_acquisition" string="Captación" domain="[('spa_pipeline', '=', 'acquisition')]"/>
+                <filter name="spa_retention" string="Retención" domain="[('spa_pipeline', '=', 'retention')]"/>
+                <filter name="spa_referred" string="Referidos por socios" domain="[('referred_by_partner_id', '!=', False)]"/>
+            </xpath>
+            <xpath expr="//filter[@name='source']" position="after">
+                <filter name="group_referred_by" string="Socio que refiere" context="{'group_by': 'referred_by_partner_id'}"/>
+                <filter name="group_risk_reason" string="Motivo de riesgo" context="{'group_by': 'spa_risk_reason'}"/>
+                <filter name="group_won_status" string="Ganado / perdido" context="{'group_by': 'won_status'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Embudos del spa -->
+    <record id="crm_lead_action_spa_acquisition" model="ir.actions.act_window">
+        <field name="name">Captación</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">kanban,list,form,activity,calendar</field>
+        <field name="domain">[('spa_pipeline', '=', 'acquisition'), ('type', '=', 'opportunity')]</field>
+        <field name="context" eval="{'default_team_id': ref('team_acquisition'), 'default_type': 'opportunity'}"/>
+        <field name="search_view_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Aquí llegan los prospectos</p>
+            <p>Invitados de socios, pases de cortesía, formularios web y contactos de redes sociales.
+               Al activar una membresía el prospecto pasa solo a «Socio activo».</p>
+        </field>
+    </record>
+
+    <record id="crm_lead_action_spa_retention" model="ir.actions.act_window">
+        <field name="name">Retención</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">kanban,list,form,activity</field>
+        <field name="domain">[('spa_pipeline', '=', 'retention'), ('type', '=', 'opportunity')]</field>
+        <field name="context" eval="{'default_team_id': ref('team_retention'), 'default_type': 'opportunity'}"/>
+        <field name="search_view_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Ningún socio en riesgo</p>
+            <p>Cada día se revisan las membresías: mora, suspensión, uso bajo y vencimiento próximo sin renovar.
+               Al renovar, la oportunidad pasa sola a «Recuperado»; si vence, a «Ex-socio».</p>
+        </field>
+    </record>
+
+    <!-- Conversión por fuente -->
+    <record id="crm_lead_view_pivot_spa_conversion" model="ir.ui.view">
+        <field name="name">crm.lead.pivot.spa.conversion</field>
+        <field name="model">crm.lead</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <pivot string="Conversión por fuente" display_quantity="1" sample="1">
+                <field name="source_id" type="row"/>
+                <field name="won_status" type="col"/>
+                <field name="spa_conversion_rate" type="measure"/>
+                <field name="spa_days_to_convert" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="crm_lead_view_graph_spa_conversion" model="ir.ui.view">
+        <field name="name">crm.lead.graph.spa.conversion</field>
+        <field name="model">crm.lead</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <graph string="Conversión por fuente" type="bar" stacked="1" sample="1">
+                <field name="source_id"/>
+                <field name="won_status"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="crm_lead_action_spa_conversion" model="ir.actions.act_window">
+        <field name="name">Conversión por fuente</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">pivot,graph,list,form</field>
+        <field name="domain">[('spa_pipeline', '=', 'acquisition')]</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="search_view_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('crm_lead_view_pivot_spa_conversion')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('crm_lead_view_graph_spa_conversion')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">Aún no hay prospectos de captación</p>
+            <p>Prospectos por fuente: ganados, perdidos y en curso, con la tasa de conversión y los días
+               promedio hasta convertir (mírelos en la columna «Ganado»).</p>
+        </field>
+    </record>
+</odoo>

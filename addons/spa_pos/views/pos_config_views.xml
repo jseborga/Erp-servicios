@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pos_config_view_form_spa" model="ir.ui.view">
+        <field name="name">pos.config.form.spa</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='configuration']/div" position="inside">
+                <setting id="spa_pos_analytic" string="Área analítica"
+                         help="Las ventas y facturas de este punto de venta se registran en esta área.">
+                    <field name="spa_analytic_account_id" options="{'no_create': True}"/>
+                </setting>
+                <setting id="spa_pos_member_pricing"
+                         help="Listas de precios de los planes del spa, solo para socios vigentes del plan.">
+                    <field name="spa_member_pricing"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_config_tree_spa" model="ir.ui.view">
+        <field name="name">pos.config.list.spa</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_config_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="spa_analytic_account_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

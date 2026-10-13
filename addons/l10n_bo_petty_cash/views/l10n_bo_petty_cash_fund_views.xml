@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_petty_cash_fund_view_list" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.fund.list</field>
+        <field name="model">l10n_bo.petty.cash.fund</field>
+        <field name="arch" type="xml">
+            <list string="Fondos fijos">
+                <field name="name"/>
+                <field name="custodian_id" widget="many2one_avatar_user"/>
+                <field name="account_id" groups="l10n_bo_purchase.group_spa_accountant"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="amount_fixed"/>
+                <field name="pending_amount"/>
+                <field name="cash_expected"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="state" widget="badge" decoration-success="state == 'open'" decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_fund_view_form" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.fund.form</field>
+        <field name="model">l10n_bo.petty.cash.fund</field>
+        <field name="arch" type="xml">
+            <form string="Fondo fijo">
+                <header>
+                    <button name="action_open" type="object" string="Abrir fondo" class="btn-primary"
+                            invisible="state != 'draft'" groups="l10n_bo_purchase.group_spa_accountant"
+                            confirm="Se registrará el asiento de apertura: Debe cuenta del fondo / Haber banco por el monto fijo. ¿Continuar?"/>
+                    <button name="action_change_amount" type="object" string="Cambiar monto"
+                            invisible="state != 'open'" groups="l10n_bo_purchase.group_spa_accountant"/>
+                    <button name="action_close" type="object" string="Cerrar fondo"
+                            invisible="state != 'open'" groups="l10n_bo_purchase.group_spa_accountant"
+                            confirm="Se devolverá el saldo del fondo al banco y el fondo quedará cerrado. ¿Continuar?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_vouchers" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="voucher_count" widget="statinfo" string="Comprobantes"/>
+                        </button>
+                        <button name="action_view_reports" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                            <field name="report_count" widget="statinfo" string="Rendiciones"/>
+                        </button>
+                        <button name="action_view_moves" type="object" class="oe_stat_button" icon="fa-book"
+                                groups="l10n_bo_purchase.group_spa_accountant">
+                            <field name="move_count" widget="statinfo" string="Asientos"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="p. ej. Caja chica Recepción" readonly="state == 'closed'"/></h1>
+                    </div>
+                    <group>
+                        <group string="Fondo">
+                            <field name="custodian_id" widget="many2one_avatar_user" readonly="state == 'closed'"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount_fixed" readonly="state != 'draft'"/>
+                            <field name="max_expense" readonly="state == 'closed'"/>
+                            <field name="require_receipt" readonly="state == 'closed'"/>
+                            <field name="analytic_account_id" readonly="state == 'closed'"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Situación">
+                            <field name="pending_amount"/>
+                            <field name="cash_expected"/>
+                            <field name="balance" groups="l10n_bo_purchase.group_spa_accountant"/>
+                            <field name="opening_move_id" groups="l10n_bo_purchase.group_spa_accountant" invisible="not opening_move_id"/>
+                        </group>
+                    </group>
+                    <notebook groups="l10n_bo_purchase.group_spa_accountant">
+                        <page string="Contabilidad" name="accounting">
+                            <group>
+                                <group>
+                                    <field name="account_id" readonly="state != 'draft'"/>
+                                    <field name="journal_id"/>
+                                    <field name="bank_journal_id" readonly="state == 'closed'"/>
+                                    <field name="entry_journal_id" readonly="state == 'closed'"/>
+                                    <field name="purchase_journal_id" readonly="state == 'closed'"/>
+                                </group>
+                                <group>
+                                    <field name="shortage_policy"/>
+                                    <field name="shortage_receivable_account_id" invisible="shortage_policy != 'custodian'"/>
+                                    <field name="shortage_expense_account_id" invisible="shortage_policy != 'company'"/>
+                                    <field name="surplus_account_id"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Cuentas permitidas" name="allowed_accounts">
+                            <field name="allowed_account_ids" widget="many2many_tags"
+                                   domain="[('account_type', 'in', ('expense', 'expense_direct_cost', 'asset_current'))]"/>
+                            <p class="text-muted">Vacío: el custodio puede usar cualquier cuenta de gasto.</p>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_fund_view_search" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.fund.search</field>
+        <field name="model">l10n_bo.petty.cash.fund</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="custodian_id"/>
+                <filter name="open" string="Abiertos" domain="[('state', '=', 'open')]"/>
+                <filter name="archived" string="Archivados" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_fund_action" model="ir.actions.act_window">
+        <field name="name">Fondos fijos</field>
+        <field name="res_model">l10n_bo.petty.cash.fund</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cree un fondo fijo (caja chica)</p>
+            <p>Asigne un custodio, el monto fijo y la cuenta del fondo. Al abrirlo se registra
+               Debe fondo / Haber banco; los gastos se registran como comprobantes y se reponen al aprobar la rendición.</p>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_amount_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.amount.wizard.form</field>
+        <field name="model">l10n_bo.petty.cash.amount.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Cambiar monto del fondo">
+                <group>
+                    <field name="fund_id" readonly="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="current_amount"/>
+                    <field name="new_amount"/>
+                    <field name="date"/>
+                    <field name="reason"/>
+                </group>
+                <p class="text-muted">Se registra la diferencia contra el banco de origen: aumento = Debe fondo / Haber banco; disminución = al revés.</p>
+                <footer>
+                    <button name="action_apply" type="object" string="Registrar" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

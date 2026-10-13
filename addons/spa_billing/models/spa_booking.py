@@ -37,7 +37,7 @@ class SpaBooking(models.Model):
         invoice = self.env['account.move'].sudo().create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_id.id,
-            'invoice_date': fields.Date.context_today(self),
+            'invoice_date': self.env['spa.tools'].local_today(),
             'invoice_origin': self.name,
             'spa_invoice_kind': 'single',
             'invoice_line_ids': lines,

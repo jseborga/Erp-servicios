@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Caja cobra en el POS; Gerente lo configura. Los permisos son los estándar de point_of_sale. -->
+    <record id="spa_base.group_spa_cashier" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('point_of_sale.group_pos_user'))]"/>
+    </record>
+    <record id="spa_base.group_spa_manager" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('point_of_sale.group_pos_manager'))]"/>
+    </record>
+</odoo>

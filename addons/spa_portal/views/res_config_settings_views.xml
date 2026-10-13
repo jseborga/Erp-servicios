@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_spa_portal" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.spa.portal</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="spa_base.res_config_settings_view_form_spa"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='spa_general']" position="after">
+                <block title="Web del socio" name="spa_portal">
+                    <setting string="Agenda en la web"
+                             help="Días hacia adelante que el socio ve al reservar o registrar invitados.">
+                        <field name="spa_portal_booking_days"/>
+                    </setting>
+                    <setting string="Comprobantes de pago"
+                             help="Tamaño máximo del comprobante (foto o PDF) que el socio sube desde la web.">
+                        <field name="spa_portal_receipt_max_mb"/>
+                    </setting>
+                    <setting string="Registro de socios en la web"
+                             help="El registro libre de cuentas se activa en Sitio web › Ajustes › Cuenta de cliente: «Registro libre».">
+                        <div class="text-muted">Los planes visibles en /spa se marcan con «Visible en la web» en cada plan.</div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

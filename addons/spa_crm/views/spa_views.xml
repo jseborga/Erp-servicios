@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Membresía: acceso a sus oportunidades (captación ganada y retención) -->
+    <record id="spa_membership_view_form_crm" model="ir.ui.view">
+        <field name="name">spa.membership.form.crm</field>
+        <field name="model">spa.membership</field>
+        <field name="inherit_id" ref="spa_membership.spa_membership_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_spa_leads" type="object" class="oe_stat_button" icon="fa-handshake-o"
+                        groups="sales_team.group_sale_salesman" invisible="not spa_lead_count">
+                    <field name="spa_lead_count" widget="statinfo" string="CRM"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Invitado: prospecto generado -->
+    <record id="spa_guest_view_form_crm" model="ir.ui.view">
+        <field name="name">spa.guest.form.crm</field>
+        <field name="model">spa.guest</field>
+        <field name="inherit_id" ref="spa_membership.spa_guest_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="lead_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Ingresos: pase de cortesía -->
+    <record id="spa_access_log_view_list_crm" model="ir.ui.view">
+        <field name="name">spa.access.log.list.crm</field>
+        <field name="model">spa.access.log</field>
+        <field name="inherit_id" ref="spa_access.spa_access_log_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='membership_id']" position="after">
+                <field name="courtesy_pass_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Fuentes: embudo de destino -->
+    <record id="utm_source_view_tree_spa" model="ir.ui.view">
+        <field name="name">utm.source.list.spa</field>
+        <field name="model">utm.source</field>
+        <field name="inherit_id" ref="utm.utm_source_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="spa_team_id" options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="utm_source_view_form_spa" model="ir.ui.view">
+        <field name="name">utm.source.form.spa</field>
+        <field name="model">utm.source</field>
+        <field name="inherit_id" ref="utm.utm_source_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="spa_team_id" options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="utm_source_action_spa" model="ir.actions.act_window">
+        <field name="name">Fuentes de prospectos</field>
+        <field name="res_model">utm.source</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Agregue una fuente</p>
+            <p>Instagram, TikTok, ferias, alianzas... Cada prospecto guarda su fuente para medir la conversión.</p>
+        </field>
+    </record>
+
+    <!-- Etapas y equipos: función en el spa -->
+    <record id="crm_stage_form_spa" model="ir.ui.view">
+        <field name="name">crm.stage.form.spa</field>
+        <field name="model">crm.stage</field>
+        <field name="inherit_id" ref="crm.crm_stage_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_won']" position="after">
+                <field name="spa_stage_code"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="crm_stage_tree_spa" model="ir.ui.view">
+        <field name="name">crm.stage.list.spa</field>
+        <field name="model">crm.stage</field>
+        <field name="inherit_id" ref="crm.crm_stage_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='team_ids']" position="after">
+                <field name="spa_stage_code" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="crm_team_view_form_spa" model="ir.ui.view">
+        <field name="name">crm.team.form.spa</field>
+        <field name="model">crm.team</field>
+        <field name="inherit_id" ref="sales_team.crm_team_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='right']" position="inside">
+                <field name="spa_pipeline"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

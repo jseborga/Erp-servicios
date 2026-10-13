@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_petty_cash_fund_custodian,l10n_bo.petty.cash.fund custodian,model_l10n_bo_petty_cash_fund,group_petty_cash_custodian,1,0,0,0
+access_petty_cash_fund_accountant,l10n_bo.petty.cash.fund accountant,model_l10n_bo_petty_cash_fund,l10n_bo_purchase.group_spa_accountant,1,1,1,1
+access_petty_cash_voucher_custodian,l10n_bo.petty.cash.voucher custodian,model_l10n_bo_petty_cash_voucher,group_petty_cash_custodian,1,1,1,1
+access_petty_cash_voucher_accountant,l10n_bo.petty.cash.voucher accountant,model_l10n_bo_petty_cash_voucher,l10n_bo_purchase.group_spa_accountant,1,1,1,1
+access_petty_cash_report_custodian,l10n_bo.petty.cash.report custodian,model_l10n_bo_petty_cash_report,group_petty_cash_custodian,1,1,1,0
+access_petty_cash_report_accountant,l10n_bo.petty.cash.report accountant,model_l10n_bo_petty_cash_report,l10n_bo_purchase.group_spa_accountant,1,1,1,1
+access_petty_cash_amount_wizard_accountant,l10n_bo.petty.cash.amount.wizard accountant,model_l10n_bo_petty_cash_amount_wizard,l10n_bo_purchase.group_spa_accountant,1,1,1,1

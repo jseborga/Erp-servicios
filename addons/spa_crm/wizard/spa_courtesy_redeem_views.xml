@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_courtesy_redeem_wizard_view_form" model="ir.ui.view">
+        <field name="name">spa.courtesy.redeem.wizard.form</field>
+        <field name="model">spa.courtesy.redeem.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Canjear pase de cortesía">
+                <group>
+                    <field name="token" placeholder="Escanee el QR o escriba el código" default_focus="1"/>
+                    <field name="pass_id" invisible="token" options="{'no_create': True}"/>
+                    <field name="space_id" options="{'no_create': True}"/>
+                    <field name="service_id" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_redeem" type="object" string="Registrar ingreso" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cerrar" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_courtesy_redeem_wizard_action" model="ir.actions.act_window">
+        <field name="name">Canjear cortesía</field>
+        <field name="res_model">spa.courtesy.redeem.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Migas de pan del portal (/my/spa...). Prioridad < 30 para quedar antes
+         del nombre de la factura que agrega «account» cuando existe «invoice». -->
+    <template id="portal_breadcrumbs_spa" name="Spa: migas de pan" inherit_id="portal.portal_breadcrumbs" priority="25">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'spa'" class="breadcrumb-item active" aria-current="page">Mi membresía</li>
+            <li t-if="page_name in ('spa_book', 'spa_guests', 'spa_pay')" class="breadcrumb-item">
+                <a href="/my/spa">Mi membresía</a>
+            </li>
+            <li t-if="page_name == 'spa_book'" class="breadcrumb-item active" aria-current="page">Reservar</li>
+            <li t-if="page_name == 'spa_guests'" class="breadcrumb-item active" aria-current="page">Invitados</li>
+            <li t-if="page_name == 'spa_pay'" t-attf-class="breadcrumb-item #{'' if invoice else 'active'}">Pagar</li>
+        </xpath>
+    </template>
+
+    <!-- Tarjeta «Mi membresía» en la portada del portal (/my). Siempre visible:
+         quien aún no es socio llega desde aquí a elegir un plan. -->
+    <template id="portal_my_home_spa" name="Spa: Mi membresía" inherit_id="portal.portal_my_home"
+              customize_show="True" priority="20">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_service_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_service_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/spa_portal/static/src/img/spa_membership.svg'"/>
+                <t t-set="title">Mi membresía</t>
+                <t t-set="url" t-value="'/my/spa'"/>
+                <t t-set="text">Credencial QR, saldos, reservas, invitados y pagos</t>
+                <t t-set="placeholder_count" t-value="'spa_membership_count'"/>
+                <t t-set="config_card" t-value="True"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- Avisos: resultado de la última acción (flash) y errores del formulario -->
+    <template id="spa_alerts" name="Spa: avisos">
+        <div t-if="flash" t-attf-class="alert alert-#{flash[0]} d-flex gap-2 align-items-start" role="status">
+            <i t-attf-class="fa #{'fa-check-circle' if flash[0] == 'success' else 'fa-info-circle'} mt-1" aria-hidden="true"/>
+            <span t-out="flash[1]"/>
+        </div>
+        <div t-if="error" class="alert alert-danger d-flex gap-2 align-items-start" role="alert">
+            <i class="fa fa-exclamation-triangle mt-1" aria-hidden="true"/>
+            <span t-out="error"/>
+        </div>
+    </template>
+
+    <!-- Menú del socio (pestañas desplazables en el celular) -->
+    <template id="spa_member_nav" name="Spa: menú del socio">
+        <nav class="o_spa_nav nav nav-pills flex-nowrap overflow-auto gap-1 mb-3 pb-1" aria-label="Menú del socio">
+            <a href="/my/spa" t-attf-class="nav-link text-nowrap #{'active' if page_name == 'spa' else ''}"
+               t-att-aria-current="'page' if page_name == 'spa' else None">
+                <i class="fa fa-id-card-o me-1" aria-hidden="true"/>Mi membresía
+            </a>
+            <a href="/my/spa/book" t-attf-class="nav-link text-nowrap #{'active' if page_name == 'spa_book' else ''}"
+               t-att-aria-current="'page' if page_name == 'spa_book' else None">
+                <i class="fa fa-calendar me-1" aria-hidden="true"/>Reservar
+            </a>
+            <a href="/my/spa/guests" t-attf-class="nav-link text-nowrap #{'active' if page_name == 'spa_guests' else ''}"
+               t-att-aria-current="'page' if page_name == 'spa_guests' else None">
+                <i class="fa fa-user-plus me-1" aria-hidden="true"/>Invitados
+            </a>
+            <a href="/my/spa/pay" t-attf-class="nav-link text-nowrap #{'active' if page_name == 'spa_pay' else ''}"
+               t-att-aria-current="'page' if page_name == 'spa_pay' else None">
+                <i class="fa fa-credit-card me-1" aria-hidden="true"/>Pagar
+            </a>
+        </nav>
+    </template>
+
+    <!-- Bloqueo (sin membresía o membresía inactiva) con la salida correspondiente -->
+    <template id="spa_blocked" name="Spa: acceso bloqueado">
+        <div class="alert alert-warning" role="status">
+            <p class="mb-2" t-out="blocked"/>
+            <a t-if="not membership or membership.state == 'expired'" href="/spa" class="btn btn-primary btn-sm">Ver planes</a>
+            <a t-else="" href="/my/spa/pay" class="btn btn-primary btn-sm">Pagar mi saldo</a>
+        </div>
+    </template>
+</odoo>

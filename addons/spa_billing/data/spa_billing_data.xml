@@ -33,7 +33,7 @@
             <field name="offer_type">discount</field>
             <field name="discount_percent">10</field>
             <field name="months">12</field>
-            <field name="date_from" eval="DateTime.today().strftime('%Y-%m-%d')"/>
+            <field name="date_from" eval="DateTime.today().replace(day=1).strftime('%Y-%m-%d')"/>
             <field name="date_to" eval="(DateTime.today() + relativedelta(months=3)).strftime('%Y-%m-%d')"/>
             <field name="description">Ejemplo editable: válido 3 meses desde la instalación.</field>
         </record>
@@ -42,7 +42,7 @@
             <field name="offer_type">installments</field>
             <field name="installments">3</field>
             <field name="months">12</field>
-            <field name="date_from" eval="DateTime.today().strftime('%Y-%m-%d')"/>
+            <field name="date_from" eval="DateTime.today().replace(day=1).strftime('%Y-%m-%d')"/>
             <field name="date_to" eval="(DateTime.today() + relativedelta(months=3)).strftime('%Y-%m-%d')"/>
             <field name="description">Ejemplo editable: la membresía se activa al pagar la primera cuota.</field>
         </record>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_qr_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n_bo.qr.wizard.form</field>
+        <field name="model">l10n_bo.qr.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Leer QR de la factura">
+                <field name="res_model" invisible="1"/>
+                <field name="res_id" invisible="1"/>
+                <p class="text-muted">
+                    Escanee el código QR con el lector o pegue el texto o enlace leído con el celular.
+                    Revise los datos antes de aplicarlos.
+                </p>
+                <field name="qr_text" nolabel="1" placeholder="https://siat.impuestos.gob.bo/consulta/QR?nit=...&amp;cuf=...&amp;numero=...  o  NIT|número|autorización|fecha|total|..."/>
+                <div class="alert alert-info" role="status" invisible="not message">
+                    <field name="message" nolabel="1"/>
+                </div>
+                <group>
+                    <group>
+                        <field name="doc_type"/>
+                        <field name="nit"/>
+                        <field name="number"/>
+                        <field name="date"/>
+                    </group>
+                    <group>
+                        <field name="cuf" invisible="doc_type != 'siat_online'"/>
+                        <field name="auth_number" invisible="doc_type not in ('dosificacion', 'manual')"/>
+                        <field name="control_code" invisible="doc_type != 'dosificacion'"/>
+                        <field name="amount_total"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Aplicar" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_petty_cash_root" name="Fondo fijo" sequence="45"
+              web_icon="l10n_bo_petty_cash,static/description/icon.png"
+              groups="group_petty_cash_custodian,l10n_bo_purchase.group_spa_accountant"/>
+    <menuitem id="menu_petty_cash_vouchers" name="Comprobantes" parent="menu_petty_cash_root"
+              action="l10n_bo_petty_cash_voucher_action" sequence="10"/>
+    <menuitem id="menu_petty_cash_reports" name="Rendiciones" parent="menu_petty_cash_root"
+              action="l10n_bo_petty_cash_report_action" sequence="20"/>
+    <menuitem id="menu_petty_cash_funds" name="Fondos" parent="menu_petty_cash_root"
+              action="l10n_bo_petty_cash_fund_action" sequence="30"/>
+
+    <!-- Acceso del contador desde Contabilidad -->
+    <menuitem id="menu_petty_cash_accounting" name="Fondos fijos" parent="account.menu_finance_entries"
+              action="l10n_bo_petty_cash_fund_action" sequence="40"
+              groups="l10n_bo_purchase.group_spa_accountant"/>
+</odoo>

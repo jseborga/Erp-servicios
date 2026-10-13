@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_bo_petty_cash_report_view_list" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.report.list</field>
+        <field name="model">l10n_bo.petty.cash.report</field>
+        <field name="arch" type="xml">
+            <list string="Rendiciones de fondo fijo">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="fund_id"/>
+                <field name="custodian_id" widget="many2one_avatar_user"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="amount_paid" sum="Total"/>
+                <field name="cash_counted"/>
+                <field name="difference" decoration-danger="difference &lt; 0" decoration-success="difference &gt; 0"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-warning="state == 'submitted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_report_view_form" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.report.form</field>
+        <field name="model">l10n_bo.petty.cash.report</field>
+        <field name="arch" type="xml">
+            <form string="Rendición de fondo fijo">
+                <header>
+                    <button name="action_load_vouchers" type="object" string="Cargar comprobantes" invisible="state != 'draft'"/>
+                    <button name="action_submit" type="object" string="Enviar rendición" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Aprobar y reponer" class="btn-primary"
+                            invisible="state != 'submitted'" groups="l10n_bo_purchase.group_spa_accountant"
+                            confirm="Se registrarán las facturas de los comprobantes, sus pagos desde el fondo y el asiento de reposición desde el banco. ¿Continuar?"/>
+                    <button name="action_reset_draft" type="object" string="Devolver a borrador"
+                            invisible="state != 'submitted'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_bills" type="object" class="oe_stat_button" icon="fa-file-text"
+                                invisible="not bill_count" groups="l10n_bo_purchase.group_spa_accountant">
+                            <field name="bill_count" widget="statinfo" string="Facturas"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="fund_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="custodian_id"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Arqueo">
+                            <field name="amount_fixed"/>
+                            <field name="amount_paid"/>
+                            <field name="cash_expected"/>
+                            <field name="cash_counted" readonly="state != 'draft'"/>
+                            <field name="difference" decoration-danger="difference &lt; 0" decoration-success="difference &gt; 0"/>
+                        </group>
+                    </group>
+                    <group invisible="state != 'approved'" groups="l10n_bo_purchase.group_spa_accountant">
+                        <group>
+                            <field name="replenish_amount"/>
+                            <field name="replenish_move_id"/>
+                        </group>
+                        <group>
+                            <field name="approved_by_id"/>
+                            <field name="approval_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Comprobantes" name="vouchers">
+                            <field name="voucher_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date"/>
+                                    <field name="partner_id"/>
+                                    <field name="supplier_name" optional="hide"/>
+                                    <field name="description"/>
+                                    <field name="l10n_bo_doc_type"/>
+                                    <field name="l10n_bo_invoice_number" optional="show"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="amount" sum="Total"/>
+                                    <field name="amount_paid" sum="Total"/>
+                                    <field name="move_id" optional="show" groups="l10n_bo_purchase.group_spa_accountant"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Observaciones" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                    <p class="text-muted">
+                        Regla del fondo fijo: efectivo + comprobantes = monto fijo. Faltante: según la política del fondo
+                        (cuenta por cobrar al custodio o faltantes de caja). Sobrante: sobrantes de caja.
+                    </p>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_report_view_search" model="ir.ui.view">
+        <field name="name">l10n_bo.petty.cash.report.search</field>
+        <field name="model">l10n_bo.petty.cash.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="fund_id"/>
+                <field name="custodian_id"/>
+                <filter name="to_approve" string="Por aprobar" domain="[('state', '=', 'submitted')]"/>
+                <filter name="filter_date" string="Fecha" date="date"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="l10n_bo_petty_cash_report_action" model="ir.actions.act_window">
+        <field name="name">Rendiciones</field>
+        <field name="res_model">l10n_bo.petty.cash.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cree la rendición del fondo</p>
+            <p>Se cargan los comprobantes en borrador; cuente el efectivo y envíela al contador.</p>
+        </field>
+    </record>
+</odoo>
