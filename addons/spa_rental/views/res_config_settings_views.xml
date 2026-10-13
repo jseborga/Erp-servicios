@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_spa_rental" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.spa.rental</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="spa_base.res_config_settings_view_form_spa"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='spa_general']" position="after">
+                <block title="Alquileres y eventos" name="spa_rental">
+                    <setting string="Recordatorio del evento" help="Horas antes del inicio en que se genera el WhatsApp «Recordatorio de evento». 0 = no enviar.">
+                        <field name="spa_rental_reminder_hours"/>
+                    </setting>
+                    <setting string="Garantías" help="Pasivo de las garantías recibidas (vacío = 216200) y producto para cobrar daños.">
+                        <div><label for="spa_rental_deposit_account_id" class="me-2"/><field name="spa_rental_deposit_account_id" options="{'no_create': True}"/></div>
+                        <div><label for="spa_rental_damage_product_id" class="me-2"/><field name="spa_rental_damage_product_id" options="{'no_create': True}"/></div>
+                    </setting>
+                    <setting string="Analítica y CRM" help="Área de las facturas de alquileres y clases (vacío = «Eventos, clases y alquileres») y embudo de las cotizaciones.">
+                        <div><label for="spa_rental_analytic_id" class="me-2"/><field name="spa_rental_analytic_id" options="{'no_create': True}"/></div>
+                        <div><label for="spa_rental_team_id" class="me-2"/><field name="spa_rental_team_id" options="{'no_create': True}"/></div>
+                    </setting>
+                </block>
+                <block title="Clases" name="spa_rental_classes">
+                    <setting string="Generación de sesiones" help="Semanas hacia adelante con sesiones creadas. Conviene que supere la anticipación máxima de reservas.">
+                        <field name="spa_rental_weeks_ahead"/>
+                    </setting>
+                    <setting string="Cancelación sin cargo" help="Horas antes de la clase en que el alumno puede cancelar y recuperar la sesión.">
+                        <field name="spa_rental_class_cancel_hours"/>
+                    </setting>
+                    <setting string="Ingreso a clase" help="Minutos antes del inicio en que el alumno registra su ingreso con el QR.">
+                        <field name="spa_rental_checkin_minutes"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

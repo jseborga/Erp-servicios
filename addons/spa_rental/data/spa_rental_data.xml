@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_spa_rental" model="ir.sequence">
+        <field name="name">Alquileres de ambientes</field>
+        <field name="code">spa.rental</field>
+        <field name="prefix">ALQ/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="ir_cron_spa_rentals" model="ir.cron">
+        <field name="name">Spa: eventos (recordatorios, inicio y cierre con factura)</field>
+        <field name="model_id" ref="model_spa_rental"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_rentals()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+    </record>
+
+    <record id="ir_cron_spa_class_generate" model="ir.cron">
+        <field name="name">Spa: generar sesiones de clases</field>
+        <field name="model_id" ref="model_spa_class_template"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_generate_sessions()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now().replace(hour=9, minute=30, second=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+
+    <record id="ir_cron_spa_class_sessions" model="ir.cron">
+        <field name="name">Spa: cerrar sesiones de clases dictadas</field>
+        <field name="model_id" ref="model_spa_class_session"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sessions()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+    </record>
+</odoo>

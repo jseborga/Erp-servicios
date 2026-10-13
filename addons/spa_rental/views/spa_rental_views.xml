@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_rental_view_list" model="ir.ui.view">
+        <field name="name">spa.rental.list</field>
+        <field name="model">spa.rental</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancelled'" decoration-info="state == 'quotation'">
+                <field name="name"/>
+                <field name="start"/>
+                <field name="stop" optional="hide"/>
+                <field name="event_name"/>
+                <field name="partner_id"/>
+                <field name="space_id"/>
+                <field name="mode" optional="show"/>
+                <field name="reserved_seats" optional="hide"/>
+                <field name="attendees" optional="show"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="invoice_status" optional="show" widget="badge" decoration-success="invoice_status == 'paid'"
+                       decoration-warning="invoice_status in ('draft', 'posted', 'partial')"/>
+                <field name="deposit_state" optional="show" widget="badge" decoration-warning="deposit_state in ('pending', 'held')"
+                       decoration-success="deposit_state == 'settled'"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge" decoration-info="state == 'quotation'" decoration-success="state in ('confirmed', 'in_progress', 'done')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_rental_view_calendar" model="ir.ui.view">
+        <field name="name">spa.rental.calendar</field>
+        <field name="model">spa.rental</field>
+        <field name="arch" type="xml">
+            <calendar string="Eventos" date_start="start" date_stop="stop" color="space_id" mode="week"
+                      event_open_popup="1" quick_create="0">
+                <field name="event_name"/>
+                <field name="partner_id"/>
+                <field name="space_id" filters="1"/>
+                <field name="mode"/>
+                <field name="attendees"/>
+                <field name="state" filters="1"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="spa_rental_view_form" model="ir.ui.view">
+        <field name="name">spa.rental.form</field>
+        <field name="model">spa.rental</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" type="object" string="Confirmar evento" class="btn-primary"
+                            groups="spa_base.group_spa_manager" invisible="state != 'quotation'"/>
+                    <button name="action_start" type="object" string="Iniciar evento" invisible="state != 'confirmed'"/>
+                    <button name="action_done" type="object" string="Finalizar evento" class="btn-primary"
+                            invisible="state not in ('confirmed', 'in_progress')"
+                            confirm="Se valida la factura del evento (servicio prestado). ¿Continuar?"/>
+                    <button name="action_open_payment" type="object" string="Registrar cobro" class="btn-primary"
+                            groups="spa_base.group_spa_cashier"
+                            invisible="state in ('quotation', 'cancelled') or invoice_status not in ('draft', 'posted', 'partial')"/>
+                    <button name="action_open_deposit_payment" type="object" string="Cobrar garantía"
+                            groups="spa_base.group_spa_cashier"
+                            invisible="state in ('done', 'cancelled') or not deposit_amount or deposit_state == 'held'"/>
+                    <button name="action_open_deposit_wizard" type="object" string="Devolver garantía"
+                            groups="spa_base.group_spa_cashier" invisible="deposit_state != 'held'"
+                            context="{'spa_deposit_operation': 'refund'}"/>
+                    <button name="action_open_deposit_wizard" type="object" string="Aplicar garantía a daños"
+                            groups="spa_base.group_spa_cashier" invisible="deposit_state != 'held' or state not in ('in_progress', 'done')"
+                            context="{'spa_deposit_operation': 'apply'}"/>
+                    <button name="action_add_space" type="object" string="Agregar otro espacio"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_reset_quotation" type="object" string="Volver a cotización"
+                            groups="spa_base.group_spa_manager" invisible="state not in ('confirmed', 'cancelled')"/>
+                    <button name="action_cancel" type="object" string="Cancelar"
+                            invisible="state not in ('quotation', 'confirmed')"
+                            confirm="Se libera el espacio y se anula la factura en borrador. ¿Cancelar el evento?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="quotation,confirmed,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                                groups="spa_base.group_spa_cashier" invisible="not invoice_id">
+                            <span>Facturas</span>
+                        </button>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not availability_warning">
+                        <strong>No disponible:</strong>
+                        <field name="availability_warning" nolabel="1"/>
+                    </div>
+                    <div class="oe_title">
+                        <span class="text-muted"><field name="name" readonly="1"/></span>
+                        <h1><field name="event_name" placeholder="Ej. Cumpleaños de Sofía" readonly="state in ('done', 'cancelled')"/></h1>
+                    </div>
+                    <group>
+                        <group string="Cliente">
+                            <field name="partner_id" readonly="state != 'quotation'"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                            <field name="user_id"/>
+                            <field name="private_event"/>
+                            <field name="lead_id" groups="sales_team.group_sale_salesman" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'quotation'"/>
+                        </group>
+                        <group string="Espacio y horario">
+                            <field name="space_id" readonly="state != 'quotation'" options="{'no_create': True}"/>
+                            <field name="start" readonly="state != 'quotation'"/>
+                            <field name="stop" readonly="state != 'quotation'"/>
+                            <field name="duration_hours" widget="float_time"/>
+                            <field name="mode" widget="radio" readonly="state != 'quotation'"/>
+                            <field name="seats" invisible="mode != 'partial'" required="mode == 'partial'" readonly="state != 'quotation'"/>
+                            <label for="reserved_seats"/>
+                            <div class="o_row">
+                                <field name="reserved_seats" class="oe_inline"/> de <field name="space_capacity" class="oe_inline"/>
+                            </div>
+                            <field name="attendees"/>
+                            <field name="outside_hours_ok" groups="spa_base.group_spa_manager" readonly="state != 'quotation'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Precio" name="pricing">
+                            <field name="can_edit_prices" invisible="1"/>
+                            <field name="line_ids" readonly="state != 'quotation'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id" options="{'no_create': True}"/>
+                                    <field name="name"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit" readonly="not parent.can_edit_prices"/>
+                                    <field name="discount" readonly="not parent.can_edit_prices" optional="show"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="subtotal" sum="Total"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="amount_total"/>
+                            </group>
+                            <div class="text-muted small">
+                                Precios con IVA incluido. La factura se crea en borrador al confirmar y se valida al cobrar
+                                o al terminar el evento (Ley 843, art. 4 inc. b). Solo el gerente cambia precios o aplica descuentos.
+                            </div>
+                        </page>
+                        <page string="Cobro y garantía" name="billing">
+                            <group>
+                                <group string="Factura">
+                                    <field name="invoice_status"/>
+                                    <field name="amount_paid"/>
+                                    <field name="amount_due"/>
+                                    <field name="invoice_id" groups="spa_base.group_spa_cashier"/>
+                                </group>
+                                <group string="Garantía">
+                                    <field name="deposit_amount" readonly="state in ('done', 'cancelled')"/>
+                                    <field name="deposit_state"/>
+                                    <field name="deposit_received"/>
+                                    <field name="deposit_refunded"/>
+                                    <field name="deposit_applied"/>
+                                    <field name="deposit_balance"/>
+                                </group>
+                            </group>
+                            <field name="deposit_payment_ids" groups="spa_base.group_spa_cashier" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                    <field name="spa_deposit_kind"/>
+                                    <field name="journal_id"/>
+                                    <field name="memo"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="amount"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="note" placeholder="Montaje, decoración, catering, horario de ingreso de proveedores…"/>
+                            <field name="cancel_reason" invisible="state != 'cancelled'" placeholder="Motivo de cancelación"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_rental_view_search" model="ir.ui.view">
+        <field name="name">spa.rental.search</field>
+        <field name="model">spa.rental</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="event_name"/>
+                <field name="partner_id"/>
+                <field name="name"/>
+                <field name="space_id"/>
+                <filter name="quotation" string="Cotizaciones" domain="[('state', '=', 'quotation')]"/>
+                <filter name="upcoming" string="Confirmados" domain="[('state', 'in', ('confirmed', 'in_progress'))]"/>
+                <filter name="done" string="Realizados" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter name="this_month" string="Este mes"
+                        domain="[('start', '&gt;=', (context_today().replace(day=1)).strftime('%Y-%m-%d')),
+                                 ('start', '&lt;', (context_today().replace(day=1) + relativedelta(months=1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="my" string="Mis eventos" domain="[('user_id', '=', uid)]"/>
+                <group>
+                    <filter name="group_space" string="Espacio" context="{'group_by': 'space_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                    <filter name="group_month" string="Mes" context="{'group_by': 'start:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_rental_view_pivot" model="ir.ui.view">
+        <field name="name">spa.rental.pivot</field>
+        <field name="model">spa.rental</field>
+        <field name="arch" type="xml">
+            <pivot string="Eventos">
+                <field name="space_id" type="row"/>
+                <field name="start" type="col" interval="month"/>
+                <field name="amount_total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="spa_rental_action" model="ir.actions.act_window">
+        <field name="name">Alquileres y eventos</field>
+        <field name="res_model">spa.rental</field>
+        <field name="view_mode">list,calendar,form,pivot</field>
+        <field name="search_view_id" ref="spa_rental_view_search"/>
+        <field name="context">{'search_default_upcoming': 1, 'search_default_quotation': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cotice el alquiler de un espacio</p>
+            <p>Cumpleaños, clubes de natación, sesiones de fotos: elija el espacio, el horario y si es exclusivo
+               o con algunos cupos. Al confirmar, el espacio queda reservado y los socios lo ven ocupado.</p>
+        </field>
+    </record>
+</odoo>

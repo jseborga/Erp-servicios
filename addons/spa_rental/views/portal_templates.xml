@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Migas de pan -->
+    <template id="portal_breadcrumbs_spa_classes" name="Spa: migas de pan de clases" inherit_id="portal.portal_breadcrumbs" priority="26">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'spa_classes'" class="breadcrumb-item active" aria-current="page">Clases</li>
+        </xpath>
+    </template>
+
+    <!-- Tarjeta en /my: visible cuando el plan del socio incluye clases con sesiones próximas -->
+    <template id="portal_my_home_spa_classes" name="Spa: Clases" inherit_id="portal.portal_my_home"
+              customize_show="True" priority="21">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_service_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_service_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Clases</t>
+                <t t-set="url" t-value="'/my/spa/classes'"/>
+                <t t-set="text">Natación, aquagym y más: inscríbete con tu plan</t>
+                <t t-set="placeholder_count" t-value="'spa_class_count'"/>
+            </t>
+        </div>
+    </template>
+
+    <template id="portal_my_classes" name="Spa: clases">
+        <t t-call="portal.portal_layout">
+            <t t-set="additional_title">Clases</t>
+            <div class="o_spa_classes">
+                <h1 class="h3 mb-3">Clases</h1>
+                <div t-if="flash" t-attf-class="alert alert-#{flash[0]}" role="status"><t t-out="flash[1]"/></div>
+                <div t-if="error" class="alert alert-danger" role="alert"><t t-out="error"/></div>
+
+                <div t-if="not membership" class="alert alert-info" role="status">
+                    Para inscribirte desde la web necesitas una membresía vigente cuyo plan incluya clases.
+                    Consulta en recepción por clases sueltas o paquetes.
+                </div>
+                <t t-else="">
+                    <h2 class="h5">Mis próximas clases</h2>
+                    <div t-if="enrollments" class="list-group mb-4">
+                        <div t-foreach="enrollments" t-as="item" class="list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                            <div>
+                                <div class="fw-bold" t-out="item['record'].template_id.name or item['record'].service_id.name"/>
+                                <div class="text-muted small">
+                                    <t t-out="item['when']"/> ·
+                                    <t t-out="item['record'].space_id.name"/>
+                                    <t t-if="item['record'].instructor_id"> · <t t-out="item['record'].instructor_id.name"/></t>
+                                </div>
+                            </div>
+                            <form t-attf-action="/my/spa/classes/enrollment/#{item['record'].id}/cancel" method="post">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">Cancelar</button>
+                            </form>
+                        </div>
+                    </div>
+                    <p t-else="" class="text-muted">Aún no estás inscrito en ninguna clase.</p>
+
+                    <h2 class="h5 mt-4">Horarios de las próximas dos semanas</h2>
+                    <p t-if="not rows" class="text-muted">Tu plan no incluye clases o no hay sesiones programadas.</p>
+                    <div t-if="rows" class="list-group">
+                        <div t-foreach="rows" t-as="row" class="list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                            <div>
+                                <div class="fw-bold">
+                                    <t t-out="row['weekday']"/> <t t-out="row['day']"/> · <t t-out="row['hour']"/>
+                                </div>
+                                <div class="text-muted small">
+                                    <t t-out="row['session'].template_id.name or row['session'].service_id.name"/>
+                                    <t t-if="row['session'].instructor_id"> · <t t-out="row['session'].instructor_id.name"/></t>
+                                    · <t t-out="row['session'].seats_left"/> cupo(s) libre(s)
+                                </div>
+                            </div>
+                            <span t-if="row['reason']" t-attf-class="badge #{'text-bg-success' if row['enrolled'] else 'text-bg-secondary'}" t-out="row['reason']"/>
+                            <form t-else="" t-attf-action="/my/spa/classes/#{row['session'].id}/enroll" method="post">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <button type="submit" class="btn btn-primary btn-sm">Inscribirme</button>
+                            </form>
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-3">
+                        Cada clase descuenta una sesión de tu plan. Si cancelas con anticipación, la sesión vuelve a tu saldo.
+                    </p>
+                </t>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="spa_menu_rental" name="Alquileres y eventos" parent="spa_base.spa_menu_operations"
+              action="spa_rental_action" sequence="15" groups="spa_base.group_spa_reception"/>
+
+    <menuitem id="spa_menu_classes" name="Clases" parent="spa_base.spa_menu_root" sequence="15"
+              groups="spa_base.group_spa_reception,spa_base.group_spa_therapist"/>
+    <menuitem id="spa_menu_class_template" name="Horarios" parent="spa_menu_classes"
+              action="spa_class_template_action" sequence="10"/>
+    <menuitem id="spa_menu_class_session" name="Sesiones" parent="spa_menu_classes"
+              action="spa_class_session_action" sequence="20"/>
+    <menuitem id="spa_menu_class_enrollment" name="Inscripciones" parent="spa_menu_classes"
+              action="spa_class_enrollment_action" sequence="30"/>
+</odoo>

@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================= Horarios ================= -->
+    <record id="spa_class_template_view_list" model="ir.ui.view">
+        <field name="name">spa.class.template.list</field>
+        <field name="model">spa.class.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="service_id"/>
+                <field name="space_id" optional="show"/>
+                <field name="instructor_id"/>
+                <field name="mon" optional="show"/>
+                <field name="tue" optional="show"/>
+                <field name="wed" optional="show"/>
+                <field name="thu" optional="show"/>
+                <field name="fri" optional="show"/>
+                <field name="sat" optional="show"/>
+                <field name="sun" optional="show"/>
+                <field name="start_hour" widget="float_time"/>
+                <field name="duration" widget="float_time"/>
+                <field name="capacity"/>
+                <field name="session_price" optional="show"/>
+                <field name="session_count" string="Próximas sesiones"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_class_template_view_form" model="ir.ui.view">
+        <field name="name">spa.class.template.form</field>
+        <field name="model">spa.class.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_sessions" type="object" string="Generar sesiones"
+                            groups="spa_base.group_spa_manager" invisible="not active"/>
+                    <button name="action_open_package_wizard" type="object" string="Inscribir al paquete / curso"
+                            class="btn-primary" groups="spa_base.group_spa_reception" invisible="not active"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sessions" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="session_count" widget="statinfo" string="Próximas sesiones"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Inactivo" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Ej. Natación niños L-M-V 18:00"/></h1>
+                    </div>
+                    <group>
+                        <group string="Clase">
+                            <field name="service_id" options="{'no_create': True}"/>
+                            <field name="space_id"/>
+                            <field name="requires_instructor" invisible="1"/>
+                            <field name="instructor_id" required="requires_instructor" options="{'no_create': True}"/>
+                            <label for="capacity"/>
+                            <div class="o_row">
+                                <field name="capacity" class="oe_inline"/> de <field name="space_capacity" class="oe_inline"/> cupos del espacio
+                            </div>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Horario">
+                            <label for="mon" string="Días"/>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span><field name="mon" nolabel="1"/> Lun</span>
+                                <span><field name="tue" nolabel="1"/> Mar</span>
+                                <span><field name="wed" nolabel="1"/> Mié</span>
+                                <span><field name="thu" nolabel="1"/> Jue</span>
+                                <span><field name="fri" nolabel="1"/> Vie</span>
+                                <span><field name="sat" nolabel="1"/> Sáb</span>
+                                <span><field name="sun" nolabel="1"/> Dom</span>
+                            </div>
+                            <field name="start_hour" widget="float_time"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group string="Precio">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="session_product_id" options="{'no_create': True}"/>
+                            <field name="session_price"/>
+                            <field name="package_product_id" options="{'no_create': True}"/>
+                            <field name="package_sessions" invisible="not package_product_id"/>
+                            <field name="package_price" invisible="not package_product_id"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Descripción para el alumno (nivel, edad, qué traer)"/>
+                    <div class="text-muted small mt-2">
+                        Un proceso diario crea las sesiones de las próximas semanas (Ajustes del spa). Cada sesión
+                        programada reserva su cupo en el espacio y ocupa al instructor. Si una fecha no se puede dictar
+                        (evento, cierre, instructor ocupado) la sesión queda cancelada con el motivo.
+                    </div>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_class_template_view_search" model="ir.ui.view">
+        <field name="name">spa.class.template.search</field>
+        <field name="model">spa.class.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="service_id"/>
+                <field name="instructor_id"/>
+                <filter name="inactive" string="Inactivos" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_space" string="Espacio" context="{'group_by': 'space_id'}"/>
+                    <filter name="group_instructor" string="Instructor" context="{'group_by': 'instructor_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_class_template_action" model="ir.actions.act_window">
+        <field name="name">Horarios de clases</field>
+        <field name="res_model">spa.class.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Cree un horario de clases</p>
+            <p>Natación, aquagym, baile acuático: elija el servicio, el instructor, los días y la hora.
+               Las sesiones se generan solas y reservan su cupo en el espacio.</p>
+        </field>
+    </record>
+
+    <!-- ================= Sesiones ================= -->
+    <record id="spa_class_session_view_list" model="ir.ui.view">
+        <field name="name">spa.class.session.list</field>
+        <field name="model">spa.class.session</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancelled'" decoration-success="state == 'done'">
+                <field name="start"/>
+                <field name="template_id"/>
+                <field name="service_id" optional="hide"/>
+                <field name="space_id" optional="show"/>
+                <field name="instructor_id"/>
+                <field name="enrolled_count"/>
+                <field name="capacity"/>
+                <field name="seats_left" optional="show"/>
+                <field name="attended_count" optional="hide"/>
+                <field name="cancel_reason" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'planned'" decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_class_session_view_calendar" model="ir.ui.view">
+        <field name="name">spa.class.session.calendar</field>
+        <field name="model">spa.class.session</field>
+        <field name="arch" type="xml">
+            <calendar string="Clases" date_start="start" date_stop="stop" color="template_id" mode="week"
+                      event_open_popup="1" quick_create="0">
+                <field name="template_id" filters="1"/>
+                <field name="instructor_id" filters="1"/>
+                <field name="space_id" filters="1"/>
+                <field name="enrolled_count"/>
+                <field name="capacity"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="spa_class_session_view_form" model="ir.ui.view">
+        <field name="name">spa.class.session.form</field>
+        <field name="model">spa.class.session</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_new_enrollment" type="object" string="Inscribir alumno" class="btn-primary"
+                            groups="spa_base.group_spa_reception" invisible="state != 'planned' or not seats_left"/>
+                    <button name="action_done" type="object" string="Marcar dictada" invisible="state != 'planned'"
+                            confirm="Los inscritos sin asistencia quedan como «no asistió». ¿Continuar?"/>
+                    <button name="action_open_cancel_wizard" type="object" string="Cancelar sesión"
+                            groups="spa_base.group_spa_reception" invisible="state != 'planned'"/>
+                    <button name="action_replan" type="object" string="Volver a programar"
+                            groups="spa_base.group_spa_manager" invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="planned,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="state != 'cancelled' or not cancel_reason">
+                        <strong>Cancelada:</strong> <field name="cancel_reason" readonly="1" class="oe_inline"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="template_id" readonly="id"/>
+                            <field name="service_id" readonly="id" options="{'no_create': True}"/>
+                            <field name="space_id"/>
+                            <field name="instructor_id" readonly="state != 'planned'" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="start" readonly="state != 'planned'"/>
+                            <field name="stop" readonly="state != 'planned'"/>
+                            <field name="capacity" readonly="state != 'planned'"/>
+                            <field name="enrolled_count"/>
+                            <field name="seats_left"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Alumnos" name="students">
+                            <field name="enrollment_ids" readonly="1">
+                                <list decoration-muted="state == 'cancelled'" decoration-success="state == 'attended'"
+                                      decoration-danger="state == 'absent'">
+                                    <field name="partner_id"/>
+                                    <field name="phone" optional="show"/>
+                                    <field name="payment_mode"/>
+                                    <field name="invoice_status" optional="show"/>
+                                    <field name="state" widget="badge"/>
+                                    <button name="action_attend" type="object" string="Asistió" icon="fa-check"
+                                            invisible="state != 'enrolled'"/>
+                                    <button name="action_absent" type="object" string="No asistió" icon="fa-times"
+                                            invisible="state != 'enrolled'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_class_session_view_search" model="ir.ui.view">
+        <field name="name">spa.class.session.search</field>
+        <field name="model">spa.class.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="template_id"/>
+                <field name="instructor_id"/>
+                <field name="space_id"/>
+                <filter name="upcoming" string="Programadas" domain="[('state', '=', 'planned')]"/>
+                <filter name="today" string="Hoy"
+                        domain="[('start', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S')),
+                                 ('start', '&lt;', datetime.datetime.combine(context_today() + relativedelta(days=1), datetime.time(0, 0)).to_utc().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                <filter name="cancelled" string="Canceladas" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="my_sessions" string="Mis clases" domain="[('instructor_id.user_id', '=', uid)]"/>
+                <group>
+                    <filter name="group_template" string="Horario" context="{'group_by': 'template_id'}"/>
+                    <filter name="group_instructor" string="Instructor" context="{'group_by': 'instructor_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_class_session_action" model="ir.actions.act_window">
+        <field name="name">Sesiones de clases</field>
+        <field name="res_model">spa.class.session</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="search_view_id" ref="spa_class_session_view_search"/>
+        <field name="context">{'search_default_upcoming': 1}</field>
+    </record>
+
+    <!-- ================= Inscripciones ================= -->
+    <record id="spa_class_enrollment_view_list" model="ir.ui.view">
+        <field name="name">spa.class.enrollment.list</field>
+        <field name="model">spa.class.enrollment</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancelled'" decoration-success="state == 'attended'" decoration-danger="state == 'absent'">
+                <field name="start"/>
+                <field name="session_id"/>
+                <field name="partner_id"/>
+                <field name="instructor_id" optional="hide"/>
+                <field name="payment_mode"/>
+                <field name="package" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="price" optional="show"/>
+                <field name="invoice_status" optional="show"/>
+                <field name="channel" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'enrolled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_class_enrollment_view_form" model="ir.ui.view">
+        <field name="name">spa.class.enrollment.form</field>
+        <field name="model">spa.class.enrollment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_enroll" type="object" string="Inscribir" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_attend" type="object" string="Asistió" invisible="state != 'enrolled'"/>
+                    <button name="action_open_payment" type="object" string="Registrar cobro"
+                            groups="spa_base.group_spa_cashier" invisible="invoice_status not in ('draft', 'posted', 'partial')"/>
+                    <button name="action_cancel" type="object" string="Cancelar inscripción"
+                            invisible="state not in ('draft', 'enrolled')"
+                            confirm="Si faltan menos horas que las de la política, la sesión se considera usada. ¿Cancelar?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,enrolled,attended"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Alumno">
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="payment_mode" widget="radio" readonly="state != 'draft'"/>
+                            <field name="membership_id" readonly="state != 'draft'" invisible="payment_mode != 'membership'"
+                                   required="payment_mode == 'membership'" options="{'no_create': True}"/>
+                            <field name="channel" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Clase">
+                            <field name="session_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="instructor_id"/>
+                            <field name="space_id"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="can_edit_price" invisible="1"/>
+                            <field name="price" invisible="payment_mode != 'invoice'" readonly="state != 'draft' or not can_edit_price"/>
+                            <field name="package"/>
+                            <field name="invoice_status" invisible="payment_mode != 'invoice'"/>
+                            <field name="invoice_id" groups="spa_base.group_spa_cashier" invisible="not invoice_id"/>
+                            <field name="refund_move_id" groups="spa_base.group_spa_cashier" invisible="not refund_move_id"/>
+                            <field name="attended_at" invisible="not attended_at"/>
+                            <field name="cancel_reason" invisible="state != 'cancelled'"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Notas (nivel, salud, autorización de los padres…)"/>
+                </sheet>
+                <footer>
+                    <button name="action_enroll" type="object" string="Inscribir" class="btn-primary" invisible="state != 'draft'"/>
+                    <button special="cancel" string="Cerrar"/>
+                </footer>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="spa_class_enrollment_view_search" model="ir.ui.view">
+        <field name="name">spa.class.enrollment.search</field>
+        <field name="model">spa.class.enrollment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="session_id"/>
+                <field name="template_id"/>
+                <filter name="active_enrollments" string="Inscritos" domain="[('state', '=', 'enrolled')]"/>
+                <filter name="with_invoice" string="Con factura" domain="[('payment_mode', '=', 'invoice'), ('invoice_id', '!=', False)]"/>
+                <group>
+                    <filter name="group_template" string="Horario" context="{'group_by': 'template_id'}"/>
+                    <filter name="group_partner" string="Alumno" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_class_enrollment_action" model="ir.actions.act_window">
+        <field name="name">Inscripciones a clases</field>
+        <field name="res_model">spa.class.enrollment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="spa_class_enrollment_view_search"/>
+        <field name="context">{'search_default_active_enrollments': 1}</field>
+    </record>
+</odoo>
