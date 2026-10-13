@@ -17,9 +17,11 @@ AGING = [
 class SpaReportMember(models.Model):
     """Socios por estado y plan, con su saldo por cobrar y días de mora.
 
-    La deuda son las facturas de cliente publicadas de la membresía con saldo pendiente
-    (alta, renovación, cargos y consumos del restaurante cargados a su cuenta). Los días de mora se
-    cuentan desde el vencimiento de la factura impaga más antigua hasta hoy (hora local del spa).
+    La deuda son las facturas de cliente publicadas de la membresía con saldo pendiente (alta, renovación,
+    cargos y consumos del restaurante cargados a su cuenta) más los cobros pendientes aún sin factura
+    (renovación, cambio de plan y alta: se facturan al cobrar). Los días de mora se cuentan desde el
+    vencimiento más antiguo hasta hoy (hora local del spa); una renovación pendiente vence con la membresía
+    (días desde su vencimiento) y un alta pendiente no genera mora (es una oferta).
     """
     _name = 'spa.report.member'
     _description = 'Socios y mora'
@@ -30,7 +32,7 @@ class SpaReportMember(models.Model):
                            'date_end', 'grace_until'],
         'spa.plan.period': ['price', 'months'],
         'account.move': ['move_type', 'state', 'spa_membership_id', 'amount_residual_signed',
-                         'invoice_date_due', 'invoice_date'],
+                         'invoice_date_due', 'invoice_date', 'spa_invoice_kind'],
     }
 
     name = fields.Char('Membresía', readonly=True)
@@ -63,14 +65,26 @@ class SpaReportMember(models.Model):
             due AS (
                 SELECT am.spa_membership_id AS membership_id,
                        SUM(am.amount_residual_signed) AS amount_due,
-                       SUM(CASE WHEN COALESCE(am.invoice_date_due, am.invoice_date) < p.today
+                       SUM(CASE WHEN dd.due_date < p.today
                                 THEN am.amount_residual_signed ELSE 0 END) AS amount_overdue,
-                       MIN(COALESCE(am.invoice_date_due, am.invoice_date)) AS oldest_due
+                       MIN(dd.due_date) AS oldest_due
                   FROM account_move am
+                  JOIN spa_membership mm ON mm.id = am.spa_membership_id
                  CROSS JOIN params p
+                 CROSS JOIN LATERAL (
+                       SELECT CASE
+                                -- Renovación pendiente (aún sin factura): vence con la membresía.
+                                WHEN am.state = 'draft' AND am.spa_invoice_kind = 'renewal'
+                                    THEN COALESCE(mm.date_end, am.invoice_date_due, am.invoice_date)
+                                -- Alta pendiente: es una oferta, aún no hay deuda vencida.
+                                WHEN am.state = 'draft' AND am.spa_invoice_kind = 'membership'
+                                    THEN NULL
+                                ELSE COALESCE(am.invoice_date_due, am.invoice_date)
+                              END AS due_date
+                 ) dd
                  WHERE am.move_type = 'out_invoice'
-                   AND am.state = 'posted'
-                   AND am.spa_membership_id IS NOT NULL
+                   AND (am.state = 'posted'
+                        OR (am.state = 'draft' AND am.spa_invoice_kind IN ('membership', 'renewal', 'upgrade')))
                    AND am.amount_residual_signed > 0
                  GROUP BY am.spa_membership_id
             )
@@ -93,7 +107,7 @@ class SpaReportMember(models.Model):
                    d.oldest_due AS oldest_due_date,
                    CASE WHEN d.oldest_due < p.today THEN p.today - d.oldest_due ELSE 0 END AS days_overdue,
                    CASE WHEN d.membership_id IS NULL THEN 'none'
-                        WHEN d.oldest_due >= p.today THEN 'current'
+                        WHEN d.oldest_due IS NULL OR d.oldest_due >= p.today THEN 'current'
                         WHEN p.today - d.oldest_due <= 30 THEN '1_30'
                         WHEN p.today - d.oldest_due <= 60 THEN '31_60'
                         WHEN p.today - d.oldest_due <= 90 THEN '61_90'

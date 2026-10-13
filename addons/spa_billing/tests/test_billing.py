@@ -40,14 +40,18 @@ class TestBilling(SpaCommon):
     def test_new_member_monthly_flow(self):
         membership, invoice = self._new_member(self.plan_premium)
         self.assertEqual(membership.state, 'draft')
-        self.assertEqual(invoice.state, 'posted')
+        # Cobro pendiente: sin documento fiscal hasta que se cobre (Ley 843 art. 4 inc. b).
+        self.assertEqual(invoice.state, 'draft')
         self.assertEqual(invoice.amount_total, 890.0)
+        self.assertEqual(membership.amount_due, 890.0)
         income = invoice.line_ids.filtered(lambda l: l.display_type == 'product')
         self.assertEqual(income.account_id.code, '410110')
         iva = invoice.line_ids.filtered(lambda l: l.account_id.code == '213500')
         self.assertAlmostEqual(-iva.balance, 115.7, places=2)  # 13 % de 890
         request = self._pay(invoice)
         self.assertEqual(request.state, 'validated')
+        self.assertEqual(invoice.state, 'posted')
+        self.assertEqual(invoice.invoice_date, self.today)
         self.assertEqual(invoice.payment_state, 'paid')
         self.assertEqual(membership.state, 'active')
         self.assertTrue(invoice.spa_period_applied)
@@ -119,6 +123,8 @@ class TestBilling(SpaCommon):
         self.env['spa.membership']._cron_billing_daily()
         renewal = membership._open_period_invoice()
         self.assertEqual(renewal.spa_invoice_kind, 'renewal')
+        self.assertEqual(renewal.state, 'draft', 'Renovación: cobro pendiente, sin factura hasta que pague')
+        self.assertFalse(renewal.l10n_bo_siat_state if 'l10n_bo_siat_state' in renewal._fields else False)
         self.assertTrue(self.Message.search([('template_id.code', '=', 'renewal_notice'),
                                              ('partner_id', '=', self.partner.id)]))
         # El cron no duplica la factura
@@ -186,9 +192,11 @@ class TestBilling(SpaCommon):
         self.assertEqual(invoice.invoice_line_ids.account_id.code, '410130')
         area = str(self.env.ref('l10n_bo_spa.analytic_area_spa').id)
         self.assertIn(area, invoice.invoice_line_ids.analytic_distribution)
+        self.assertEqual(invoice.state, 'draft', 'Pago suelto: cobro pendiente hasta cobrar o prestar el servicio')
         request = self.Request.create({'partner_id': walk_in.id, 'invoice_id': invoice.id,
                                        'amount': 280.0, 'method': 'cash'})
         request.action_validate()
+        self.assertEqual(invoice.state, 'posted')
         self.assertEqual(booking.payment_state, 'paid')
 
     def test_old_charges_posted_by_cron(self):

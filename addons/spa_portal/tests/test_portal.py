@@ -3,6 +3,8 @@ import base64
 from datetime import timedelta
 from urllib.parse import urlparse
 
+from dateutil.relativedelta import relativedelta
+
 from odoo import fields, http
 from odoo.tests import HttpCase, new_test_user, tagged
 from odoo.tools import mute_logger
@@ -121,7 +123,7 @@ class TestSpaPortal(HttpCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('Aún no eres socio', response.text)
 
-        # 1. Alta en línea: membresía por activar + factura publicada
+        # 1. Alta en línea: membresía por activar + cobro pendiente (la factura se emite al validar el pago)
         period = self.plan_premium.period_ids.filtered(lambda p: p.months == 1)
         response = self._post('/spa/plan/%s/subscribe' % self.plan_premium.id,
                               {'option': '%s:0' % period.id, 'phone': ''})
@@ -136,7 +138,7 @@ class TestSpaPortal(HttpCase):
         self.assertEqual(membership.plan_id, self.plan_premium)
         invoice = membership.invoice_ids
         self.assertEqual(len(invoice), 1)
-        self.assertEqual(invoice.state, 'posted')
+        self.assertEqual(invoice.state, 'draft')
         self.assertEqual(invoice.spa_invoice_kind, 'membership')
         self.assertFalse(invoice.invoice_user_id, 'El usuario portal no queda como vendedor')
         self.assertEqual(self.member.partner_id.phone, '+591 71234567')
@@ -157,6 +159,9 @@ class TestSpaPortal(HttpCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('Envía tu comprobante', response.text)
         self.assertIn('Banco Prueba', response.text)
+        self.assertIn('Cobro pendiente %s' % membership.name, response.text)
+        self.assertIn('Tu factura se emite cuando caja confirme el pago', response.text)
+        self.assertNotIn('Ver factura', response.text)
         self.assertIn('/my/spa/pay/%s/qr' % invoice.id, response.text)
         response = self.url_open('/my/spa/pay/%s/qr' % invoice.id)
         self.assertEqual(response.status_code, 200)
@@ -202,10 +207,12 @@ class TestSpaPortal(HttpCase):
         self.assertIn(pay_request.name, response.text)
         self.assertIn('Pago en validación', self.url_open('/my/spa').text)
 
-        # 4. Caja valida → membresía activa
+        # 4. Caja valida → se emite la factura y la membresía se activa
         pay_request.with_user(self.cashier).action_validate()
         self.env.invalidate_all()
         self.assertEqual(pay_request.state, 'validated')
+        self.assertEqual(invoice.state, 'posted')
+        self.assertEqual(invoice.invoice_date, self.today)
         self.assertEqual(membership.state, 'active')
         self.assertIn(invoice.payment_state, ('paid', 'in_payment'))
         response = self.url_open('/my/spa')
@@ -355,7 +362,7 @@ class TestSpaPortal(HttpCase):
         response = self.url_open('/my/spa')
         self.assertEqual(response.status_code, 200)
         self.assertIn('Aún no eres socio', response.text)
-        self.assertNotIn(invoice.name, response.text)
+        self.assertNotIn(membership.name, response.text)
         self.assertNotIn(payment_request.name, response.text)
         self.assertNotIn(membership.qr_token, response.text)
         self.assertNotIn(other_membership.qr_token, response.text)
@@ -413,11 +420,12 @@ class TestSpaPortal(HttpCase):
                               {'method': 'transfer', 'amount': '%.2f' % next_amount, 'reference': 'DEP-001'})
         self._assert_redirect(response, '/my/spa/pay/%s' % invoice.id, 'msg=received')
         self.env.invalidate_all()
-        # Plan prepagado (12 meses): valida un responsable del spa. Con un usuario solo «caja» el núcleo
-        # (spa_billing, _spa_create_deferral) falla al leer deferral_line_ids sin sudo: ver informe.
-        invoice.spa_membership_id.payment_request_ids.with_user(self.manager).action_validate()
+        # Plan prepagado (12 meses): caja valida (el devengo se programa con sudo).
+        self.assertEqual(invoice.state, 'draft')
+        invoice.spa_membership_id.payment_request_ids.with_user(self.cashier).action_validate()
         self.env.invalidate_all()
         self.assertEqual(membership.state, 'active')
+        self.assertEqual(invoice.state, 'posted', 'Se emite toda la factura al pagar la primera cuota')
         self.assertEqual(invoice.payment_state, 'partial')
         response = self.url_open('/my/spa')
         self.assertIn('/report/barcode/QR/%s' % membership.qr_token, response.text)
@@ -443,3 +451,59 @@ class TestSpaPortal(HttpCase):
         self.assertEqual(booking.state, 'late_cancel')
         self.assertEqual(membership._entitlement_for(self.massage, day).remaining, 3, 'La sesión se pierde')
         self.assertIn('la sesión se descuenta', self.url_open('/my/spa?msg=late_lose_session').text)
+
+    # ------------------------------------------------------------------
+    # Renovación pendiente (sin factura) en la web del socio
+    # ------------------------------------------------------------------
+    def test_09_pending_renewal_in_portal(self):
+        membership, invoice = self._membership(self.member, activate=False)
+        payment = self.env['spa.payment.request'].create({
+            'partner_id': self.member.partner_id.id, 'membership_id': membership.id, 'invoice_id': invoice.id,
+            'amount': invoice.amount_residual, 'method': 'cash', 'channel': 'reception'})
+        payment.with_user(self.cashier).action_validate()
+        self.assertEqual(membership.state, 'active')
+        membership.date_end = self.today + timedelta(days=2)
+        self.env['spa.membership']._cron_billing_daily()
+        renewal = membership._open_period_invoice()
+        self.assertEqual(renewal.state, 'draft')
+        self._login(self.member)
+        response = self.url_open('/my/spa')
+        self.assertIn('/my/spa/pay/%s' % renewal.id, response.text)
+        self.assertIn('Cobro pendiente %s' % membership.name, response.text)
+        response = self.url_open('/my/spa/pay', allow_redirects=False)
+        self._assert_redirect(response, '/my/spa/pay/%s' % renewal.id)
+        response = self.url_open('/my/spa/pay/%s' % renewal.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(membership.name, response.text, 'Referencia del pago = número de la membresía')
+        self.assertIn('value="890.00"', response.text)
+        self.assertEqual(self.url_open('/my/spa/pay/%s/qr' % renewal.id).status_code, 200)
+        response = self._post('/my/spa/pay/%s/submit' % renewal.id,
+                              {'method': 'transfer', 'amount': '890', 'reference': 'TRF-RENUEVA'})
+        self._assert_redirect(response, '/my/spa/pay/%s' % renewal.id, 'msg=received')
+        self.env.invalidate_all()
+        request = self.env['spa.payment.request'].search([('invoice_id', '=', renewal.id)])
+        self.assertRecordValues(request, [{'state': 'pending', 'amount': 890.0, 'membership_id': membership.id}])
+        request.with_user(self.cashier).action_validate()
+        self.env.invalidate_all()
+        self.assertEqual(renewal.state, 'posted')
+        self.assertEqual(membership.date_end, self.today + timedelta(days=2) + relativedelta(months=1))
+
+    def test_10_cancelled_pending_charge_not_payable(self):
+        membership, invoice = self._membership(self.member, activate=False)
+        membership.action_cancel()
+        self.assertEqual(invoice.state, 'cancel')
+        self._login(self.member)
+        with mute_logger('odoo.http'):
+            self.assertEqual(self.url_open('/my/spa/pay/%s' % invoice.id).status_code, 404)
+            self.assertEqual(self.url_open('/my/spa/pay/%s/qr' % invoice.id).status_code, 404)
+        response = self.url_open('/my/spa/pay', allow_redirects=False)
+        self._assert_redirect(response, '/my/spa', 'msg=nothing_due')
+
+    def test_11_grace_shows_last_access_day(self):
+        membership, invoice = self._membership(self.member)
+        membership.write({'date_end': self.today - timedelta(days=1), 'state': 'grace'})
+        until = membership._spa_access_until()
+        self.assertLessEqual(until, membership.grace_until)
+        self._login(self.member)
+        response = self.url_open('/my/spa')
+        self.assertIn('en gracia hasta el', response.text)

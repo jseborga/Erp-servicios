@@ -2,6 +2,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
+from .account_move import PENDING_KINDS
+
 
 class SpaPaymentRequest(models.Model):
     """Pago informado por el socio o por recepción, pendiente de validación en caja."""
@@ -16,7 +18,11 @@ class SpaPaymentRequest(models.Model):
     membership_id = fields.Many2one('spa.membership', string='Membresía', check_company=True)
     invoice_id = fields.Many2one('account.move', string='Factura', required=True, check_company=True,
                                  domain="[('partner_id', '=', partner_id), ('move_type', '=', 'out_invoice'), "
-                                        "('state', '=', 'posted'), ('payment_state', 'not in', ('paid', 'reversed'))]")
+                                        "('payment_state', 'not in', ('paid', 'reversed')), '|', ('state', '=', 'posted'), "
+                                        "'&', ('state', '=', 'draft'), ('spa_invoice_kind', 'in', %s)]" % (list(PENDING_KINDS),),
+                                 help='Factura emitida o cobro pendiente del spa (se emite la factura al validar el pago).')
+    invoice_label = fields.Char('Cobro', compute='_compute_invoice_label', compute_sudo=True,
+                                help='Factura emitida o cobro pendiente (número de la membresía o la reserva).')
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
     currency_id = fields.Many2one(related='company_id.currency_id')
     amount = fields.Monetary('Monto pagado', required=True, tracking=True)
@@ -41,6 +47,11 @@ class SpaPaymentRequest(models.Model):
     validated_date = fields.Datetime('Validado el', readonly=True, copy=False)
     reject_reason = fields.Char('Motivo de rechazo')
 
+    @api.depends('invoice_id.name', 'invoice_id.state', 'invoice_id.invoice_origin')
+    def _compute_invoice_label(self):
+        for request in self:
+            request.invoice_label = request.invoice_id._spa_document_label() if request.invoice_id else False
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -59,8 +70,22 @@ class SpaPaymentRequest(models.Model):
             if request.state != 'pending':
                 raise UserError(self.env._('El pago %s ya fue procesado.', request.name))
             invoice = request.invoice_id
+            if invoice.state == 'cancel':
+                raise UserError(self.env._(
+                    'El cobro %s fue anulado (membresía vencida o cancelada, o reserva cancelada). Rechace este pago '
+                    'o regístrelo en un cobro vigente.', invoice.sudo()._spa_document_label()))
             if invoice.payment_state in ('paid', 'reversed'):
                 raise UserError(self.env._('La factura %s ya está pagada.', invoice.name))
+            if invoice.state == 'draft':
+                if not invoice.sudo()._spa_is_pending_charge():
+                    raise UserError(self.env._('La factura %s está en borrador: el contador debe validarla antes.',
+                                               invoice.display_name))
+                if invoice.currency_id.compare_amounts(request.amount, invoice.amount_residual) > 0:
+                    raise UserError(self.env._('El monto (%(amount)s) supera el saldo de la factura (%(due)s).',
+                                               amount=invoice.currency_id.format(request.amount),
+                                               due=invoice.currency_id.format(invoice.amount_residual)))
+                # Hecho imponible: se cobra el precio (total o parcial) → se emite la factura hoy.
+                invoice.sudo()._spa_post_pending()
             if invoice.currency_id.compare_amounts(request.amount, invoice.amount_residual) > 0:
                 raise UserError(self.env._('El monto (%(amount)s) supera el saldo de la factura (%(due)s).',
                                            amount=invoice.currency_id.format(request.amount),
@@ -85,6 +110,8 @@ class SpaPaymentRequest(models.Model):
             })
             # Pago de la primera cuota: activa la membresía sin esperar el total.
             invoice._spa_apply_period(partial=True)
+            # Pago de una cuota atrasada: reactiva la membresía suspendida por esa cuota.
+            invoice._spa_after_payment()
             request.message_post(body=self.env._('Pago validado y registrado en %s.', journal.name))
         return True
 

@@ -8,6 +8,9 @@ Web pública de planes (/spa) y portal del socio (/my/spa): suscripción en lín
 credencial QR, saldos del mes, reservas por franja con invitados, cancelaciones
 según la política del plan, registro de invitados y pago con QR o transferencia
 subiendo el comprobante (queda «por validar» en caja).
+
+El alta, la renovación y el cambio de plan aparecen como «cobro pendiente» (aún sin factura; la
+referencia del pago es el número de la membresía): la factura se emite cuando caja valida el pago.
 """,
     'author': 'ERP Servicios Spa',
     'website': 'https://github.com/jseborga/erp-servicios',

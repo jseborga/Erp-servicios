@@ -8,7 +8,8 @@
                 <field name="create_date" string="Informado"/>
                 <field name="name"/>
                 <field name="partner_id"/>
-                <field name="invoice_id"/>
+                <field name="invoice_label"/>
+                <field name="invoice_id" optional="hide" groups="account.group_account_invoice"/>
                 <field name="method"/>
                 <field name="channel" optional="show"/>
                 <field name="amount" sum="Total"/>
@@ -40,7 +41,10 @@
                         <group>
                             <field name="partner_id" readonly="state != 'pending'"/>
                             <field name="membership_id" readonly="state != 'pending'"/>
-                            <field name="invoice_id" readonly="state != 'pending'" options="{'no_create': True}"/>
+                            <!-- Recepción no lee facturas: ve el cobro (número de factura o de la membresía/reserva). -->
+                            <field name="invoice_id" readonly="state != 'pending'" options="{'no_create': True}"
+                                   groups="account.group_account_invoice"/>
+                            <field name="invoice_label"/>
                             <field name="amount" readonly="state != 'pending'"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
@@ -54,7 +58,7 @@
                         </group>
                     </group>
                     <group invisible="state != 'validated'">
-                        <field name="payment_id"/>
+                        <field name="payment_id" groups="account.group_account_invoice"/>
                         <field name="validated_by_id"/>
                         <field name="validated_date"/>
                     </group>

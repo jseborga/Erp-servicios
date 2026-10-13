@@ -5,3 +5,8 @@ access_spa_payment_offer_user,spa.payment.offer.user,model_spa_payment_offer,bas
 access_spa_payment_offer_manager,spa.payment.offer.manager,model_spa_payment_offer,spa_base.group_spa_manager,1,1,1,1
 access_spa_deferral_line_manager,spa.deferral.line.manager,model_spa_deferral_line,spa_base.group_spa_manager,1,1,1,1
 access_spa_deferral_line_accountant,spa.deferral.line.accountant,model_spa_deferral_line,account.group_account_user,1,1,0,0
+access_spa_dunning_step_reception,spa.dunning.step.reception,model_spa_dunning_step,spa_base.group_spa_reception,1,0,0,0
+access_spa_dunning_step_manager,spa.dunning.step.manager,model_spa_dunning_step,spa_base.group_spa_manager,1,1,1,1
+access_spa_dunning_log_reception,spa.dunning.log.reception,model_spa_dunning_log,spa_base.group_spa_reception,1,0,0,0
+access_spa_dunning_log_manager,spa.dunning.log.manager,model_spa_dunning_log,spa_base.group_spa_manager,1,1,1,1
+access_spa_plan_change_reception,spa.plan.change.reception,model_spa_plan_change,spa_base.group_spa_reception,1,1,1,1

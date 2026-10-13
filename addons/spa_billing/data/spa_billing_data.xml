@@ -9,7 +9,7 @@
     </record>
 
     <record id="ir_cron_spa_billing_daily" model="ir.cron">
-        <field name="name">Spa: renovaciones, cargos del mes y devengo</field>
+        <field name="name">Spa: cobros de renovación, escalera de cobranza, cuotas, cargos del mes y devengo</field>
         <field name="model_id" ref="spa_membership.model_spa_membership"/>
         <field name="state">code</field>
         <field name="code">model._cron_billing_daily()</field>

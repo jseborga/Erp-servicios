@@ -98,12 +98,13 @@ class TestSpaReports(SpaCommon):
             'partner_id': cls.partner_b.id, 'membership_id': cls.mem_b.id, 'invoice_id': cls.inv_b.id,
             'amount': 100.0, 'method': 'transfer', 'reference': 'TRX-REP'})
 
-        # C: masaje suelto (factura con área Spa y masajes).
+        # C: masaje suelto pagado al reservar (cobro pendiente → factura al cobrar, área Spa y masajes).
         cls.booking_c = cls.Booking.create({
             'partner_id': cls.partner_c.id, 'payment_mode': 'single', 'service_id': cls.massage.id,
             'start': cls._dt_cls(cls.today + timedelta(days=2), 11.0)})
         cls.booking_c.action_confirm()
         cls.inv_c = cls.booking_c.invoice_id
+        cls._pay(cls.inv_c)
 
         # Consumos de A en el mes: 1 masaje, 2 jacuzzi, 3 piscina (ilimitada).
         now = fields.Datetime.now()
@@ -168,6 +169,8 @@ class TestSpaReports(SpaCommon):
         cls.entry.action_post()
         cls.scenario_moves = (cls.inv_a | cls.inv_b | cls.inv_c | cls.inv_d | cls.deferral_d.move_id | cls.entry
                               | cls.pos_invoice)
+        # Ingresos de membresías con área (reparto del plan): facturas mensuales y devengo de prepagados.
+        cls.membership_moves = cls.inv_a | cls.inv_b | cls.deferral_d.move_id
         cls.env.flush_all()
 
     # ------------------------------------------------------------------
@@ -242,12 +245,16 @@ class TestSpaReports(SpaCommon):
             lambda l: l.display_type == 'product' and l.account_id.account_type in ('income', 'income_other'))
         return -sum(lines.mapped('balance'))
 
-    def _it_spa(self):
-        """IT (3 %) de la factura del masaje imputado al área Spa y masajes (cuentas 52)."""
+    def _analytic(self, moves, area, prefix):
+        """Suma de apuntes analíticos del ``area`` en cuentas que empiezan con ``prefix``."""
         column = self.env['spa.report.area.move']._area_column()
         lines = self.env['account.analytic.line'].search([
-            ('move_line_id.move_id', '=', self.inv_c.id), (column, '=', self.area_spa.id)])
-        return -sum(lines.filtered(lambda l: l.general_account_id.code.startswith('52')).mapped('amount'))
+            ('move_line_id.move_id', 'in', moves.ids), (column, '=', area.id)])
+        return sum(lines.filtered(lambda l: l.general_account_id.code.startswith(prefix)).mapped('amount'))
+
+    def _it_spa(self):
+        """IT (3 %) imputado al área Spa y masajes (cuentas 52): masaje suelto y parte de las membresías."""
+        return -self._analytic(self.inv_c | self.membership_moves, self.area_spa, '52')
 
     def _untaxed(self, invoices):
         return -sum(invoices.line_ids.filtered(lambda l: l.display_type == 'product').mapped('balance'))
@@ -423,6 +430,36 @@ class TestSpaReports(SpaCommon):
         self.assertEqual(ordered[0].membership_id, self.mem_b)
         self.assertEqual(row_b.action_open_membership()['res_id'], self.mem_b.id)
 
+    def test_overdue_includes_pending_renewal(self):
+        """Una renovación impaga aún sin factura (cobro pendiente) cuenta como mora desde el vencimiento."""
+        Member = self.env['spa.report.member']
+        partner_f = self.env['res.partner'].create({'name': 'Fabio Renueva (prueba)', 'phone': '+59170000006'})
+        mem_f = self._membership(self.plan_premium, partner=partner_f, activate=False)
+        self._pay(mem_f.action_create_invoice())
+        mem_f.write({'date_end': self.today - timedelta(days=10), 'state': 'grace'})
+        renewal = mem_f.action_create_invoice()
+        self.assertEqual((renewal.state, renewal.spa_invoice_kind), ('draft', 'renewal'))
+        self.env.flush_all()
+        row_f = Member.search([('membership_id', '=', mem_f.id)])
+        self.assertAlmostEqual(row_f.amount_due, 890.0)
+        self.assertAlmostEqual(row_f.amount_overdue, 890.0)
+        self.assertEqual(row_f.days_overdue, 10)
+        self.assertEqual(row_f.oldest_due_date, self.today - timedelta(days=10))
+        self.assertEqual(row_f.aging, '1_30')
+        # Alta pendiente (oferta aún no pagada): saldo por cobrar, sin mora.
+        partner_g = self.env['res.partner'].create({'name': 'Gina Prospecto (prueba)', 'phone': '+59170000007'})
+        mem_g = self._membership(self.plan_basic, partner=partner_g, activate=False)
+        mem_g.action_create_invoice()
+        self.env.flush_all()
+        row_g = Member.search([('membership_id', '=', mem_g.id)])
+        self.assertEqual((row_g.amount_due, row_g.days_overdue, row_g.aging), (450.0, 0, 'current'))
+        # Al pagar, se emite la factura y sale de la mora.
+        self._pay(renewal)
+        self.env.flush_all()
+        self.env.invalidate_all()  # filas del reporte SQL ya leídas
+        row_f = Member.search([('membership_id', '=', mem_f.id)])
+        self.assertEqual((row_f.amount_due, row_f.days_overdue, row_f.aging), (0.0, 0, 'none'))
+
     def test_area_profitability(self):
         Area = self.env['spa.report.area.move']
         column = Area._area_column()
@@ -441,10 +478,21 @@ class TestSpaReports(SpaCommon):
         self.assertAlmostEqual(got[(self.area_pis.id, 'direct_cost')], -600.0)
         self.assertAlmostEqual(got[(self.area_saj.id, 'direct_cost')], -400.0)
         self.assertAlmostEqual(got[(self.area_adm.id, 'admin')], -500.0)
-        self.assertAlmostEqual(got[(self.area_pis.id, 'selling')], -100.0)
-        # Spa y masajes: publicidad 100 + IT (3 %) de la venta del masaje, que lleva su área.
-        self.assertAlmostEqual(got[(self.area_spa.id, 'selling')], -100.0 - self._it_spa())
-        self.assertAlmostEqual(got[(self.area_spa.id, 'income')], self._income(self.inv_c))
+        # Publicidad 100 + IT (3 %) de las ventas con área (membresías según el reparto del plan).
+        it_pool = -self._analytic(self.membership_moves, self.area_pis, '52')
+        self.assertGreater(it_pool, 0)
+        self.assertAlmostEqual(got[(self.area_pis.id, 'selling')], -100.0 - it_pool, places=2)
+        # Spa y masajes: publicidad 100 + IT del masaje suelto y de su parte de las membresías.
+        self.assertAlmostEqual(got[(self.area_spa.id, 'selling')], -100.0 - self._it_spa(), places=2)
+        # Ingresos de membresías por área: Premium (A) 40/30/30, Básica (B y devengo de D) 60/40.
+        income_a, income_b = self._income(self.inv_a), self._income(self.inv_b)
+        deferral = self.deferral_d.amount
+        self.assertAlmostEqual(got[(self.area_pis.id, 'income')], 0.4 * income_a + 0.6 * (income_b + deferral),
+                               delta=0.03)
+        self.assertAlmostEqual(got[(self.area_saj.id, 'income')], 0.3 * income_a + 0.4 * (income_b + deferral),
+                               delta=0.03)
+        self.assertAlmostEqual(got[(self.area_spa.id, 'income')], self._income(self.inv_c) + 0.3 * income_a,
+                               delta=0.03)
         # Debe/haber equivalentes al apunte contable.
         [(debit, credit, balance, amount)] = Area._read_group(
             [('move_id', '=', self.entry.id)], [], ['debit:sum', 'credit:sum', 'balance:sum', 'amount:sum'])
@@ -463,13 +511,17 @@ class TestSpaReports(SpaCommon):
         def delta(kpi, col):
             return after.get((kpi, col), 0.0) - self.mis_before.get((kpi, col), 0.0)
 
-        income_c = self._income(self.inv_c)
+        income_spa = self._analytic(self.inv_c | self.membership_moves, self.area_spa, '41')
+        income_pool = self._analytic(self.membership_moves, self.area_pis, '41')
+        it_pool = -self._analytic(self.membership_moves, self.area_pis, '52')
+        self.assertGreater(income_pool, 0, 'El ingreso de las membresías se reparte por área')
+        self.assertAlmostEqual(delta('ingresos', 'Piscina'), income_pool, places=2)
         self.assertAlmostEqual(delta('costos_directos', 'Piscina'), 600.0)
-        self.assertAlmostEqual(delta('gastos_comercializacion', 'Piscina'), 100.0)
-        self.assertAlmostEqual(delta('resultado', 'Piscina'), -700.0)
+        self.assertAlmostEqual(delta('gastos_comercializacion', 'Piscina'), 100.0 + it_pool, places=2)
+        self.assertAlmostEqual(delta('resultado', 'Piscina'), income_pool - 700.0 - it_pool, places=2)
         self.assertAlmostEqual(delta('costos_directos', 'Sauna y jacuzzi'), 400.0)
-        self.assertAlmostEqual(delta('ingresos', 'Spa y masajes'), income_c)
-        self.assertAlmostEqual(delta('gastos_comercializacion', 'Spa y masajes'), 100.0 + self._it_spa())
+        self.assertAlmostEqual(delta('ingresos', 'Spa y masajes'), income_spa, places=2)
+        self.assertAlmostEqual(delta('gastos_comercializacion', 'Spa y masajes'), 100.0 + self._it_spa(), places=2)
         self.assertAlmostEqual(delta('gastos_administracion', 'Administración'), 500.0)
         self.assertAlmostEqual(delta('costos_directos', 'Total por áreas'), 1000.0)
         self.assertAlmostEqual(delta('gastos_administracion', 'Total por áreas'), 500.0)
@@ -480,12 +532,13 @@ class TestSpaReports(SpaCommon):
             ('date', '>=', year_start), ('account_id.code', '=like', '41%')])
         self.assertAlmostEqual(delta('ingresos', 'Total contable'), -sum(income_lines.mapped('balance')))
         self.assertAlmostEqual(delta('costos_directos', 'Total contable'), 1000.0)
-        # Sin área = total contable − total por áreas (aquí: las membresías y el devengo).
+        # Sin área = total contable − total por áreas.
         for kpi in ('ingresos', 'costos_directos', 'gastos_administracion', 'resultado'):
             self.assertAlmostEqual(after.get((kpi, 'Sin área asignada'), 0.0),
                                    after.get((kpi, 'Total contable'), 0.0) - after.get((kpi, 'Total por áreas'), 0.0),
                                    msg=kpi)
-        self.assertGreater(delta('ingresos', 'Sin área asignada'), 0)
+        # Las membresías (alta mensual y devengo de prepagados) ya no quedan «sin área».
+        self.assertLess(delta('ingresos', 'Sin área asignada'), self._income(self.inv_a), 'Membresías con área')
 
     def test_dashboard(self):
         dashboard = self.env['spa.report.dashboard'].create({})

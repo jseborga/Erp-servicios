@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_plan_change_view_form" model="ir.ui.view">
+        <field name="name">spa.plan.change.form</field>
+        <field name="model">spa.plan.change</field>
+        <field name="arch" type="xml">
+            <form string="Cambiar de plan">
+                <group>
+                    <group string="Hoy">
+                        <field name="membership_id" options="{'no_open': True}"/>
+                        <field name="current_period_id" options="{'no_open': True}"/>
+                        <field name="date_end"/>
+                        <field name="current_plan_id" invisible="1"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <group string="Nuevo plan">
+                        <field name="new_plan_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="new_period_id" options="{'no_create': True, 'no_open': True}"
+                               invisible="not new_plan_id"/>
+                        <field name="change_type" invisible="not change_type"/>
+                        <field name="effective_date" invisible="not change_type"/>
+                    </group>
+                </group>
+                <group invisible="change_type != 'upgrade'">
+                    <field name="remaining_days"/>
+                    <field name="period_days"/>
+                    <field name="amount"/>
+                </group>
+                <div class="alert alert-info" role="status" invisible="not summary">
+                    <field name="summary" readonly="1"/>
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirmar cambio" class="btn-primary"
+                            invisible="not change_type"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

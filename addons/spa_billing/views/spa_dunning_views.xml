@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_dunning_step_view_list" model="ir.ui.view">
+        <field name="name">spa.dunning.step.list</field>
+        <field name="model">spa.dunning.step</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-danger="action == 'suspend'" decoration-muted="not active">
+                <field name="offset_days" string="Día (± vencimiento)"/>
+                <field name="name"/>
+                <field name="action"/>
+                <field name="template_id" options="{'no_create': True}" required="action == 'notify'"/>
+                <field name="note" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_dunning_step_action" model="ir.actions.act_window">
+        <field name="name">Escalera de cobranza</field>
+        <field name="res_model">spa.dunning.step</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Configure los avisos de cobranza</p>
+            <p>Cada paso se aplica una vez por período de la membresía: días negativos = antes del vencimiento,
+               0 = el día del vencimiento, positivos = después, si la renovación sigue impaga. Un paso «Suspender»
+               corta el acceso (los días de gracia del plan también suspenden, lo que ocurra primero).</p>
+        </field>
+    </record>
+
+    <record id="spa_dunning_log_view_list" model="ir.ui.view">
+        <field name="name">spa.dunning.log.list</field>
+        <field name="model">spa.dunning.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" decoration-muted="result == 'skipped'">
+                <field name="date"/>
+                <field name="membership_id"/>
+                <field name="partner_id"/>
+                <field name="kind"/>
+                <field name="step_id"/>
+                <field name="action"/>
+                <field name="result"/>
+                <field name="message_id" optional="show"/>
+                <field name="period_end" optional="hide"/>
+                <field name="note"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="spa_dunning_log_view_search" model="ir.ui.view">
+        <field name="name">spa.dunning.log.search</field>
+        <field name="model">spa.dunning.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="membership_id"/>
+                <field name="step_id"/>
+                <filter name="done" string="Aplicados" domain="[('result', '=', 'done')]"/>
+                <filter name="suspend" string="Suspensiones" domain="[('action', '=', 'suspend')]"/>
+                <group>
+                    <filter name="group_step" string="Paso" context="{'group_by': 'step_id'}"/>
+                    <filter name="group_date" string="Fecha" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="spa_dunning_log_action" model="ir.actions.act_window">
+        <field name="name">Bitácora de cobranza</field>
+        <field name="res_model">spa.dunning.log</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

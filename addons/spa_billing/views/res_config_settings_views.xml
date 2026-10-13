@@ -16,8 +16,16 @@
                         <div><label for="spa_payment_journal_id" class="me-2"/><field name="spa_payment_journal_id"/></div>
                         <div><label for="spa_cash_journal_id" class="me-2"/><field name="spa_cash_journal_id"/></div>
                     </setting>
-                    <setting string="Renovación" help="Días antes del vencimiento en que se genera la factura y el aviso.">
+                    <setting string="Renovación" help="Días antes del vencimiento en que se genera el cobro pendiente de la renovación (la factura se emite al cobrar). Los avisos los envía la escalera de cobranza.">
                         <field name="spa_renewal_days"/>
+                        <div class="mt-2">
+                            <button name="%(spa_billing.spa_dunning_step_action)d" type="action" string="Escalera de cobranza"
+                                    icon="oi-arrow-right" class="btn-link"/>
+                        </div>
+                    </setting>
+                    <setting string="Planes en cuotas" help="Seguimiento de cuotas impagas: aviso por WhatsApp a los N días y suspensión a los M días (se reactiva al pagar). 0 = desactivado.">
+                        <div><label for="spa_installment_reminder_days" class="me-2"/><field name="spa_installment_reminder_days"/></div>
+                        <div><label for="spa_installment_suspend_days" class="me-2"/><field name="spa_installment_suspend_days"/></div>
                     </setting>
                 </block>
             </xpath>

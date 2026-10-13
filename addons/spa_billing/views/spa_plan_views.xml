@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="spa_plan_view_form_billing" model="ir.ui.view">
+        <field name="name">spa.plan.form.billing</field>
+        <field name="model">spa.plan</field>
+        <field name="inherit_id" ref="spa_membership.spa_plan_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='periods']" position="after">
+                <page string="Contabilidad" name="accounting"
+                      groups="account.group_account_user,analytic.group_analytic_accounting">
+                    <group>
+                        <field name="analytic_distribution" widget="analytic_distribution"
+                               string="Ingreso por área"
+                               options="{'business_domain': 'general'}"/>
+                        <field name="analytic_precision" invisible="1"/>
+                    </group>
+                    <div class="text-muted small">
+                        Reparto del ingreso de la membresía entre las áreas del negocio (piscina, sauna y jacuzzi,
+                        spa y masajes…) para el resultado por área. Los valores iniciales son un ejemplo: ajústelos
+                        según el uso real de cada plan. Se aplica a la factura de los planes mensuales y al devengo
+                        mensual de los planes prepagados.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

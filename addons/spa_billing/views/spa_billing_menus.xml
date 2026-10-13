@@ -4,6 +4,10 @@
               action="spa_payment_request_action" sequence="20" groups="spa_base.group_spa_reception"/>
     <menuitem id="spa_menu_payment_offer" name="Ofertas de pago" parent="spa_base.spa_menu_config"
               action="spa_payment_offer_action" sequence="8"/>
+    <menuitem id="spa_menu_dunning_step" name="Escalera de cobranza" parent="spa_base.spa_menu_config"
+              action="spa_dunning_step_action" sequence="9"/>
     <menuitem id="spa_menu_deferral" name="Devengo de membresías" parent="spa_base.spa_menu_reporting"
               action="spa_deferral_line_action" sequence="30"/>
+    <menuitem id="spa_menu_dunning_log" name="Bitácora de cobranza" parent="spa_base.spa_menu_reporting"
+              action="spa_dunning_log_action" sequence="35"/>
 </odoo>

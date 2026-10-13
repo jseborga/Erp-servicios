@@ -31,6 +31,9 @@ Además:
 * Libro de Ventas (vista SQL de solo lectura, exportable) y lista de control de ventas sin factura.
 * Las facturas creadas por procesos automáticos (membresías, portal, POS, tareas programadas) se
   validan siempre: nunca se bloquean por datos SIAT faltantes.
+* La emisión SIAT ocurre al validar (publicar) la factura. Con spa_billing, las membresías, renovaciones,
+  cambios de plan y servicios sueltos quedan como cobro pendiente (borrador, sin estado SIAT ni
+  actividad) y se publican al cobrar o al prestar el servicio: una renovación impaga nunca llega al SIAT.
 """,
     'author': 'ERP Servicios Spa',
     'website': 'https://github.com/jseborga/erp-servicios',

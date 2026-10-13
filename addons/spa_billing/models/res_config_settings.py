@@ -11,3 +11,5 @@ class ResConfigSettings(models.TransientModel):
     spa_payment_journal_id = fields.Many2one(related='company_id.spa_payment_journal_id', readonly=False)
     spa_cash_journal_id = fields.Many2one(related='company_id.spa_cash_journal_id', readonly=False)
     spa_renewal_days = fields.Integer(related='company_id.spa_renewal_days', readonly=False)
+    spa_installment_reminder_days = fields.Integer(related='company_id.spa_installment_reminder_days', readonly=False)
+    spa_installment_suspend_days = fields.Integer(related='company_id.spa_installment_suspend_days', readonly=False)
